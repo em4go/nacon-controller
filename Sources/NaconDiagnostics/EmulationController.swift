@@ -9,10 +9,11 @@ final class EmulationController: ObservableObject {
     @Published private(set) var isEnabled = false
     @Published private(set) var hasAccessibility = AccessibilityPermission.isGranted
     @Published private(set) var stoppedByPad = false
-    @Published private(set) var invertVerticalAxis = false
 
     private let engine = EmulationEngine(emitter: CGEventEmitter())
-    private var profile = InputProfile.standard
+    /// Supplies the mapping to run. The app points it at the saved profiles, so a start uses the
+    /// selected one (S1, S8); the standard mapping keeps the controller usable on its own.
+    private var profileSource: @MainActor () -> InputProfile = { .standard }
     private var cancellables: Set<AnyCancellable> = []
     private var permissionTimer: Timer?
     private var terminationObserver: NSObjectProtocol?
@@ -27,7 +28,11 @@ final class EmulationController: ObservableObject {
         }
     }
 
-    func attach(to service: ControllerService) {
+    func attach(to service: ControllerService, profiles: ProfileLibraryController) {
+        // S1, S8: the engine reads the library every time emulation starts, so the profile selected
+        // in the window — including the one restored from disk after a relaunch — is the one used.
+        profileSource = { profiles.runtimeProfile }
+
         // Capture the engine, not self: this closure runs on the USB I/O queue.
         let engine = self.engine
         service.reportObserver = { report in
@@ -100,18 +105,12 @@ final class EmulationController: ObservableObject {
             return
         }
         hasAccessibility = true
+        // S1, S8: the profile in force is the one captured at start. Editing a mapping or switching
+        // profiles while emulation runs therefore cannot disturb an in-flight press: the next start
+        // reads the library again.
+        engine.setProfile(profileSource())
         isEnabled = true
         engine.setEnabled(true)
-    }
-
-    /// Flips the vertical direction of cursor movement and scrolling.
-    ///
-    /// Some units report the Y axis with the opposite sign for the same physical movement, so this
-    /// has to be a per-unit setting rather than a fixed convention.
-    func setInvertVerticalAxis(_ newValue: Bool) {
-        invertVerticalAxis = newValue
-        profile.cursor.invertVerticalAxis = newValue
-        engine.setProfile(profile)
     }
 
     func requestAccessibility() {

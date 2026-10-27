@@ -50,6 +50,16 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
         return profiles.first
     }
 
+    /// S1, S8: the mapping the emulation engine runs with.
+    ///
+    /// It is the selected profile, so whatever the user last chose — including after a relaunch,
+    /// because the selection is persisted with the library — is exactly what the engine gets. A
+    /// library that cannot resolve any profile yields the standard mapping instead of nothing: an
+    /// unreadable file must never leave the pad dead.
+    public var runtimeProfile: InputProfile {
+        selectedProfile?.profile ?? .standard
+    }
+
     /// The library with a usable selection, or the seeded library when it holds no profiles.
     public func normalized() -> ProfileLibrary {
         guard let first = profiles.first else { return ProfileLibrary.makeSeed() }
@@ -165,6 +175,32 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
         } else {
             selectedProfileID = selectedProfile?.id
         }
+    }
+
+    // MARK: - Cursor settings (S2)
+
+    /// Position of the profile being edited, or `nil` when the library cannot resolve one.
+    private var selectedIndex: Int? {
+        guard let selectedID = selectedProfile?.id else { return nil }
+        return profiles.firstIndex(where: { $0.id == selectedID })
+    }
+
+    /// S2: the vertical-axis setting of the profile being edited.
+    ///
+    /// The setting belongs to the profile, not to the running app, so a toggle that shows this value
+    /// always agrees with what would be used on the next start.
+    public var selectedInvertVerticalAxis: Bool {
+        selectedProfile?.profile.cursor.invertVerticalAxis ?? false
+    }
+
+    /// S2: flips the vertical direction on the profile being edited, leaving every sibling alone.
+    /// - Returns: whether the library changed.
+    @discardableResult
+    public mutating func setInvertVerticalAxis(_ newValue: Bool) -> Bool {
+        guard let index = selectedIndex else { return false }
+        guard profiles[index].profile.cursor.invertVerticalAxis != newValue else { return false }
+        profiles[index].profile.cursor.invertVerticalAxis = newValue
+        return true
     }
 
     private enum CodingKeys: String, CodingKey {

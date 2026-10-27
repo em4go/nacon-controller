@@ -24,6 +24,13 @@ final class ProfileLibraryController: ObservableObject {
     var profiles: [StoredProfile] { library.profiles }
     var selectedProfile: StoredProfile? { library.selectedProfile }
     var canDeleteProfile: Bool { library.canDeleteProfile }
+    /// S1, S8: the mapping the emulation engine must start with.
+    ///
+    /// Read-only on purpose: the engine asks once at start, so an edit made while it runs only
+    /// applies the next time emulation is started.
+    var runtimeProfile: InputProfile { library.runtimeProfile }
+    /// S2: the vertical-axis value of the profile being edited, shown by the toggle.
+    var selectedInvertVerticalAxis: Bool { library.selectedInvertVerticalAxis }
 
     /// S8: the selection is part of the library, so it is written like any other change.
     func select(_ id: UUID) {
@@ -66,6 +73,12 @@ final class ProfileLibraryController: ObservableObject {
     /// so the controller only sequences "change, then save".
     func setAction(_ action: MappedAction, for control: XInputControl) {
         mutate { $0.setAction(action, for: control) }
+    }
+
+    /// S2: the vertical-axis setting belongs to the profile, so flipping the toggle edits the
+    /// selected profile and saves it straight away like any other change.
+    func setInvertVerticalAxis(_ newValue: Bool) {
+        mutate { $0.setInvertVerticalAxis(newValue) }
     }
 
     func rename(_ id: UUID, to name: String) {

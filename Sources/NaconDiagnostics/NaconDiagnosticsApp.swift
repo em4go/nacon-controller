@@ -18,7 +18,8 @@ struct NaconDiagnosticsApp: App {
                 .frame(minWidth: 780, minHeight: 780)
                 .onAppear {
                     service.start()
-                    emulation.attach(to: service)
+                    // S1, S8: the engine runs the profile the library has selected.
+                    emulation.attach(to: service, profiles: profiles)
                 }
                 .onDisappear {
                     emulation.shutdown()

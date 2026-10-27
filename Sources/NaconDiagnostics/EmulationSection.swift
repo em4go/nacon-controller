@@ -4,6 +4,8 @@ import SwiftUI
 struct EmulationSection: View {
     @ObservedObject var emulation: EmulationController
     @EnvironmentObject private var service: ControllerService
+    /// S2: the vertical-axis setting belongs to the profile being edited, like the mapping does.
+    @EnvironmentObject private var profiles: ProfileLibraryController
 
     /// The pad light state owned by this section.
     @State private var padLight = PadLight()
@@ -22,14 +24,17 @@ struct EmulationSection: View {
             .toggleStyle(.switch)
             .disabled(!emulation.hasAccessibility)
             lightControls
+            // S2: the switch shows the value stored in the selected profile, not a leftover global
+            // flag, and flipping it edits that profile so two profiles can differ.
             Toggle("Invertir eje vertical", isOn: Binding(
-                get: { emulation.invertVerticalAxis },
-                set: { emulation.setInvertVerticalAxis($0) }
+                get: { profiles.selectedInvertVerticalAxis },
+                set: { profiles.setInvertVerticalAxis($0) }
             ))
             .toggleStyle(.switch)
             Text(
                 "Actívalo si al empujar el stick hacia arriba el cursor baja. Afecta al cursor y al "
-                + "desplazamiento, no al indicador del stick en pantalla."
+                + "desplazamiento, no al indicador del stick en pantalla. Se guarda en el perfil "
+                + "activo y se aplica al iniciar la emulación."
             )
             .font(.caption)
             .foregroundStyle(.secondary)

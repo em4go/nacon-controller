@@ -27,9 +27,10 @@ struct ProfileSection: View {
                     profileID: selected.id,
                     isEmulationEnabled: emulation.isEnabled,
                     setAction: { armedProfileID, control, action in
-                        // F5: a capture belongs to the profile it was armed for. If the selection
-                        // moved while a key was in flight, the write is dropped instead of landing
-                        // on the profile the user has just selected.
+                        // F5: a capture belongs to the profile it was armed for. `KeyCaptureSession`
+                        // reports that identifier with the mapping, so a selection that moved while
+                        // a key was in flight drops the write instead of landing on the profile the
+                        // user has just selected.
                         guard armedProfileID == profiles.selectedProfile?.id else { return }
                         // The controller persists every change, so the edit survives a restart (S6).
                         profiles.setAction(action, for: control)

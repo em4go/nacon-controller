@@ -5,9 +5,10 @@ import SwiftUI
 /// S3: the per-control mapping editor for the profile being edited.
 ///
 /// The editor only renders state and forwards intents. Everything that decides what a press means
-/// (which controls are remappable, what a captured key becomes, what cancels a capture, how an
-/// action reads) lives in `MappingRules`, and the write itself is handed in by the caller so this
-/// view never touches persistence. Two safety rules shape the layout:
+/// (which controls are remappable, whether arming is safe, what a captured key becomes, when a
+/// capture ends, how an action reads) lives in `MappingRules` and `KeyCaptureSession`, and the write
+/// itself is handed in by the caller so this view never touches persistence. Two safety rules shape
+/// the layout:
 ///
 /// - Guide has no editor row at all, because it is the emergency stop.
 /// - The whole editor is disabled while emulation runs: swapping a mapping with a button held can
@@ -44,7 +45,13 @@ struct MappingEditor: View {
                         control: control,
                         action: profile.action(for: control),
                         isCapturing: capture.isCapturing(control),
-                        onCapture: { capture.toggle(control, for: profileID) },
+                        onCapture: {
+                            capture.toggle(
+                                control,
+                                for: profileID,
+                                isEmulationRunning: isEmulationEnabled
+                            )
+                        },
                         // A menu choice applies to the profile on screen, so it carries that id.
                         onChoose: { setAction(profileID, control, $0) }
                     )
@@ -69,8 +76,8 @@ struct MappingEditor: View {
             capture.end()
         }
         .onAppear {
-            capture.onFinish = { armedProfileID, control, outcome in
-                guard case .mapped(let action) = outcome else { return }
+            capture.onFinish = { outcome in
+                guard case let .mapped(armedProfileID, control, action) = outcome else { return }
                 setAction(armedProfileID, control, action)
             }
         }
@@ -175,44 +182,55 @@ private struct MappingRow: View {
 
 /// Owns the key-capture session so the event monitor exists only while a capture is armed.
 ///
+/// The decisions are not here: `KeyCaptureSession` decides whether arming is safe, what a press
+/// becomes, when the capture ends and which profile the mapping belongs to. This object is the
+/// AppKit translation layer -- it installs the monitor, reads the key code and modifiers, and hands
+/// the outcome to the view -- plus the observable wrapper SwiftUI needs to redraw the rows.
+///
 /// A local monitor is used on purpose: it sees the press before the rest of the app and can swallow
 /// it, so the captured shortcut never reaches a text field or a menu. Normal typing is untouched
 /// because nothing is installed outside a capture, and `end()` always removes the monitor, whether
 /// the capture succeeds, is cancelled with Escape, emulation starts, or the view disappears.
-///
-/// A capture also remembers the profile it was armed for, and hands that identifier back with the
-/// outcome. The profile selected when the key arrives is not necessarily the one the user was
-/// looking at when they pressed «Capturar».
 @MainActor
 final class MappingCapture: ObservableObject {
-    /// Control whose next key press is being captured, if any.
-    @Published private(set) var control: XInputControl?
+    /// The armed capture. Mutating it publishes, so the rows follow the state machine.
+    @Published private(set) var session = KeyCaptureSession()
 
-    /// Profile the armed capture belongs to, if any.
-    private(set) var profileID: UUID?
-
-    /// Called once per finished capture, with the profile the capture was armed for.
-    var onFinish: ((UUID, XInputControl, CaptureOutcome) -> Void)?
+    /// Called once per finished capture with the outcome, which carries the profile the capture was
+    /// armed for.
+    var onFinish: ((KeyCaptureSession.Outcome) -> Void)?
 
     private var monitor: Any?
 
     func isCapturing(_ candidate: XInputControl) -> Bool {
-        control == candidate
+        session.isArmed(candidate)
     }
 
     /// Arms a control for one profile, or disarms it when it is already the one being captured.
-    func toggle(_ candidate: XInputControl, for profileID: UUID) {
-        if control == candidate, self.profileID == profileID {
-            end()
-        } else {
-            begin(candidate, for: profileID)
+    /// The refusal while emulation runs is a result, so the caller never has to guess.
+    func toggle(_ candidate: XInputControl, for profileID: UUID, isEmulationRunning: Bool) {
+        switch session.toggle(candidate, for: profileID, isEmulationRunning: isEmulationRunning) {
+        case .armed:
+            installMonitor()
+        case .disarmed, .refusedWhileEmulating:
+            removeMonitor()
         }
     }
 
-    func begin(_ candidate: XInputControl, for profileID: UUID) {
-        end()
-        control = candidate
-        self.profileID = profileID
+    /// Removes the monitor and forgets the armed control and profile. Safe to call at any time.
+    func end() {
+        session.disarm()
+        removeMonitor()
+    }
+
+    deinit {
+        if let monitor {
+            NSEvent.removeMonitor(monitor)
+        }
+    }
+
+    private func installMonitor() {
+        removeMonitor()
         monitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
             guard let self else { return event }
             // Only sendable values cross into the isolated block; the event itself is main-thread
@@ -227,27 +245,19 @@ final class MappingCapture: ObservableObject {
         }
     }
 
-    /// Removes the monitor and forgets the armed control and profile. Safe to call at any time.
-    func end() {
+    private func removeMonitor() {
         if let monitor {
             NSEvent.removeMonitor(monitor)
         }
         monitor = nil
-        control = nil
-        profileID = nil
-    }
-
-    deinit {
-        if let monitor {
-            NSEvent.removeMonitor(monitor)
-        }
     }
 
     private func handle(keyCode: UInt16, modifiers: ModifierSet) -> Bool {
-        guard let control, let profileID else { return false }
-        let outcome = MappingRules.capture(forKeyCode: keyCode, modifiers: modifiers)
-        end()
-        onFinish?(profileID, control, outcome)
+        let outcome = session.handleKey(keyCode: keyCode, modifiers: modifiers)
+        guard outcome != .ignored else { return false }
+        // A finished capture always disarms, so the monitor goes away with it.
+        removeMonitor()
+        onFinish?(outcome)
         return true
     }
 }

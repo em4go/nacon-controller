@@ -174,6 +174,18 @@ private struct MappingRow: View {
             onChoose(MappingRules.scrollDownAction)
         }
         Divider()
+        // S11: macOS actions that are really keystrokes. Offering them here saves memorising a
+        // combination, and the submenu says which ones depend on a setting in System Settings.
+        ForEach(SystemShortcut.Category.allCases, id: \.self) { category in
+            Menu(category.title) {
+                ForEach(SystemShortcut.inCategory(category)) { shortcut in
+                    Button("\(shortcut.name) — \(shortcut.combo.glyph)") {
+                        onChoose(shortcut.action)
+                    }
+                }
+            }
+        }
+        Divider()
         Button(MappingRules.label(for: .none)) {
             onChoose(.none)
         }

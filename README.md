@@ -110,6 +110,24 @@ Las dos son estado de ejecución, no ajustes de perfil. La app envía la orden d
 pero un cierre forzado puede dejar la luz encendida o los motores girando: es una limitación aceptada
 y está dicha también junto a los controles.
 
+### Atajos del sistema listos
+
+El menú **Elegir…** de cada control ofrece, además de las teclas que captures, un catálogo de acciones
+de macOS con nombre: Mission Control, mostrar las ventanas de la app, escritorio a la izquierda y a la
+derecha, cerrar la ventana, cambiar de aplicación, ventana siguiente de la misma app, cerrar la
+aplicación, forzar la salida, Spotlight y las capturas de pantalla.
+
+Son combinaciones de teclas normales, así que el mando envía exactamente lo mismo que el teclado: no
+hacen falta permisos nuevos ni APIs privadas. El límite es el mismo que el del teclado:
+
+- Solo funcionan si el atajo sigue activo en **Ajustes del Sistema › Teclado › Atajos de teclado**.
+  Ofrecer el nombre no comprueba que esté vivo: si lo desactivaste, el mando enviará la combinación y
+  no pasará nada.
+- Los que cambian de escritorio o de aplicación hacen lo que tengas configurado en el sistema (cuántos
+  escritorios existen, qué hace ⌘+Tab), no algo propio de la app.
+- Un atajo con ⌘+Q cierra la aplicación que esté delante, no una en concreto: el catálogo no elige por
+  ti, y no necesita el permiso de Automatización.
+
 ### Firma estable (recomendado antes de la primera concesión)
 
 La firma ad-hoc ancla el permiso de Accesibilidad al hash del binario, así que **cada recompilación

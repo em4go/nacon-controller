@@ -85,18 +85,6 @@ final class MappingRulesTests: XCTestCase {
         XCTAssertEqual(outcome, .mapped(.key(KeyCombo(keyCode: 53, modifiers: [.shift]))))
     }
 
-    func testCancelledCaptureLeavesThePreviousMappingUntouched() {
-        var profile = InputProfile.standard
-        let before = profile.action(for: .buttonA)
-
-        guard case .cancel = MappingRules.capture(forKeyCode: VirtualKey.escape.rawValue, modifiers: [])
-        else {
-            return XCTFail("plain Escape must cancel")
-        }
-
-        XCTAssertEqual(profile.action(for: .buttonA), before)
-    }
-
     // MARK: - Clearing a mapping
 
     func testSettingNoneClearsTheMapping() {

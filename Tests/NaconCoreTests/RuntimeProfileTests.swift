@@ -55,11 +55,18 @@ final class RuntimeProfileTests: XCTestCase {
     }
 
     func testRuntimeProfileUsesTheFirstProfileWhenTheSelectionDangles() {
-        var library = libraryWithCustomSelection()
-        library.selectedProfileID = UUID()
+        // The first profile is deliberately NOT the standard one. With a standard first profile,
+        // "use the first profile" and "fall back to the standard mapping" produce the same value,
+        // so the test could not tell which branch ran. Keyed on K instead of the standard click.
+        let base = StoredProfile(
+            name: "Base",
+            profile: InputProfile(mappings: [.buttonA: .key(KeyCombo(.space))])
+        )
+        let library = ProfileLibrary(profiles: [base], selectedProfileID: UUID())
 
-        XCTAssertEqual(library.runtimeProfile, library.profiles[0].profile)
-        XCTAssertEqual(library.runtimeProfile.action(for: .buttonA), .mouseButton(.left))
+        XCTAssertEqual(library.runtimeProfile, base.profile)
+        XCTAssertEqual(library.runtimeProfile.action(for: .buttonA), .key(KeyCombo(.space)))
+        XCTAssertNotEqual(library.runtimeProfile, .standard)
     }
 
     // MARK: - S2: the vertical axis belongs to the profile

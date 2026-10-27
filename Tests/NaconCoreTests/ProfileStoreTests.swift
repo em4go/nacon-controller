@@ -179,4 +179,122 @@ final class ProfileStoreTests: XCTestCase {
         XCTAssertEqual(library.selectedProfile?.profile, .standard)
         XCTAssertEqual(library.profiles.count, 1)
     }
+
+    // MARK: - F1: one bad entry must never cost the whole library
+
+    /// Files the store moved aside instead of overwriting them.
+    private func quarantinedFiles() throws -> [URL] {
+        try FileManager.default
+            .contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
+            .filter { $0.lastPathComponent.hasPrefix("profiles.unreadable-") }
+            .sorted { $0.lastPathComponent < $1.lastPathComponent }
+    }
+
+    func testOneMalformedProfileKeepsItsValidSiblings() throws {
+        let json = """
+        {"version":1,"selectedProfileID":"22222222-2222-2222-2222-222222222222","profiles":[\
+        {"id":"11111111-1111-1111-1111-111111111111","name":"Working",\
+        "profile":{"mappings":{"buttonA":{"kind":"mouseButton","button":"right"}}}},\
+        {"id":"33333333-3333-3333-3333-333333333333","name":"Broken",\
+        "profile":{"mappings":{"buttonA":{"kind":"key"}}}},\
+        {"id":"22222222-2222-2222-2222-222222222222","name":"Gaming","profile":{"mappings":{}}}]}
+        """
+        try Data(json.utf8).write(to: store.fileURL)
+
+        let library = store.load()
+
+        XCTAssertEqual(library.profiles.map(\.name), ["Working", "Gaming"])
+        XCTAssertEqual(library.selectedProfileID, UUID(uuidString: "22222222-2222-2222-2222-222222222222"))
+        XCTAssertEqual(library.profiles.first?.profile.action(for: .buttonA), .mouseButton(.right))
+        XCTAssertEqual(library.profiles.last?.profile.mappings, [:])
+        // Something was recovered, so the file itself stays where the next save expects it.
+        XCTAssertTrue(try quarantinedFiles().isEmpty)
+    }
+
+    func testSalvagedLibrarySurvivesTheNextSave() throws {
+        let json = """
+        {"version":1,"profiles":[\
+        {"id":"11111111-1111-1111-1111-111111111111","name":"Working","profile":{"mappings":{}}},\
+        {"id":"33333333-3333-3333-3333-333333333333","name":"Broken","profile":42}]}
+        """
+        try Data(json.utf8).write(to: store.fileURL)
+
+        let salvaged = store.load()
+        try store.save(salvaged)
+
+        XCTAssertEqual(ProfileStore(directory: directory).load().profiles.map(\.name), ["Working"])
+    }
+
+    func testCorruptFileIsMovedAsideBeforeTheSeedCanOverwriteIt() throws {
+        let unreadable = Data([0x00, 0xFF, 0x42, 0x13, 0x0A, 0x7F])
+        try unreadable.write(to: store.fileURL)
+
+        let library = store.load()
+
+        XCTAssertEqual(library, .seeded)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: store.fileURL.path))
+        let rescued = try quarantinedFiles()
+        XCTAssertEqual(rescued.count, 1)
+        let rescuedURL = try XCTUnwrap(rescued.first)
+        XCTAssertEqual(try Data(contentsOf: rescuedURL), unreadable)
+
+        // The autosave that follows a load writes the seed; the rescued bytes stay untouched.
+        try store.save(library)
+        XCTAssertEqual(try Data(contentsOf: rescuedURL), unreadable)
+        XCTAssertEqual(store.load(), .seeded)
+    }
+
+    func testEmptyFileIsMovedAsideInsteadOfBeingOverwritten() throws {
+        try Data().write(to: store.fileURL)
+
+        XCTAssertEqual(store.load(), .seeded)
+
+        XCTAssertEqual(try quarantinedFiles().count, 1)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: store.fileURL.path))
+    }
+
+    func testFileWithoutAnyUsableProfileIsMovedAside() throws {
+        let json = #"{"version":1,"profiles":[{"name":42}],"selectedProfileID":null}"#
+        try Data(json.utf8).write(to: store.fileURL)
+
+        XCTAssertEqual(store.load(), .seeded)
+
+        XCTAssertEqual(try quarantinedFiles().count, 1)
+    }
+
+    func testTwoRescuedFilesInARowGetDistinctNames() throws {
+        try Data([0x01, 0x02]).write(to: store.fileURL)
+        XCTAssertEqual(store.load(), .seeded)
+        try Data([0x03, 0x04]).write(to: store.fileURL)
+        XCTAssertEqual(store.load(), .seeded)
+
+        let rescued = try quarantinedFiles()
+        XCTAssertEqual(rescued.count, 2)
+        XCTAssertEqual(Set(try rescued.map { try Data(contentsOf: $0) }).count, 2)
+    }
+
+    // MARK: - F2: Guide is never a stored mapping
+
+    func testGuideMappingInTheFileIsStrippedWhenDecoding() throws {
+        let json = """
+        {"version":1,"selectedProfileID":"11111111-1111-1111-1111-111111111111","profiles":[\
+        {"id":"11111111-1111-1111-1111-111111111111","name":"Hand edited",\
+        "profile":{"mappings":{\
+        "guide":{"kind":"key","key":{"keyCode":12,"modifiers":0}},\
+        "buttonA":{"kind":"mouseButton","button":"left"}}}}]}
+        """
+        try Data(json.utf8).write(to: store.fileURL)
+
+        let library = store.load()
+        let profile = try XCTUnwrap(library.selectedProfile?.profile)
+
+        XCTAssertEqual(profile.action(for: .guide), .none)
+        XCTAssertNil(profile.mappings[.guide])
+        XCTAssertEqual(profile.action(for: .buttonA), .mouseButton(.left))
+
+        // Writing the library back must not resurrect the rejected mapping.
+        try store.save(library)
+        let written = try String(contentsOf: store.fileURL, encoding: .utf8)
+        XCTAssertFalse(written.contains("\"guide\""))
+    }
 }

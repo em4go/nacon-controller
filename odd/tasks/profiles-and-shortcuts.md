@@ -64,3 +64,29 @@ sigue siendo la parada de emergencia y no es mapeable; el editor se bloquea con 
 
 Riesgo declarado: la interacción de captura de pulsaciones no tiene test automático posible con el
 objetivo de tests actual (SwiftUI + NSEvent); su cobertura es la aceptación manual del paso L7.
+
+## Verificación independiente y arreglos
+
+Un verificador independiente revisó los cuatro commits. Siete afirmaciones comprobadas: cinco PASS,
+dos con salvedades. Encontró cinco defectos, ya corregidos en el commit siguiente a este documento.
+
+| Defecto | Gravedad | Arreglo |
+| --- | --- | --- |
+| Una entrada corrupta descartaba toda la biblioteca y el autoguardado sobrescribía el archivo | Pérdida de datos | Rescate por entrada + cuarentena del archivo ilegible como `profiles.unreadable-<marca>.json` |
+| `profiles.json` editado a mano podía mapear Guide; solo el motor lo neutralizaba | Invariante de seguridad en un único punto | Se elimina cualquier mapeo de Guide al decodificar |
+| El interruptor de eje Y seguía activo con la emulación en marcha pero no surtía efecto | Inconsistencia visible | Bloqueado mientras la emulación corre, con aviso de que aplica al arrancar |
+| `attach` no era idempotente: un segundo `onAppear` duplicaba temporizador y observadores | Fuga | Segunda llamada sin efecto |
+| Una captura armada podía escribir en el perfil equivocado si cambiabas de perfil antes de pulsar | Escritura cruzada | La captura queda ligada al perfil con el que se armó y descarta la escritura si cambió |
+
+Riesgos aceptados, con motivo:
+
+- Los archivos `profiles.unreadable-*` se acumulan y la app no los menciona. Conservar datos vale más
+  que la limpieza automática.
+- Borrar o renombrar el perfil en uso durante la emulación está permitido: el motor ya capturó el
+  perfil al arrancar, así que ninguna pulsación queda trabada y la operación es una decisión de datos
+  del usuario.
+- `save` sin `load` previo sobrescribiría; no es alcanzable desde la app, que siempre carga al iniciar.
+- Dos tests son débiles: el de captura cancelada reafirma una constante y el de selección colgante no
+  distingue los dos caminos de reserva. Se dejan como están, anotados.
+- F3, F4 y F5 viven en el ejecutable, sin objetivo de tests: verificados por compilación y razonamiento,
+  y F3 y F5 además por la prueba manual del usuario.

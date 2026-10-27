@@ -31,10 +31,13 @@ struct EmulationSection: View {
                 set: { profiles.setInvertVerticalAxis($0) }
             ))
             .toggleStyle(.switch)
+            // The value only reaches the engine when emulation starts, so flipping it mid-run would
+            // silently do nothing. Disabled while running, like the mapping editor.
+            .disabled(emulation.isEnabled)
             Text(
                 "Actívalo si al empujar el stick hacia arriba el cursor baja. Afecta al cursor y al "
                 + "desplazamiento, no al indicador del stick en pantalla. Se guarda en el perfil "
-                + "activo y se aplica al iniciar la emulación."
+                + "activo y se aplica cuando arranca la emulación: deténla para cambiarlo."
             )
             .font(.caption)
             .foregroundStyle(.secondary)

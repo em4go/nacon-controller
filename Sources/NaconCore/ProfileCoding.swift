@@ -216,6 +216,11 @@ extension InputProfile: Codable {
         for (name, action) in storedMappings {
             // Unknown control names come from another version; drop them, keep the rest.
             guard let control = XInputControl(profileKey: name) else { continue }
+            // Guide is the emergency stop and is never remappable. A hand-edited or foreign file
+            // must not be able to give it a key or a click, so the mapping is dropped here: the
+            // invariant holds in the model instead of resting on the engine alone. The explicit
+            // `none` entry of the standard profile survives, because it maps nothing.
+            guard MappingRules.isRemappable(control) || action == .none else { continue }
             mappings[control] = action
         }
         self.init(mappings: mappings, cursor: cursor, keyRepeat: keyRepeat)

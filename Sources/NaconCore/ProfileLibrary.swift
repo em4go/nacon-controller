@@ -71,10 +71,18 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
 
     /// Decodes a library, returning the seeded library for anything that cannot be read.
     public static func decode(from data: Data) -> ProfileLibrary {
-        guard let library = try? JSONDecoder().decode(ProfileLibrary.self, from: data) else {
-            return .seeded
-        }
-        return library.normalized()
+        recover(from: data) ?? .seeded
+    }
+
+    /// Decodes a library, returning `nil` when nothing usable can be recovered from the data.
+    ///
+    /// "Usable" means at least one profile survived decoding: a library with no profile cannot run
+    /// the pad, so the caller falls back to the seed. The distinction matters to `ProfileStore`,
+    /// which keeps a file that yielded nothing instead of letting the next save overwrite it.
+    public static func recover(from data: Data) -> ProfileLibrary? {
+        guard let decoded = try? JSONDecoder().decode(ProfileLibrary.self, from: data) else { return nil }
+        guard !decoded.profiles.isEmpty else { return nil }
+        return decoded.normalized()
     }
 
     /// Encodes a library in the on-disk format.
@@ -209,11 +217,29 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
         case selectedProfileID
     }
 
+    /// One array element that never throws, so a single malformed profile cannot take its siblings
+    /// down with it. `value` is `nil` exactly when that entry could not be decoded.
+    private struct Salvageable<Wrapped: Decodable>: Decodable {
+        let value: Wrapped?
+
+        init(from decoder: Decoder) throws {
+            value = try? Wrapped(from: decoder)
+        }
+    }
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        // Per-entry decoding: one profile from another version, or a hand-edited entry with a
+        // broken mapping, loses only itself. Everything that decodes is kept.
+        let entries = (try? container.decodeIfPresent(
+            [Salvageable<StoredProfile>].self,
+            forKey: .profiles
+        )) ?? nil
         self.init(
-            profiles: try container.decodeIfPresent([StoredProfile].self, forKey: .profiles) ?? [],
-            selectedProfileID: try container.decodeIfPresent(UUID.self, forKey: .selectedProfileID)
+            profiles: (entries ?? []).compactMap(\.value),
+            // An unreadable selection is not a reason to drop the profiles around it either; the
+            // normalisation below falls back to the first one.
+            selectedProfileID: (try? container.decodeIfPresent(UUID.self, forKey: .selectedProfileID)) ?? nil
         )
     }
 

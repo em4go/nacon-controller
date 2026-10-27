@@ -18,6 +18,8 @@ final class EmulationController: ObservableObject {
     private var permissionTimer: Timer?
     private var terminationObserver: NSObjectProtocol?
     private var activationObserver: NSObjectProtocol?
+    /// Whether the engine and its observers are already wired to a service.
+    private var isAttached = false
 
     init() {
         engine.onEmergencyStop = { [weak self] in
@@ -29,6 +31,11 @@ final class EmulationController: ObservableObject {
     }
 
     func attach(to service: ControllerService, profiles: ProfileLibraryController) {
+        // A second `onAppear` must not install a second timer, a second observer or a second report
+        // hook. `shutdown` clears the flag, so attaching again after a real teardown still works.
+        guard !isAttached else { return }
+        isAttached = true
+
         // S1, S8: the engine reads the library every time emulation starts, so the profile selected
         // in the window — including the one restored from disk after a relaunch — is the one used.
         profileSource = { profiles.runtimeProfile }
@@ -77,6 +84,7 @@ final class EmulationController: ObservableObject {
 
     func shutdown() {
         engine.stop()
+        isAttached = false
         if let terminationObserver {
             NotificationCenter.default.removeObserver(terminationObserver)
             self.terminationObserver = nil

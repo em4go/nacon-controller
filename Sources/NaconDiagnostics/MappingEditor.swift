@@ -15,10 +15,14 @@ import SwiftUI
 struct MappingEditor: View {
     /// The mapping of the selected profile.
     let profile: InputProfile
+    /// Identifier of the profile that mapping belongs to. A capture is bound to it, so a key press
+    /// arriving after a profile switch cannot land on the newly selected profile.
+    let profileID: UUID
     /// Whether emulation is running, which locks the editor.
     let isEmulationEnabled: Bool
-    /// Applies one mapping to the selected profile. Supplied by the section.
-    let setAction: (XInputControl, MappedAction) -> Void
+    /// Applies one mapping to the profile the capture was armed for. Supplied by the section, which
+    /// drops the write when that profile is no longer the selected one.
+    let setAction: (UUID, XInputControl, MappedAction) -> Void
 
     @StateObject private var capture = MappingCapture()
 
@@ -40,8 +44,9 @@ struct MappingEditor: View {
                         control: control,
                         action: profile.action(for: control),
                         isCapturing: capture.isCapturing(control),
-                        onCapture: { capture.toggle(control) },
-                        onChoose: { setAction(control, $0) }
+                        onCapture: { capture.toggle(control, for: profileID) },
+                        // A menu choice applies to the profile on screen, so it carries that id.
+                        onChoose: { setAction(profileID, control, $0) }
                     )
                 }
                 reservedRow
@@ -64,9 +69,9 @@ struct MappingEditor: View {
             capture.end()
         }
         .onAppear {
-            capture.onFinish = { control, outcome in
+            capture.onFinish = { armedProfileID, control, outcome in
                 guard case .mapped(let action) = outcome else { return }
-                setAction(control, action)
+                setAction(armedProfileID, control, action)
             }
         }
     }
@@ -174,13 +179,20 @@ private struct MappingRow: View {
 /// it, so the captured shortcut never reaches a text field or a menu. Normal typing is untouched
 /// because nothing is installed outside a capture, and `end()` always removes the monitor, whether
 /// the capture succeeds, is cancelled with Escape, emulation starts, or the view disappears.
+///
+/// A capture also remembers the profile it was armed for, and hands that identifier back with the
+/// outcome. The profile selected when the key arrives is not necessarily the one the user was
+/// looking at when they pressed «Capturar».
 @MainActor
 final class MappingCapture: ObservableObject {
     /// Control whose next key press is being captured, if any.
     @Published private(set) var control: XInputControl?
 
-    /// Called once per finished capture. The view turns the outcome into a mapping.
-    var onFinish: ((XInputControl, CaptureOutcome) -> Void)?
+    /// Profile the armed capture belongs to, if any.
+    private(set) var profileID: UUID?
+
+    /// Called once per finished capture, with the profile the capture was armed for.
+    var onFinish: ((UUID, XInputControl, CaptureOutcome) -> Void)?
 
     private var monitor: Any?
 
@@ -188,18 +200,19 @@ final class MappingCapture: ObservableObject {
         control == candidate
     }
 
-    /// Arms a control, or disarms it when it is already the one being captured.
-    func toggle(_ candidate: XInputControl) {
-        if control == candidate {
+    /// Arms a control for one profile, or disarms it when it is already the one being captured.
+    func toggle(_ candidate: XInputControl, for profileID: UUID) {
+        if control == candidate, self.profileID == profileID {
             end()
         } else {
-            begin(candidate)
+            begin(candidate, for: profileID)
         }
     }
 
-    func begin(_ candidate: XInputControl) {
+    func begin(_ candidate: XInputControl, for profileID: UUID) {
         end()
         control = candidate
+        self.profileID = profileID
         monitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
             guard let self else { return event }
             // Only sendable values cross into the isolated block; the event itself is main-thread
@@ -214,13 +227,14 @@ final class MappingCapture: ObservableObject {
         }
     }
 
-    /// Removes the monitor and forgets the armed control. Safe to call at any time.
+    /// Removes the monitor and forgets the armed control and profile. Safe to call at any time.
     func end() {
         if let monitor {
             NSEvent.removeMonitor(monitor)
         }
         monitor = nil
         control = nil
+        profileID = nil
     }
 
     deinit {
@@ -230,10 +244,10 @@ final class MappingCapture: ObservableObject {
     }
 
     private func handle(keyCode: UInt16, modifiers: ModifierSet) -> Bool {
-        guard let control else { return false }
+        guard let control, let profileID else { return false }
         let outcome = MappingRules.capture(forKeyCode: keyCode, modifiers: modifiers)
         end()
-        onFinish?(control, outcome)
+        onFinish?(profileID, control, outcome)
         return true
     }
 }

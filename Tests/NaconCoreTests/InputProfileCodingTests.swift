@@ -112,6 +112,18 @@ final class InputProfileCodingTests: XCTestCase {
         XCTAssertEqual(profile.keyRepeat, .standard)
     }
 
+    func testGuideMappingInAFileIsStrippedWhenDecoding() throws {
+        let json = """
+        {"mappings":{"guide":{"kind":"key","key":{"keyCode":12,"modifiers":0}},\
+        "buttonB":{"kind":"scrollLines","lines":3}}}
+        """
+        let profile = try JSONDecoder().decode(InputProfile.self, from: Data(json.utf8))
+
+        XCTAssertEqual(profile.action(for: .guide), .none)
+        XCTAssertNil(profile.mappings[.guide], "Guide is the emergency stop and is never mapped")
+        XCTAssertEqual(profile.action(for: .buttonB), .scrollLines(3))
+    }
+
     func testUnknownActionKindDecodesAsNoAction() throws {
         let json = """
         {"mappings":{"buttonA":{"kind":"macro","steps":["a","b"]}}}

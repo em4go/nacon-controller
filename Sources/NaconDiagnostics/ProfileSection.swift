@@ -20,19 +20,24 @@ struct ProfileSection: View {
             profilePicker
             actions
             // S3: the editor for the profile being edited, right below the picker that selects it.
-            if let profile = profiles.selectedProfile?.profile {
+            if let selected = profiles.selectedProfile {
                 Divider()
                 MappingEditor(
-                    profile: profile,
+                    profile: selected.profile,
+                    profileID: selected.id,
                     isEmulationEnabled: emulation.isEnabled,
-                    setAction: { control, action in
+                    setAction: { armedProfileID, control, action in
+                        // F5: a capture belongs to the profile it was armed for. If the selection
+                        // moved while a key was in flight, the write is dropped instead of landing
+                        // on the profile the user has just selected.
+                        guard armedProfileID == profiles.selectedProfile?.id else { return }
                         // The controller persists every change, so the edit survives a restart (S6).
                         profiles.setAction(action, for: control)
                     }
                 )
                 // Switching profiles rebuilds the editor, which ends any armed capture: a pending
                 // press must never land on the profile the user has just selected.
-                .id(profiles.selectedProfile?.id)
+                .id(selected.id)
             }
             Text(
                 "Los cambios se guardan solos, sin botón de guardar. Un perfil nuevo parte del perfil "

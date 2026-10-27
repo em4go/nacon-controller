@@ -66,6 +66,36 @@ swift test
    Al reconectarlo vuelve solo a «Conectado» sin reiniciar la aplicación.
 6. **Sin mando**: se muestra explícitamente «NO SE HA DETECTADO NINGÚN MANDO».
 
+## Emulación de ratón y teclado
+
+La ventana incluye un interruptor **Emulación activa**, apagado por defecto.
+
+| Control | Acción por defecto |
+| --- | --- |
+| Stick izquierdo | Mueve el cursor (zona muerta radial + curva) |
+| Stick derecho (vertical) | Desplazamiento |
+| A / B / X | Clic izquierdo / derecho / central |
+| Y | Escape |
+| Cruceta | Flechas |
+| LB / RB | Tab / Return |
+| Back / Start | Borrar / Espacio |
+| Guide (Xbox) | **Detiene la emulación al instante** |
+
+Reglas de seguridad que el código garantiza:
+
+- La emulación **nunca arranca activada**.
+- Desactivarla **suelta todas las teclas y botones** retenidos: no puede quedar nada pulsado.
+- Pulsar **Guide** la detiene sin usar el ratón.
+- Si el mando se **desconecta**, la emulación se detiene y suelta lo que tuviera retenido.
+
+### Permiso de Accesibilidad
+
+macOS descarta los eventos sintetizados sin este permiso. La app lo comprueba, lo solicita y
+muestra el estado. Concédelo en **Ajustes del Sistema › Privacidad y seguridad › Accesibilidad**.
+
+Importante: usa siempre `build/NaconDiagnostics.app`. Si ejecutas `swift run`, el binario no tiene
+identidad estable y macOS volverá a pedir el permiso o lo ignorará.
+
 ## Qué no se puede leer
 
 Esta vía no accede a controles que el mando solo expone en otros modos:
@@ -90,6 +120,14 @@ odd/tasks/phase2-diagnostics.md           Especificación y registro de la tarea
 ```
 
 ## Limitaciones conocidas
+
+- El mando solo admite **un dueño a la vez**: si la app está abierta, otro programa no puede leerlo,
+  y si otro programa lo captura, la app deja de recibir informes.
+- La emulación no se ha validado todavía de extremo a extremo: requiere que concedas el permiso de
+  Accesibilidad. La lógica está cubierta por 42 tests con un emisor simulado, pero el envío real de
+  eventos a otras aplicaciones solo se puede comprobar con el permiso concedido.
+- `ControllerService.swift` supera las 400 líneas; conviene extraer el acceso al registro IOKit a su
+  propio archivo cuando se toque de nuevo.
 
 - Solo se soporta el mando **Bigben/NACON en modo XInput** (`146B:0603`). Otros mandos XInput
   necesitarían ampliar la tabla de identidades.

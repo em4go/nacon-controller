@@ -16,6 +16,12 @@ S8. Simple, diagnostic-oriented UI: "La interfaz debe ser sencilla y estar orien
 S9. Out of scope: "Emulación de teclado o ratón / Inyección global de eventos / Permisos de Accesibilidad / Perfiles de configuración / Atajos de teclado / Movimiento del cursor / Ejecución en segundo plano o en la barra de menús / Drivers, extensiones del kernel ni dependencias externas innecesarias."
 S10. Acceptance criterion 5: "El proyecto compila y puedo ejecutarlo siguiendo tus instrucciones."
 
+S11 (user, original goal, now authorized): "utilizar un mando NACON Compact Controller de PS4
+conectado por USB como ratón y teclado, con asignación personalizada de botones, atajos y perfiles."
+S12. Emulation must be inert by default and must never leave a key or button stuck.
+S13. The user must be able to stop emulation without the mouse: Guide stops it, and a disconnect
+stops it.
+
 ## Tasks
 
 | ID | Specs | Route | Commit |
@@ -60,3 +66,6 @@ packets are now available as `XInputOutputReport` plus the `nacon-padtest` tool.
 
 L6 (observation): the pad can only be owned by one process at a time. While the app was running it
 held the IOUSBHostDevice exclusively and a second reader failed with "Error de acceso".
+
+L7 (user): "continúa" — authorizes the emulation phase (S11-S13). The permission prompt is accepted
+as a known consequence; granting it is the user's action in System Settings.

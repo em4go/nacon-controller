@@ -3,12 +3,14 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject private var service: ControllerService
+    @EnvironmentObject private var emulation: EmulationController
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 StatusBanner(state: service.state)
                 DeviceListSection(devices: service.devices)
+                EmulationSection(emulation: emulation)
                 if service.state.isConnected, let report = service.report {
                     ButtonMatrixSection(report: report)
                     AnalogSection(report: report)

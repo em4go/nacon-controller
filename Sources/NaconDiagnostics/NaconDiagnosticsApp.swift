@@ -6,14 +6,22 @@ import SwiftUI
 struct NaconDiagnosticsApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var service = ControllerService()
+    @StateObject private var emulation = EmulationController()
 
     var body: some Scene {
         WindowGroup("NACON Diagnostics") {
             ContentView()
                 .environmentObject(service)
-                .frame(minWidth: 780, minHeight: 740)
-                .onAppear { service.start() }
-                .onDisappear { service.stop() }
+                .environmentObject(emulation)
+                .frame(minWidth: 780, minHeight: 780)
+                .onAppear {
+                    service.start()
+                    emulation.attach(to: service)
+                }
+                .onDisappear {
+                    emulation.shutdown()
+                    service.stop()
+                }
         }
         .windowResizability(.contentMinSize)
     }

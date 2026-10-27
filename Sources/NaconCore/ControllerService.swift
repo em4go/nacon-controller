@@ -89,15 +89,17 @@ public final class ControllerService: ObservableObject {
                 link = nil
             } else {
                 let idle = Date().timeIntervalSince(lastReportStamp ?? Date())
-                if idle <= staleAfter { return }
+                if idle <= staleAfter {
+                    // Healthy link: the freshly scanned services are not needed.
+                    found.forEach { IOObjectRelease($0.service) }
+                    return
+                }
                 teardown(reason: "el mando dejó de enviar datos")
             }
         }
 
         guard let candidate = found.first(where: { $0.info.isReadable }) else {
-            for entry in found where !entry.info.isReadable {
-                IOObjectRelease(entry.service)
-            }
+            found.forEach { IOObjectRelease($0.service) }
             if link == nil { publish(state: .searching) }
             return
         }

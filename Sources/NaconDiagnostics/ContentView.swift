@@ -1,3 +1,4 @@
+import AppKit
 import NaconCore
 import SwiftUI
 
@@ -29,6 +30,10 @@ struct ContentView: View {
             .padding(20)
         }
         .background(Color(nsColor: .windowBackgroundColor))
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
+            // S5: never leave the pad light on after the app is gone.
+            service.sendOutput(PadLight.offPacket)
+        }
     }
 }
 

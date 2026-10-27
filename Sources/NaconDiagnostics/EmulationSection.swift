@@ -3,6 +3,10 @@ import SwiftUI
 
 struct EmulationSection: View {
     @ObservedObject var emulation: EmulationController
+    @EnvironmentObject private var service: ControllerService
+
+    /// The pad light state owned by this section.
+    @State private var padLight = PadLight()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -17,6 +21,7 @@ struct EmulationSection: View {
             ))
             .toggleStyle(.switch)
             .disabled(!emulation.hasAccessibility)
+            lightControls
             Toggle("Invertir eje vertical", isOn: Binding(
                 get: { emulation.invertVerticalAxis },
                 set: { emulation.setInvertVerticalAxis($0) }
@@ -40,6 +45,38 @@ struct EmulationSection: View {
                     .font(.callout.bold())
                     .foregroundStyle(.orange)
             }
+        }
+        .onAppear {
+            padLight.isEmulationActive = emulation.isEnabled
+        }
+        .onChange(of: emulation.isEnabled) { isEnabled in
+            padLight.isEmulationActive = isEnabled
+        }
+        .onChange(of: padLight.isOn) { _ in
+            // S1/S2/S4: one send point, driven only by the state; a missing pad is harmless.
+            service.sendOutput(padLight.packet)
+        }
+    }
+
+    // MARK: - S3, S4: the pad light
+
+    private var lightControls: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Toggle("Luz como indicador de emulación", isOn: Binding(
+                get: { padLight.source == .emulation },
+                set: { padLight.source = $0 ? .emulation : .manual }
+            ))
+            .toggleStyle(.switch)
+            Toggle("Luz encendida", isOn: $padLight.isManuallyOn)
+                .toggleStyle(.switch)
+                .disabled(padLight.source == .emulation)
+            Text(
+                "Con el indicador activado, la luz pequeña bajo el botón PS se enciende mientras la "
+                + "emulación está activa y se apaga al detenerla. Desactívalo para encender y apagar "
+                + "la luz a mano."
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
     }
 

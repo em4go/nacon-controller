@@ -45,6 +45,9 @@ public final class ControllerService: ObservableObject {
     @Published public private(set) var rawPacketHex = ""
     @Published public private(set) var lastWriteStatus = "—"
 
+    /// Called on the I/O queue for every decoded report, before the UI throttling.
+    public var reportObserver: ((XInputReport) -> Void)?
+
     private let ioQueue = DispatchQueue(label: "dev.nacon.controller.io")
     private let staleAfter: TimeInterval = 2.0
     private var timer: DispatchSourceTimer?
@@ -216,6 +219,7 @@ public final class ControllerService: ObservableObject {
 
     private func handle(packet: [UInt8]) {
         guard let decoded = XInputReport.decode(packet) else { return }
+        reportObserver?(decoded)
         let stamp = Date()
         lastReportStamp = stamp
         emittedCount += 1

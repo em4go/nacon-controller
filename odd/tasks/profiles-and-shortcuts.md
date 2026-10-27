@@ -42,3 +42,25 @@ Decisiones tomadas:
 - L4 (evidencia): T1 `8b6e45f`, T2 `da9bf98`, T3 `6e5e107`, T4 `8394214`.
 - L5 (pendiente): la interacción de captura y la persistencia entre reinicios solo están
   verificadas por compilación; falta la prueba manual en la app real.
+- L6 (user, verbatim): «He probado todos los pasos y todo funciona correctamente»
+- L7 (evidencia de aceptación manual, siete pasos): creación de perfil desde el estándar, captura de
+  la tecla H para el control A, cancelación con Escape, persistencia tras cerrar y reabrir la app,
+  la tecla llegando a otra aplicación con la emulación activa, editor bloqueado mientras la emulación
+  corre, y Guide deteniendo la emulación.
+
+## Cierre
+
+Feature terminada y aceptada en hardware real.
+
+| Tarea | Commit |
+| --- | --- |
+| T1 modelo, catálogo de teclas y almacén | `8b6e45f` |
+| T2 perfiles en la ventana | `da9bf98` |
+| T3 editor de mapeos y captura | `6e5e107` |
+| T4 perfil activo en el motor | `8394214` |
+
+137 tests automáticos. Invariantes de seguridad verificados por código y por prueba manual: Guide
+sigue siendo la parada de emergencia y no es mapeable; el editor se bloquea con la emulación activa.
+
+Riesgo declarado: la interacción de captura de pulsaciones no tiene test automático posible con el
+objetivo de tests actual (SwiftUI + NSEvent); su cobertura es la aceptación manual del paso L7.

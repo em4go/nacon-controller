@@ -93,9 +93,11 @@ Reglas de seguridad que el código garantiza:
 El perfil activo se puede leer de dos maneras con el selector **Vista**, y la elección se recuerda
 entre arranques:
 
-- **Gráfica** (por defecto): el dibujo del mando con una etiqueta por control en su posición real,
-  mostrando la asignación actual. Con la emulación parada, el control que pulsas se resalta; mientras
-  la emulación corre, las etiquetas se atenúan y no responden porque el mapeo está bloqueado.
+- **Gráfica** (por defecto): el propio dibujo del mando es el control. Al pasar el ratón por un
+  botón se ilumina su forma —el trazo que ya está dibujado, sin cajas ni etiquetas encima— y una
+  franja debajo del dibujo dice qué control está señalado y qué envía ahora. Al pulsarlo se arma la
+  captura de tecla para ese control; el botón PS se describe pero nunca se reasigna. Mientras la
+  emulación corre, el resaltado se atenúa y deja de responder porque el mapeo está bloqueado.
 - **Tabla**: el editor de siempre, una fila por control, donde se captura la tecla o se elige la
   acción.
 
@@ -103,7 +105,10 @@ La fila del botón PS aparece en las dos vistas: no es reasignable porque es el 
 emulación.
 
 El dibujo procede del paquete de prompts de Xelu, publicado con licencia CC0 1.0 (dominio público):
-`Sources/NaconDiagnostics/Resources/PS4_Controller.png`.
+`Sources/NaconDiagnostics/Resources/PS4_Controller.png` es la variante que ya imprime ✕ ○ □ △ y el
+logo PS. Las máscaras de resaltado —una por control, con el canal alfa de ese mismo dibujo— están en
+`Sources/NaconDiagnostics/Resources/masks/diagram-*.png` y se generan con
+`prototype/tools/make-masks.py`.
 
 ### Sensibilidad por perfil
 

@@ -2,15 +2,17 @@ import Foundation
 
 /// Where every control sits on the DualShock 4 drawing, in normalized image coordinates.
 ///
-/// The graphical view draws the artwork once and drops one badge per control on top of it. The
-/// positions are part of the model, not of the view, so they can be checked without a window and
-/// re-derived by anyone who changes the artwork.
+/// The graphical view draws the artwork once and lights up the pixels of the control under the
+/// pointer on top of it. The positions are part of the model, not of the view, so they can be
+/// checked without a window and re-derived by anyone who changes the artwork.
 ///
 /// ## How the table was measured
 ///
 /// The source is `Sources/NaconDiagnostics/Resources/PS4_Controller.png` (1452 x 940, white line
-/// drawing over a transparent background). The measurement is reproducible with the standard
-/// library only:
+/// drawing over a transparent background): the labelled Xelu diagram, the one that already prints
+/// ✕ ○ □ △ and the PS logo. The table was re-measured against that file and every value but
+/// `guide` came out the same; the old drawing had no PS button at all, so that one row moved. The
+/// measurement is reproducible with the standard library only:
 ///
 /// 1. `sips -s format bmp PS4_Controller.png --out pad.bmp`. `sips` writes a top-down 32-bit BMP
 ///    with the alpha channel in the fourth byte, so no image library is needed.
@@ -30,7 +32,7 @@ import Foundation
 /// | `leftBumper` / `rightBumper` | The cap arc above each shoulder. Its pixels belong to the body component, so the centroid was taken over a window: x 230...430 (mirrored 1022...1222) |
 /// | `leftTrigger` / `rightTrigger` | The second arc of each shoulder: the thin ellipse the cap sits on, a component of its own |
 /// | `back` / `start` | The two vertical pills beside the touchpad, left (Share) and right (Options) |
-/// | `guide` | The artwork draws no PS button. The badge sits between the two sticks, slightly below the line joining their centres, which is where the button is on the real controller |
+/// | `guide` | The PS logo the labelled artwork prints between the two sticks. The earlier drawing printed no such button, so this row was the only one that moved when the artwork was replaced |
 /// | `leftThumb` / `rightThumb` | The innermost ring inside each stick well: the stick cup, not the well itself |
 ///
 /// ## The table (normalized)
@@ -51,7 +53,7 @@ import Foundation
 /// | `rightTrigger` (R2) | 0.7787 | 0.1693 | 1130.7, 159.2 |
 /// | `back` (Share) | 0.3172 | 0.2941 | 460.6, 276.5 |
 /// | `start` (Options) | 0.6857 | 0.2941 | 995.6, 276.5 |
-/// | `guide` (PS) | 0.5025 | 0.6300 | 729.6, 592.2 |
+/// | `guide` (PS) | 0.5022 | 0.6072 | 729.2, 571.0 |
 /// | `leftThumb` (L3) | 0.3594 | 0.6259 | 521.9, 588.3 |
 /// | `rightThumb` (R3) | 0.6445 | 0.6259 | 935.9, 588.3 |
 public struct PadLayout: Equatable, Sendable {
@@ -77,10 +79,12 @@ public struct PadLayout: Equatable, Sendable {
         imageWidth / imageHeight
     }
 
-    /// Smallest gap two badges may have, normalized by the image width like `separation(between:and:)`.
+    /// Smallest gap two controls may have, normalized by the image width like
+    /// `separation(between:and:)`.
     ///
-    /// The view draws every badge over the artwork at a fixed font size, so two controls closer than
-    /// this would end up as one unreadable blob. The tightest real gap is the shoulder pair at 0.033.
+    /// The view puts the hit area and the highlight of each control over the artwork, so two controls
+    /// closer than this would answer to the same pointer and light up together. The tightest real gap
+    /// is the shoulder pair at 0.033.
     public static let minimumBadgeSeparation = 0.025
 
     /// One point per control. Every case of `XInputControl` is present exactly once; `PadLayoutTests`
@@ -124,7 +128,7 @@ public struct PadLayout: Equatable, Sendable {
         .rightTrigger: Point(horizontal: 0.7787, vertical: 0.1693),
         .back: Point(horizontal: 0.3172, vertical: 0.2941),
         .start: Point(horizontal: 0.6857, vertical: 0.2941),
-        .guide: Point(horizontal: 0.5025, vertical: 0.6300),
+        .guide: Point(horizontal: 0.5022, vertical: 0.6072),
         .leftThumb: Point(horizontal: 0.3594, vertical: 0.6259),
         .rightThumb: Point(horizontal: 0.6445, vertical: 0.6259),
     ])

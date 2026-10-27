@@ -2,38 +2,54 @@ import AppKit
 import NaconCore
 import SwiftUI
 
-/// S3: the graphical view of the profile being edited — the DualShock 4 drawing plus one badge per
-/// control.
+/// S3: the graphical view of the profile being edited — the DualShock 4 drawing, used as the control
+/// panel itself.
+///
+/// Nothing is drawn on top of the artwork: no badge, no rectangle with text. The drawing already
+/// prints the ✕ ○ □ △ glyphs and the PS logo, so the view lights up the pixels the artwork itself
+/// paints for a control, by tinting it through one alpha mask per control. The pointer finds each
+/// control through an invisible circle centred on the point `PadLayout` measured for it, and one strip
+/// below the drawing says which control is under the pointer and what it currently sends.
 ///
 /// The view decides no rule. The positions come from `PadLayout`, the labels from `MappingRules`, the
 /// pressed state from the report it receives and the lock from `isEmulationEnabled`; the caller hands
-/// in the profile, the identifier of that profile and the capture that owns the key session. Tapping
-/// a remappable badge arms the capture for it, exactly like pressing «Capturar» in the table: it is
-/// the same `MappingCapture` and therefore the same `KeyCaptureSession`, so both views share one
-/// armed control, one set of rules and one event monitor.
+/// in the profile, the identifier of that profile and the capture that owns the key session. Tapping a
+/// control arms the capture for it, exactly like pressing «Capturar» in the table: it is the same
+/// `MappingCapture` and therefore the same `KeyCaptureSession`, so both views share one armed control,
+/// one set of rules and one event monitor.
 struct PadGraphView: View {
-    /// The mapping the badges show.
+    /// The mapping the strip shows.
     let profile: InputProfile
     /// Identifier of the profile on screen. A capture is armed for it, so a key press arriving after
     /// a profile switch cannot land on the profile the user has just selected.
     let profileID: UUID
     /// Last report of the connected pad, or nil while there is no pad or no report yet.
     let report: XInputReport?
-    /// Whether emulation runs. A mapping cannot change then, so the overlay is dimmed and inert.
+    /// Whether emulation runs. A mapping cannot change then, so the interactive layer is dimmed and
+    /// inert.
     let isEmulationEnabled: Bool
     /// The one capture of the section. Armed by a tap here, by «Capturar» in the table, or by neither.
     @ObservedObject var capture: MappingCapture
 
+    /// The control under the pointer, cleared when it leaves. Hovering only previews a control: it
+    /// never arms anything, so moving the mouse across the drawing is safe.
+    @State private var hovered: XInputControl?
+    /// The control the last tap picked. It keeps its highlight and its line in the strip while the
+    /// pointer is elsewhere, which is what makes the strip readable without chasing the mouse.
+    @State private var selected: XInputControl?
+
     /// The drawing is an editor, not a poster: it keeps `PadLayout.aspectRatio` but stops growing, so
-    /// the view picker, the hints and the profile list stay on screen instead of scrolling past a
+    /// the view picker, the strip and the profile list stay on screen instead of scrolling past a
     /// wall of artwork. Below this width it shrinks with the window and is never cropped.
     private static let maxDrawingWidth: CGFloat = 520
 
-    /// Badge metrics. At the 520 points the drawing is capped to, fifteen badges of this size still
-    /// keep their distance; a longer action is truncated and its full text stays reachable as a
-    /// tooltip, which is better than two badges growing into each other.
-    private static let badgeFontSize: CGFloat = 8.5
-    private static let badgeMaxWidth: CGFloat = 62
+    /// How strongly a highlighted control is tinted. The masks are the artwork's own strokes, so the
+    /// accent reads through the line work instead of hiding the button underneath.
+    private static let highlightOpacity: Double = 0.42
+
+    /// How much of the interactive layer survives while emulation runs. The drawing itself stays at
+    /// full contrast: what is locked is the editing, not the picture.
+    private static let lockedOpacity: Double = 0.4
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -46,11 +62,34 @@ struct PadGraphView: View {
             } else {
                 unavailableArtwork
             }
+            panel
+                .frame(maxWidth: Self.maxDrawingWidth)
+                .frame(maxWidth: .infinity, alignment: .center)
+            if Masks.isIncomplete {
+                // One note for the whole drawing: the picture is still useful without the tint, and
+                // seventeen copies of the same sentence would not be.
+                Text(
+                    "No se han podido cargar todas las máscaras de resaltado: el dibujo se ve, pero "
+                        + "algún control no se ilumina al pasar el ratón."
+                )
+                .font(.caption)
+                .foregroundStyle(.orange)
+                .frame(maxWidth: Self.maxDrawingWidth, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .center)
+            }
             hint
+        }
+        .onChange(of: isEmulationEnabled) { isRunning in
+            // The interactive layer stops answering while emulation runs, so a hover that was live
+            // when it started would otherwise stay in the strip forever.
+            if isRunning {
+                hovered = nil
+            }
         }
     }
 
-    /// The artwork with the badges on top, keeping its proportions at whatever width it is given.
+    /// The artwork with its highlights and its hit areas on top, keeping its proportions at whatever
+    /// width it is given.
     private func drawing(_ artwork: NSImage) -> some View {
         GeometryReader { proxy in
             ZStack(alignment: .topLeading) {
@@ -58,141 +97,136 @@ struct PadGraphView: View {
                     .resizable()
                     .interpolation(.high)
                     .frame(width: proxy.size.width, height: proxy.size.height)
-                overlay(in: proxy.size)
+                ZStack(alignment: .topLeading) {
+                    highlights(in: proxy.size)
+                    hitLayer(in: proxy.size)
+                }
+                .frame(width: proxy.size.width, height: proxy.size.height, alignment: .topLeading)
+                // While emulation runs the mappings are locked, so the layer that can change them
+                // reads as inactive and stops taking hover events; the artwork itself keeps its
+                // contrast.
+                .opacity(isEmulationEnabled ? Self.lockedOpacity : 1)
+                .allowsHitTesting(!isEmulationEnabled)
             }
+            .frame(width: proxy.size.width, height: proxy.size.height, alignment: .topLeading)
         }
-        // The drawing keeps its proportions, so badges stay on the controls they belong to no matter
+        // The drawing keeps its proportions, so a mask stays on the button it was cut from no matter
         // how wide the window is.
         .aspectRatio(PadLayout.aspectRatio, contentMode: .fit)
     }
 
-    /// One badge per control, at the point `PadLayout` measured for it.
+    /// One tinted layer per highlighted control, masked by that control's own alpha.
     ///
-    /// `position` places the badge's centre, so every label sits on its own control instead of being
-    /// pushed around by its neighbours.
-    private func overlay(in size: CGSize) -> some View {
-        let layout = PadLayout.standard
-        return ZStack(alignment: .topLeading) {
+    /// The masks are full-canvas, like the artwork, so each one is laid over the same frame and the
+    /// accent only shows through the strokes the drawing already paints for that button. A mask that
+    /// cannot be loaded simply leaves its control untinted; the drawing still works.
+    private func highlights(in size: CGSize) -> some View {
+        ZStack(alignment: .topLeading) {
             ForEach(XInputControl.allCases, id: \.self) { control in
-                if let point = layout.point(for: control) {
-                    let pressed = isPressed(control)
-                    badge(for: control, isPressed: pressed)
-                        // The pressed and the armed badge are drawn last so a highlight or a capture
-                        // ring is never half covered.
-                        .zIndex(pressed || isArmed(control) ? 1 : 0)
-                        .position(
-                            x: point.horizontal * size.width,
-                            y: point.vertical * size.height
+                if isHighlighted(control), let mask = Masks.image(for: control) {
+                    Rectangle()
+                        .fill(Color.accentColor)
+                        .opacity(Self.highlightOpacity)
+                        .mask(
+                            Image(nsImage: mask)
+                                .resizable()
+                                .interpolation(.high)
                         )
-                        // The shoulder and the trigger sit 17 points apart on the drawing, so the pair
-                        // is pushed apart from their midpoint instead of overlapping.
-                        .offset(y: Self.verticalOffset(for: control))
+                        .frame(width: size.width, height: size.height)
+                        // The highlight is paint, not a target: the hit areas below own the pointer.
+                        .allowsHitTesting(false)
                 }
             }
         }
         .frame(width: size.width, height: size.height, alignment: .topLeading)
-        // While emulation runs the mappings are locked, so the whole overlay reads as inactive and
-        // stops taking hover events; the tooltips would otherwise suggest something can be changed.
-        .opacity(isEmulationEnabled ? 0.4 : 1)
-        .allowsHitTesting(!isEmulationEnabled)
     }
 
-    private func badge(for control: XInputControl, isPressed: Bool) -> some View {
-        let label = shortLabel(for: control)
-        let isArmed = isArmed(control)
-        let shape = RoundedRectangle(cornerRadius: 4)
-        return Text(label)
-            .font(.system(size: Self.badgeFontSize, weight: .semibold))
-            .lineLimit(1)
-            .truncationMode(.tail)
-            .foregroundStyle(badgeForeground(isPressed: isPressed, isArmed: isArmed))
-            .padding(.horizontal, 4)
-            .padding(.vertical, 2)
-            .frame(maxWidth: isArmed ? 104 : Self.badgeMaxWidth)
-            .background(shape.fill(badgeFill(isPressed: isPressed, isArmed: isArmed)))
-            .overlay(
-                shape.strokeBorder(
-                    // The armed badge is the one waiting for a key, so it carries the accent colour
-                    // and twice the outline: a press is a filled badge, a capture is a ring.
-                    isPressed || isArmed ? Color.accentColor : Color.secondary.opacity(0.35),
-                    lineWidth: isArmed ? 2 : 1
-                )
-            )
-            // The truncated label and the control it belongs to stay readable on hover.
-            .help("\(MappingRules.controlLabel(for: control)): \(badgeExplanation(for: control))")
-            // A tap arms the capture, through the same `toggle` the «Capturar» button uses: a second
-            // tap on the armed badge cancels it. The overlay above already removes hit testing while
-            // emulation runs, and PS is reserved, so this does nothing for it.
-            .onTapGesture {
-                guard MappingRules.isRemappable(control) else { return }
-                capture.toggle(
-                    control,
-                    for: profileID,
-                    isEmulationRunning: isEmulationEnabled
-                )
+    /// The one hit area of the drawing: a transparent layer that turns a pointer position into the
+    /// control it belongs to.
+    ///
+    /// Each control keeps the circle the prototype gives it — a radius in pixels of the 1452 x 940
+    /// artwork, scaled with the frame — but the circles are resolved by distance instead of by
+    /// stacking order. The shoulder caps and their trigger arcs are 17 pixels apart while both circles
+    /// are 60 pixels in radius, so a plain stack would hand every hover in that corner to whichever
+    /// control came last, and a tap on L1 would arm the capture for L2. Picking the nearest centre
+    /// keeps the radii and makes every control reachable.
+    private func hitLayer(in size: CGSize) -> some View {
+        Rectangle()
+            .fill(Color.clear)
+            .contentShape(Rectangle())
+            .frame(width: size.width, height: size.height)
+            .onContinuousHover { phase in
+                switch phase {
+                case .active(let location):
+                    hovered = control(at: location, in: size)
+                case .ended:
+                    hovered = nil
+                }
             }
+            .gesture(
+                SpatialTapGesture().onEnded { value in
+                    if let control = control(at: value.location, in: size) {
+                        select(control)
+                    }
+                }
+            )
+    }
+
+    /// The control whose circle contains `location`, choosing the nearest centre when several do.
+    private func control(at location: CGPoint, in size: CGSize) -> XInputControl? {
+        let layout = PadLayout.standard
+        var closest: (control: XInputControl, distance: CGFloat)?
+        for control in XInputControl.allCases {
+            guard let point = layout.point(for: control) else { continue }
+            let centerX = point.horizontal * size.width
+            let centerY = point.vertical * size.height
+            let radius = Self.hitRadius(for: control) / PadLayout.imageWidth * size.width
+            let gapX = location.x - centerX
+            let gapY = location.y - centerY
+            let distance = (gapX * gapX + gapY * gapY).squareRoot()
+            guard distance <= radius else { continue }
+            if closest == nil || distance < closest!.distance {
+                closest = (control, distance)
+            }
+        }
+        return closest?.control
+    }
+
+    /// Radius of a control's hit circle, in pixels of the 1452 x 940 artwork.
+    private static func hitRadius(for control: XInputControl) -> Double {
+        switch control {
+        case .buttonA, .buttonB, .buttonX, .buttonY: return 46
+        case .dpadUp, .dpadDown, .dpadLeft, .dpadRight: return 42
+        case .leftThumb, .rightThumb: return 62
+        case .guide: return 40
+        case .leftBumper, .rightBumper, .leftTrigger, .rightTrigger: return 60
+        case .back, .start: return 34
+        }
+    }
+
+    /// Picks a control and, unless it is the reserved one, arms the capture for it.
+    ///
+    /// Selection and arming are one gesture on purpose: a tap on the drawing is the same intent as
+    /// pressing «Capturar» in the table for that row. PS is the exception — it is the emulation switch,
+    /// so it can be inspected but never rebound.
+    private func select(_ control: XInputControl) {
+        selected = control
+        guard MappingRules.isRemappable(control) else { return }
+        capture.toggle(
+            control,
+            for: profileID,
+            isEmulationRunning: isEmulationEnabled
+        )
+    }
+
+    /// Whether this control is lit right now: hovered, picked, armed, or down on the pad.
+    private func isHighlighted(_ control: XInputControl) -> Bool {
+        isArmed(control) || selected == control || hovered == control || isPressed(control)
     }
 
     /// Whether this control is the one waiting for a key press.
     private func isArmed(_ control: XInputControl) -> Bool {
         capture.isCapturing(control)
-    }
-
-    private func badgeFill(isPressed: Bool, isArmed: Bool) -> Color {
-        if isPressed {
-            return .accentColor
-        }
-        return isArmed
-            ? Color.accentColor.opacity(0.22)
-            : Color(nsColor: .controlBackgroundColor).opacity(0.92)
-    }
-
-    private func badgeForeground(isPressed: Bool, isArmed: Bool) -> Color {
-        if isPressed {
-            return .white
-        }
-        return isArmed ? .accentColor : .primary
-    }
-
-    /// What the badge under a control says.
-    ///
-    /// Guide is reserved and never stored in the profile, so asking the profile would print «Sin
-    /// asignar» on the one control that always does something. A badge waiting for a key says so in
-    /// words rather than showing the assignment the next press is about to replace.
-    /// What the badge shows.
-    ///
-    /// The drawing is 520 points wide, so the full label either truncates or covers the control next
-    /// to it. The long form stays in the tooltip, which is where it can be read without stealing room.
-    private func shortLabel(for control: XInputControl) -> String {
-        // The armed badge is the only one that may grow: it is telling the user what to do next.
-        if isArmed(control) { return "Pulsa una tecla…" }
-        // Guide is reserved, and the row under the drawing already says what it does, so the badge
-        // only has to say which button it is.
-        guard control != MappingRules.reservedControl else { return "PS" }
-        switch profile.action(for: control) {
-        case .none: return "—"
-        case .mouseButton(.left): return "Izq."
-        case .mouseButton(.right): return "Der."
-        case .mouseButton(.middle): return "Centro"
-        case .scrollLines(let lines): return lines > 0 ? "Scroll ↑" : "Scroll ↓"
-        case .key(let combo): return combo.displayName
-        }
-    }
-
-    /// How far a badge is nudged from its measured point.
-    private static func verticalOffset(for control: XInputControl) -> CGFloat {
-        switch control {
-        case .leftBumper, .rightBumper: return -9
-        case .leftTrigger, .rightTrigger: return 9
-        default: return 0
-        }
-    }
-
-    /// The same answer, spelled out, for the tooltip.
-    private func badgeExplanation(for control: XInputControl) -> String {
-        control == MappingRules.reservedControl
-            ? "activa y apaga la emulación, y no se puede reasignar"
-            : MappingRules.label(for: profile.action(for: control))
     }
 
     /// Whether the control is down in the report.
@@ -204,7 +238,59 @@ struct PadGraphView: View {
         return control.isPressed(in: report)
     }
 
-    /// The line under the drawing: the capture hint while a badge waits for a key, the lock while
+    // MARK: - The strip under the drawing
+
+    /// The control the strip talks about: the armed one while a capture waits for a key, and otherwise
+    /// the hovered one, falling back to the last one picked.
+    private var describedControl: XInputControl? {
+        capture.session.armedControl ?? hovered ?? selected
+    }
+
+    /// Name and current assignment of one control, in one line under the drawing.
+    ///
+    /// The printed glyph on the artwork cannot follow a remapping, so this strip is where the mapping
+    /// is read. It is not decoration: without it the drawing alone would lie about ✕ once the user
+    /// assigns something else to it.
+    private var panel: some View {
+        let control = describedControl
+        let isArmed = control.map(isArmed) ?? false
+        return HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(control.map(MappingRules.controlLabel(for:)) ?? "Sin seleccionar")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+            Spacer(minLength: 8)
+            Text(isArmed ? "Pulsa una tecla…" : assignment(for: control))
+                .font(.callout.weight(.semibold))
+                .foregroundStyle(isArmed ? Color.accentColor : Color.primary)
+                .lineLimit(1)
+                .truncationMode(.tail)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .frame(minHeight: 34)
+        .background(RoundedRectangle(cornerRadius: 8).fill(Color(nsColor: .controlBackgroundColor)))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8).strokeBorder(Color.secondary.opacity(0.25), lineWidth: 1)
+        )
+        .help(control.map { "\(MappingRules.controlLabel(for: $0)): \(assignment(for: $0))" } ?? "")
+    }
+
+    /// What a control sends today, in the words the table uses.
+    ///
+    /// Guide is reserved and never stored in the profile, so asking the profile would print «Sin
+    /// asignar» on the one control that always does something.
+    private func assignment(for control: XInputControl?) -> String {
+        guard let control else { return "—" }
+        guard MappingRules.isRemappable(control) else {
+            return "Reservado: activa y apaga la emulación"
+        }
+        return MappingRules.label(for: profile.action(for: control))
+    }
+
+    // MARK: - The line under the strip
+
+    /// The hint under the drawing: the capture hint while a control waits for a key, the lock while
     /// emulation runs, and how to read the drawing otherwise.
     @ViewBuilder private var hint: some View {
         if isEmulationEnabled {
@@ -224,8 +310,10 @@ struct PadGraphView: View {
                 )
         } else {
             Text(
-                "Cada etiqueta es la asignación actual del perfil. Pulsa una para asignarle una "
-                    + "tecla, o cámbiala en la vista «Tabla»."
+                "Pasa el ratón por un botón del dibujo: se ilumina su propia forma, y la franja de "
+                    + "arriba dice qué envía. Pulsa para asignarle una tecla. El glifo impreso no "
+                    + "cambia al reasignar, así que la asignación se lee en esa franja y en la vista "
+                    + "«Tabla»."
             )
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -255,4 +343,66 @@ private enum Artwork {
         }
         return NSImage(contentsOf: url)
     }()
+}
+
+/// The per-control alpha masks that decide which pixels of the drawing light up.
+///
+/// They are the artwork's own alpha restricted to one control, cut by `prototype/tools/make-masks.py`
+/// and shipped flat in `Resources/masks`. A mask that will not load leaves its control untinted and
+/// unreported one by one: `isIncomplete` is what turns that into the single note under the drawing.
+@MainActor
+private enum Masks {
+    static let images: [XInputControl: NSImage] = {
+        var loaded: [XInputControl: NSImage] = [:]
+        for control in XInputControl.allCases {
+            if let image = load(control) {
+                loaded[control] = image
+            }
+        }
+        return loaded
+    }()
+
+    /// Whether at least one mask is missing from the bundle.
+    static var isIncomplete: Bool {
+        images.count != XInputControl.allCases.count
+    }
+
+    static func image(for control: XInputControl) -> NSImage? {
+        images[control]
+    }
+
+    /// `Bundle.module` is built by SwiftPM and then copied into the `.app` by `scripts/build-app.sh`,
+    /// so the mask may sit at the bundle root or keep its folder depending on how it was processed.
+    /// Both are tried; a miss is what the single note below the drawing reports.
+    private static func load(_ control: XInputControl) -> NSImage? {
+        let name = "diagram-\(fileName(for: control))"
+        let url = Bundle.module.url(forResource: name, withExtension: "png")
+            ?? Bundle.module.url(forResource: name, withExtension: "png", subdirectory: "masks")
+        guard let url else { return nil }
+        return NSImage(contentsOf: url)
+    }
+
+    /// The name of the mask file, which is the control's case name: `diagram-buttonA.png` and
+    /// `diagram-leftThumb.png` follow the prototype's naming so the two stay comparable.
+    private static func fileName(for control: XInputControl) -> String {
+        switch control {
+        case .dpadUp: return "dpadUp"
+        case .dpadDown: return "dpadDown"
+        case .dpadLeft: return "dpadLeft"
+        case .dpadRight: return "dpadRight"
+        case .buttonA: return "buttonA"
+        case .buttonB: return "buttonB"
+        case .buttonX: return "buttonX"
+        case .buttonY: return "buttonY"
+        case .leftBumper: return "leftBumper"
+        case .rightBumper: return "rightBumper"
+        case .leftTrigger: return "leftTrigger"
+        case .rightTrigger: return "rightTrigger"
+        case .back: return "back"
+        case .start: return "start"
+        case .guide: return "guide"
+        case .leftThumb: return "leftThumb"
+        case .rightThumb: return "rightThumb"
+        }
+    }
 }

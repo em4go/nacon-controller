@@ -2,8 +2,9 @@ import XCTest
 
 @testable import NaconCore
 
-/// The graphical pad view puts one badge per control on top of the DualShock 4 artwork, so this table
-/// is what decides whether a badge lands on the right part of the drawing.
+/// The graphical pad view lights up the pixels of the control under the pointer on the DualShock 4
+/// artwork, so this table is what decides whether a highlight and its hit area land on the right part
+/// of the drawing.
 ///
 /// The checks below are the invariants a later nudge must not break: every control placed exactly
 /// once, inside the picture, on the correct side of the pad, far enough apart to stay readable, away
@@ -164,7 +165,9 @@ final class PadLayoutTests: XCTestCase {
         assert(point(.dpadLeft), expectedX: 0.1740, expectedY: 0.4297)
         assert(point(.buttonB), expectedX: 0.8484, expectedY: 0.4299)
         assert(point(.leftTrigger), expectedX: 0.2253, expectedY: 0.1692)
-        assert(point(.guide), expectedX: 0.5025, expectedY: 0.6300)
+        // The labelled artwork prints the PS logo, which the drawing before it did not, so this is the
+        // one row that had to move when the file was replaced.
+        assert(point(.guide), expectedX: 0.5022, expectedY: 0.6072)
 
         // Two more, so the vertical extent of the drawing is covered as well.
         assert(point(.leftBumper), expectedX: 0.2305, expectedY: 0.1187)

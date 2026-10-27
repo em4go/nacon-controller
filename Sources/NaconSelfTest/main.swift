@@ -16,6 +16,7 @@ while Date() < deadline {
     let stateDescription = "\(service.state.title)|\(service.state.detail ?? "")"
     if stateDescription != lastState {
         print("state: \(service.state.title) \(service.state.detail ?? "")")
+        fflush(stdout)
         lastState = stateDescription
     }
     if service.reportCount != lastReportCount {
@@ -25,6 +26,7 @@ while Date() < deadline {
 
 print("devices=\(service.devices.count) reports=\(service.reportCount) reconnects=\(service.reconnectCount)")
 print("lastPacket=\(service.rawPacketHex.isEmpty ? "none" : service.rawPacketHex)")
+fflush(stdout)
 let receivedReports = service.reportCount
 service.stop()
 RunLoop.current.run(until: Date().addingTimeInterval(0.4))

@@ -115,8 +115,13 @@ identidad estable y macOS volverá a pedir el permiso o lo ignorará.
 
 Esta vía no accede a controles que el mando solo expone en otros modos:
 
-- **Touchpad, jack de audio, luz y vibración**: existen en modo PS4 (`146B:0D05`), que es HID, no en
-  modo XInput. Esa ventana dura unas décimas de segundo al conectar y se cierra sola.
+- **Touchpad**: medido, no supuesto. En modo XInput no produce **ninguna** señal: sus seis bytes
+  reservados (14-19) permanecen a cero y la pulsación no aparece en la máscara de botones. Se
+  comprobó con `nacon-touchpad` y un control positivo: el botón A sí se registra (máscara `0x1000`)
+  y el touchpad no. El mando solo lo entrega en modo PS4 (`146B:0D05`), que es HID y dura unas
+  décimas de segundo al conectar antes de que el firmware se re-enumere como XInput.
+- **Jack de audio, luz y vibración**: igualmente exclusivos del modo PS4. Esa ventana dura unas
+  décimas de segundo al conectar y se cierra sola.
 - **Modo bootloader** (`2F24:0001`, «Updater»): se alcanza manteniendo `SHARE` + `OPTIONS` al
   conectar y sirve para actualizar firmware. No envía entradas.
 - La aplicación **no** interpreta esos modos: los detecta, los muestra y avisa.
@@ -127,6 +132,7 @@ Esta vía no accede a controles que el mando solo expone en otros modos:
 Sources/NaconCore/XInputReport.swift      Decodificador puro del informe de 20 bytes
 Sources/NaconCore/NaconDevice.swift       Identidades USB y modos conocidos
 Sources/NaconCore/ControllerService.swift Ciclo de vida IOUSBHost, lectura y reconexión
+Sources/NaconTouchWatch/main.swift      Observador del touchpad en modo XInput
 Sources/NaconDiagnostics/                 Aplicación SwiftUI
 Sources/NaconSelfTest/                    Comprobación headless del enlace
 Tests/NaconCoreTests/                     Tests del decodificador

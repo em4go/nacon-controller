@@ -81,6 +81,23 @@ final class ProfileLibraryController: ObservableObject {
         mutate { $0.setInvertVerticalAxis(newValue) }
     }
 
+    // MARK: - S9: cursor sensitivity
+
+    /// S9: the value a slider must show for the profile being edited.
+    func selectedValue(for sensitivity: CursorSensitivity) -> Double? {
+        library.selectedValue(for: sensitivity)
+    }
+
+    /// S9: writes one setting into the selected profile and saves it straight away.
+    func setCursorSensitivity(_ sensitivity: CursorSensitivity, to raw: Double) {
+        mutate { $0.setCursorSensitivity(sensitivity, to: raw) }
+    }
+
+    /// S9: restores the standard numbers on the selected profile only.
+    func resetCursorSensitivity() {
+        mutate { $0.resetCursorSensitivity() }
+    }
+
     func rename(_ id: UUID, to name: String) {
         mutate { library in library.renameProfile(id: id, to: name) }
     }

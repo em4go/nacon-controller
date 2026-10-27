@@ -88,6 +88,28 @@ Reglas de seguridad que el código garantiza:
 - Pulsar **Guide** la detiene sin usar el ratón.
 - Si el mando se **desconecta**, la emulación se detiene y suelta lo que tuviera retenido.
 
+### Sensibilidad por perfil
+
+Cada perfil guarda su propia velocidad máxima, zona muerta, curva y velocidad de desplazamiento, así
+que un perfil de diseño y uno de juego pueden moverse distinto sin reajustar nada a mano. Los controles
+están en **Sensibilidad del cursor**, se aplican al arrancar la emulación y se bloquean mientras corre
+por la misma razón que el editor de mapeos. **Restablecer** devuelve los valores estándar sin tocar la
+dirección del eje vertical, que es una propiedad de la unidad y no una preferencia.
+
+Cada valor se acota a su rango antes de guardarse: un archivo editado a mano no puede dejar el cursor
+a 0 pt/s, que se vería exactamente igual que un cursor congelado.
+
+### Luz y vibración
+
+- **Luz**: por defecto es un indicador de emulación, encendida mientras corre y apagada al detenerla.
+  Se puede pasar a control manual.
+- **Vibración**: un interruptor la usa como aviso al arrancar y detener, con intensidad ajustable, y
+  **Probar** lanza una ráfaga corta.
+
+Las dos son estado de ejecución, no ajustes de perfil. La app envía la orden de parada al terminar,
+pero un cierre forzado puede dejar la luz encendida o los motores girando: es una limitación aceptada
+y está dicha también junto a los controles.
+
 ### Firma estable (recomendado antes de la primera concesión)
 
 La firma ad-hoc ancla el permiso de Accesibilidad al hash del binario, así que **cada recompilación
@@ -157,7 +179,7 @@ odd/tasks/phase2-diagnostics.md           Especificación y registro de la tarea
 - El mando solo admite **un dueño a la vez**: si la app está abierta, otro programa no puede leerlo,
   y si otro programa lo captura, la app deja de recibir informes.
 - La emulación no se ha validado todavía de extremo a extremo: requiere que concedas el permiso de
-  Accesibilidad. La lógica está cubierta por 42 tests con un emisor simulado, pero el envío real de
+  Accesibilidad. La lógica está cubierta por 175 tests con un emisor simulado, pero el envío real de
   eventos a otras aplicaciones solo se puede comprobar con el permiso concedido.
 - `ControllerService.swift` supera las 400 líneas; conviene extraer el acceso al registro IOKit a su
   propio archivo cuando se toque de nuevo.
@@ -166,4 +188,5 @@ odd/tasks/phase2-diagnostics.md           Especificación y registro de la tarea
   necesitarían ampliar la tabla de identidades.
 - El significado de cada bit está fijado por el protocolo Xbox 360. Si una unidad concreta
   intercambiara botones, la tabla está en un único sitio (`XInputReport.swift`).
-- La vibración y el LED no se controlan todavía; el mando enciende su LED solo.
+- La luz y la vibración se controlan desde la app. La orden de parada de ambas se envía al terminar,
+  así que un cierre forzado puede dejarlas en el estado anterior.

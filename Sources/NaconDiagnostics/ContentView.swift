@@ -14,6 +14,7 @@ struct ContentView: View {
                 DeviceListSection(devices: service.devices)
                 // S1, S4, S5, S8: the profiles live above the emulation settings they feed.
                 ProfileSection(profiles: profiles)
+                SensitivitySection(profiles: profiles)
                 EmulationSection(emulation: emulation)
                 if service.state.isConnected, let report = service.report {
                     ButtonMatrixSection(report: report)
@@ -36,6 +37,9 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
             // S5: never leave the pad light on after the app is gone.
             service.sendOutput(PadLight.offPacket)
+            // S10: same reasoning for the motors. The stop is unconditional because at exit the app
+            // cannot know whether a burst is still running.
+            service.sendOutput(PadRumble.stopPacket)
         }
     }
 }

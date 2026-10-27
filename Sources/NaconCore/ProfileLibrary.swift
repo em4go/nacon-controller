@@ -211,6 +211,46 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
         return true
     }
 
+    // MARK: - S9: cursor sensitivity of the profile being edited
+
+    /// The value the slider must show, or `nil` when there is no profile to edit.
+    public func selectedValue(for sensitivity: CursorSensitivity) -> Double? {
+        selectedProfile.map { sensitivity.value(in: $0.profile.cursor) }
+    }
+
+    /// Writes one cursor setting into the profile being edited, clamped to its range.
+    /// - Returns: whether the library changed.
+    @discardableResult
+    public mutating func setCursorSensitivity(_ sensitivity: CursorSensitivity, to raw: Double) -> Bool {
+        guard let index = selectedIndex else { return false }
+        var cursor = profiles[index].profile.cursor
+        guard sensitivity.apply(raw, to: &cursor) else { return false }
+        profiles[index].profile.cursor = cursor
+        return true
+    }
+
+    /// Restores the standard sensitivity on the profile being edited, leaving every sibling alone.
+    ///
+    /// The vertical-axis flag is kept. It corrects a property of the unit, not a preference of the
+    /// user, so resetting the numbers must not silently flip the cursor back to the wrong direction.
+    @discardableResult
+    public mutating func resetCursorSensitivity() -> Bool {
+        guard let index = selectedIndex else { return false }
+        let standard = InputProfile.standard.cursor
+        let current = profiles[index].profile.cursor
+        let restored = CursorSettings(
+            deadzone: standard.deadzone,
+            fullSpeedFraction: standard.fullSpeedFraction,
+            maxSpeed: standard.maxSpeed,
+            curveExponent: standard.curveExponent,
+            scrollLinesPerSecond: standard.scrollLinesPerSecond,
+            invertVerticalAxis: current.invertVerticalAxis
+        )
+        guard restored != current else { return false }
+        profiles[index].profile.cursor = restored
+        return true
+    }
+
     private enum CodingKeys: String, CodingKey {
         case version
         case profiles

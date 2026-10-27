@@ -9,6 +9,7 @@ let package = Package(
         .library(name: "NaconCore", targets: ["NaconCore"]),
         .executable(name: "nacon-selftest", targets: ["NaconSelfTest"]),
         .executable(name: "nacon-padtest", targets: ["NaconPadTest"]),
+        .executable(name: "nacon-touchpad", targets: ["NaconTouchWatch"]),
     ],
     targets: [
         .target(name: "NaconCore", path: "Sources/NaconCore"),
@@ -26,6 +27,11 @@ let package = Package(
             name: "NaconPadTest",
             dependencies: ["NaconCore"],
             path: "Sources/NaconPadTest"
+        ),
+        .executableTarget(
+            name: "NaconTouchWatch",
+            dependencies: ["NaconCore"],
+            path: "Sources/NaconTouchWatch"
         ),
         .testTarget(
             name: "NaconCoreTests",

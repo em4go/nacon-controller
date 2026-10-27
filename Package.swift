@@ -17,7 +17,11 @@ let package = Package(
         .executableTarget(
             name: "NaconDiagnostics",
             dependencies: ["NaconCore"],
-            path: "Sources/NaconDiagnostics"
+            path: "Sources/NaconDiagnostics",
+            // The DualShock 4 drawing the graphical pad view is built on. SwiftPM turns it into a
+            // resource bundle next to the executable; `scripts/build-app.sh` copies it into the
+            // .app so `Bundle.module` finds it there too.
+            resources: [.process("Resources")]
         ),
         .executableTarget(
             name: "NaconSelfTest",

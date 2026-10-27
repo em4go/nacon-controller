@@ -88,6 +88,23 @@ Reglas de seguridad que el código garantiza:
 - Pulsar **PS** la activa si está parada y la detiene si está en marcha, sin usar el ratón.
 - Si el mando se **desconecta**, la emulación se detiene y suelta lo que tuviera retenido.
 
+### Dos vistas del perfil
+
+El perfil activo se puede leer de dos maneras con el selector **Vista**, y la elección se recuerda
+entre arranques:
+
+- **Gráfica** (por defecto): el dibujo del mando con una etiqueta por control en su posición real,
+  mostrando la asignación actual. Con la emulación parada, el control que pulsas se resalta; mientras
+  la emulación corre, las etiquetas se atenúan y no responden porque el mapeo está bloqueado.
+- **Tabla**: el editor de siempre, una fila por control, donde se captura la tecla o se elige la
+  acción.
+
+La fila del botón PS aparece en las dos vistas: no es reasignable porque es el interruptor de la
+emulación.
+
+El dibujo procede del paquete de prompts de Xelu, publicado con licencia CC0 1.0 (dominio público):
+`Sources/NaconDiagnostics/Resources/PS4_Controller.png`.
+
 ### Sensibilidad por perfil
 
 Cada perfil guarda su propia velocidad máxima, zona muerta, curva y velocidad de desplazamiento, así

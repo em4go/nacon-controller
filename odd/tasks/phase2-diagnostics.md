@@ -52,3 +52,11 @@ L3 (decision): replace GameController with an IOUSBHost reader; reuse the lifecy
 20-byte layout documented by the MIT prior art `llPekoll/madcatz-fightstick-macos`.
 
 L4 (user): "continúa con el trabajo, sigue tu propia recomendación" — authorizes Phase 2 implementation.
+
+L5 (user): "es una lástima que no funcione el touchpad ni la luz del mando... ¿no hay absolutamente
+ninguna forma de hacer funcionar lo que falta?" — exploration, not a new requirement. The interface
+also exposes an interrupt OUT endpoint (0x02) that the read-only phase never used; LED and rumble
+packets are now available as `XInputOutputReport` plus the `nacon-padtest` tool.
+
+L6 (observation): the pad can only be owned by one process at a time. While the app was running it
+held the IOUSBHostDevice exclusively and a second reader failed with "Error de acceso".

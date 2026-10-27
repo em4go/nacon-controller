@@ -43,6 +43,7 @@ public final class ControllerService: ObservableObject {
     @Published public private(set) var lastReportAt: Date?
     @Published public private(set) var reconnectCount = 0
     @Published public private(set) var rawPacketHex = ""
+    @Published public private(set) var lastWriteStatus = "—"
 
     private let ioQueue = DispatchQueue(label: "dev.nacon.controller.io")
     private let staleAfter: TimeInterval = 2.0
@@ -75,6 +76,35 @@ public final class ControllerService: ObservableObject {
             self.timer?.cancel()
             self.timer = nil
             self.teardown(reason: nil)
+        }
+    }
+
+    /// Sends a control packet (LED or rumble) to the pad. Safe to call from any thread.
+    public func sendOutput(_ packet: [UInt8]) {
+        ioQueue.async { [weak self] in
+            guard let self else { return }
+            guard let current = self.link, let outPipe = current.outPipe else {
+                self.publishWriteStatus("sin endpoint de salida")
+                return
+            }
+            let buffer = NSMutableData(bytes: packet, length: packet.count)
+            do {
+                try outPipe.enqueueIORequest(
+                    with: buffer,
+                    completionTimeout: 0
+                ) { [weak self] status, transferred in
+                    guard let self else { return }
+                    self.ioQueue.async {
+                        guard !current.isDead else { return }
+                        let text = status == kIOReturnSuccess
+                            ? "ok (\(transferred) bytes)"
+                            : "error \(Self.hex(status))"
+                        self.publishWriteStatus(text)
+                    }
+                }
+            } catch {
+                self.publishWriteStatus("no se pudo enviar: \(error.localizedDescription)")
+            }
         }
     }
 
@@ -134,10 +164,12 @@ public final class ControllerService: ObservableObject {
             )
             hostInterface = openedInterface
             let pipe = try openedInterface.copyPipe(withAddress: NaconIDs.xinputEndpointAddress)
+            let outPipe = try? openedInterface.copyPipe(withAddress: NaconIDs.xinputOutEndpointAddress)
             let fresh = DeviceLink(
                 device: opened,
                 hostInterface: openedInterface,
                 pipe: pipe,
+                outPipe: outPipe,
                 service: found.service
             )
             link = fresh
@@ -216,6 +248,7 @@ public final class ControllerService: ObservableObject {
         emittedCount = 0
         lastPublishedReport = nil
         lastPublishTime = Date.distantPast
+        publishWriteStatus("—")
         publishDevice(nil)
         publishReport(nil, count: 0, hex: "", at: nil)
         if let reason {
@@ -238,13 +271,21 @@ private final class DeviceLink {
     let device: IOUSBHostDevice
     let hostInterface: IOUSBHostInterface
     let pipe: IOUSBHostPipe
+    let outPipe: IOUSBHostPipe?
     let service: io_service_t
     var isDead = false
 
-    init(device: IOUSBHostDevice, hostInterface: IOUSBHostInterface, pipe: IOUSBHostPipe, service: io_service_t) {
+    init(
+        device: IOUSBHostDevice,
+        hostInterface: IOUSBHostInterface,
+        pipe: IOUSBHostPipe,
+        outPipe: IOUSBHostPipe?,
+        service: io_service_t
+    ) {
         self.device = device
         self.hostInterface = hostInterface
         self.pipe = pipe
+        self.outPipe = outPipe
         self.service = service
     }
 }
@@ -387,6 +428,12 @@ extension ControllerService {
             self.reportCount = count
             self.rawPacketHex = hex
             self.lastReportAt = date
+        }
+    }
+
+    private func publishWriteStatus(_ text: String) {
+        DispatchQueue.main.async { [weak self] in
+            self?.lastWriteStatus = text
         }
     }
 

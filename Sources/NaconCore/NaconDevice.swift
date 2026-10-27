@@ -10,6 +10,8 @@ public enum NaconIDs {
 
     /// Interrupt IN endpoint of the XInput interface.
     public static let xinputEndpointAddress: Int = 0x81
+    /// Interrupt OUT endpoint, used for LED and rumble commands.
+    public static let xinputOutEndpointAddress: Int = 0x02
     public static let xinputConfigurationValue = 1
 }
 

@@ -120,8 +120,10 @@ print("muestras=\(samples)  con bytes 14-19 distintos de cero=\(nonzero)")
 if firstReport.isEmpty {
     print("resultado: no se recibió ningún informe. ¿Está el mando conectado y la app cerrada?")
 } else if nonzero == 0 {
-    print("resultado: los bytes 14-19 siguieron a cero durante toda la captura.")
-    print("           El touchpad no deja rastro en el informe XInput.")
+    print("resultado: no se registró ningún cambio en los bytes 14-19.")
+    print("           Solo es concluyente si pulsaste el touchpad durante la captura.")
+    print("           Control necesario: pulsa además un botón conocido (A). Si A aparece")
+    print("           en el registro y el touchpad no, el negativo es firme.")
 } else {
     print("resultado: el touchpad SÍ produce datos. Valores observados:")
     for value in values { print("           \(value)") }

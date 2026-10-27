@@ -14,6 +14,7 @@ final class EmulationController: ObservableObject {
     private var cancellables: Set<AnyCancellable> = []
     private var permissionTimer: Timer?
     private var terminationObserver: NSObjectProtocol?
+    private var activationObserver: NSObjectProtocol?
 
     init() {
         engine.onEmergencyStop = { [weak self] in
@@ -50,6 +51,16 @@ final class EmulationController: ObservableObject {
             }
         }
 
+        activationObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.refreshPermission()
+            }
+        }
+
         permissionTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 self?.hasAccessibility = AccessibilityPermission.isGranted
@@ -62,6 +73,10 @@ final class EmulationController: ObservableObject {
         if let terminationObserver {
             NotificationCenter.default.removeObserver(terminationObserver)
             self.terminationObserver = nil
+        }
+        if let activationObserver {
+            NotificationCenter.default.removeObserver(activationObserver)
+            self.activationObserver = nil
         }
         permissionTimer?.invalidate()
         permissionTimer = nil
@@ -89,5 +104,10 @@ final class EmulationController: ObservableObject {
 
     func requestAccessibility() {
         hasAccessibility = AccessibilityPermission.requestPrompt()
+    }
+
+    /// Re-reads the trust state without prompting. Useful after changing System Settings.
+    func refreshPermission() {
+        hasAccessibility = AccessibilityPermission.isGranted
     }
 }

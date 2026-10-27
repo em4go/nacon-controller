@@ -8,6 +8,9 @@ struct EmulationSection: View {
         VStack(alignment: .leading, spacing: 10) {
             SectionTitle("Emulación de ratón y teclado")
             permissionRow
+            if !emulation.hasAccessibility {
+                staleEntryHint
+            }
             Toggle("Emulación activa", isOn: Binding(
                 get: { emulation.isEnabled },
                 set: { emulation.setEnabled($0) }
@@ -27,6 +30,16 @@ struct EmulationSection: View {
                     .foregroundStyle(.orange)
             }
         }
+    }
+
+    private var staleEntryHint: some View {
+        Text(
+            "Si la app ya aparece activada en esa lista y el indicador sigue en naranja, la entrada es "
+            + "antigua: selecciónala, quítala con el botón − y vuelve a añadirla, o ejecuta "
+            + "tccutil reset Accessibility dev.nacon.diagnostics y solicita el permiso otra vez."
+        )
+        .font(.caption)
+        .foregroundStyle(.orange)
     }
 
     private var permissionTitle: String {
@@ -53,8 +66,13 @@ struct EmulationSection: View {
             }
             Spacer()
             if !emulation.hasAccessibility {
-                Button("Solicitar permiso") {
-                    emulation.requestAccessibility()
+                HStack(spacing: 8) {
+                    Button("Comprobar de nuevo") {
+                        emulation.refreshPermission()
+                    }
+                    Button("Solicitar permiso") {
+                        emulation.requestAccessibility()
+                    }
                 }
             }
         }

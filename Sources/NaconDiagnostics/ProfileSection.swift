@@ -20,6 +20,11 @@ struct ProfileSection: View {
     @State private var isRenaming = false
     @State private var draftName = ""
 
+    /// The one key capture of the section. Both views arm it, so whichever one is on screen has the
+    /// same armed control, the same rules and the same event monitor -- and switching between them
+    /// cannot leave two captures alive.
+    @StateObject private var capture = MappingCapture()
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             SectionTitle("Perfiles")
@@ -31,13 +36,19 @@ struct ProfileSection: View {
                 Divider()
                 switch viewMode {
                 case .graph:
-                    // The graphical view only renders: the profile comes in, nothing goes out. Press
-                    // states come from the report of the connected pad.
+                    // The graphical view only renders and forwards the tap: the profile comes in, and
+                    // the only thing that can go out is an armed capture, as in the table.
                     PadGraphView(
                         profile: selected.profile,
+                        profileID: selected.id,
                         report: service.report,
-                        isEmulationEnabled: emulation.isEnabled
+                        isEmulationEnabled: emulation.isEnabled,
+                        capture: capture
                     )
+                    // A capture belongs to the profile it was armed for, so the graph is rebuilt when
+                    // the profile changes, exactly like the table: a pending press must never land on
+                    // the profile the user has just selected.
+                    .id(selected.id)
                     // PS is not a row in the table either, and it must stay visible in both views:
                     // it is the emulation switch and has to remain reachable.
                     reservedControlRow
@@ -46,15 +57,8 @@ struct ProfileSection: View {
                         profile: selected.profile,
                         profileID: selected.id,
                         isEmulationEnabled: emulation.isEnabled,
-                        setAction: { armedProfileID, control, action in
-                            // F5: a capture belongs to the profile it was armed for. `KeyCaptureSession`
-                            // reports that identifier with the mapping, so a selection that moved while
-                            // a key was in flight drops the write instead of landing on the profile the
-                            // user has just selected.
-                            guard armedProfileID == profiles.selectedProfile?.id else { return }
-                            // The controller persists every change, so the edit survives a restart (S6).
-                            profiles.setAction(action, for: control)
-                        }
+                        setAction: applyCapturedAction,
+                        capture: capture
                     )
                     // Switching profiles rebuilds the editor, which ends any armed capture: a pending
                     // press must never land on the profile the user has just selected.
@@ -73,6 +77,22 @@ struct ProfileSection: View {
                     .foregroundStyle(.orange)
             }
         }
+        .onAppear {
+            // The section owns the capture, so it also owns what a finished capture means: one write
+            // per key press, into the profile the capture was armed for. Installing it here instead
+            // of in one of the two views keeps that true whichever view is showing.
+            capture.onFinish = { outcome in
+                guard case let .mapped(armedProfileID, control, action) = outcome else { return }
+                applyCapturedAction(armedProfileID, control, action)
+            }
+        }
+        .onChange(of: emulation.isEnabled) { isRunning in
+            // A capture started before emulation began would keep swallowing key presses, and the
+            // table's guard is no longer the only place that can arm one.
+            if isRunning {
+                capture.end()
+            }
+        }
         .alert("Renombrar perfil", isPresented: $isRenaming) {
             TextField("Nombre del perfil", text: $draftName)
             Button("Cancelar", role: .cancel) {
@@ -86,6 +106,21 @@ struct ProfileSection: View {
         } message: {
             Text("El nombre no puede quedar vacío.")
         }
+    }
+
+    /// Writes a mapping captured for a profile.
+    ///
+    /// F5: a capture belongs to the profile it was armed for. `KeyCaptureSession` reports that
+    /// identifier with the mapping, so a selection that moved while a key was in flight drops the
+    /// write instead of landing on the profile the user has just selected.
+    private func applyCapturedAction(
+        _ armedProfileID: UUID,
+        _ control: XInputControl,
+        _ action: MappedAction
+    ) {
+        guard armedProfileID == profiles.selectedProfile?.id else { return }
+        // The controller persists every change, so the edit survives a restart (S6).
+        profiles.setAction(action, for: control)
     }
 
     private var profilePicker: some View {

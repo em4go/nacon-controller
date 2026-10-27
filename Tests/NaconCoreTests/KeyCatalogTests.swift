@@ -13,20 +13,45 @@ final class KeyCatalogTests: XCTestCase {
         XCTAssertEqual(KeyCatalog.name(for: 47), ".")
     }
 
-    func testNavigationAndEditingKeysHaveNames() {
-        XCTAssertEqual(KeyCatalog.name(for: 36), "Return")
-        XCTAssertEqual(KeyCatalog.name(for: 48), "Tab")
-        XCTAssertEqual(KeyCatalog.name(for: 49), "Space")
-        XCTAssertEqual(KeyCatalog.name(for: 51), "Delete")
-        XCTAssertEqual(KeyCatalog.name(for: 53), "Escape")
-        XCTAssertEqual(KeyCatalog.name(for: 123), "Left Arrow")
-        XCTAssertEqual(KeyCatalog.name(for: 124), "Right Arrow")
-        XCTAssertEqual(KeyCatalog.name(for: 125), "Down Arrow")
-        XCTAssertEqual(KeyCatalog.name(for: 126), "Up Arrow")
-        XCTAssertEqual(KeyCatalog.name(for: 115), "Home")
-        XCTAssertEqual(KeyCatalog.name(for: 119), "End")
-        XCTAssertEqual(KeyCatalog.name(for: 116), "Page Up")
-        XCTAssertEqual(KeyCatalog.name(for: 121), "Page Down")
+    /// The whole catalog is read by a Spanish interface, so every name here is either a Spanish
+    /// word or the glyph macOS already prints on the keyboard. These are the names the badges of the
+    /// graphical pad view show, which is where the English ones were visible.
+    func testNavigationAndEditingKeysUseSpanishNamesOrGlyphs() {
+        XCTAssertEqual(KeyCatalog.name(for: 36), "↩")
+        XCTAssertEqual(KeyCatalog.name(for: 48), "⇥")
+        XCTAssertEqual(KeyCatalog.name(for: 49), "Espacio")
+        XCTAssertEqual(KeyCatalog.name(for: 51), "Borrar")
+        XCTAssertEqual(KeyCatalog.name(for: 53), "Esc")
+        XCTAssertEqual(KeyCatalog.name(for: 123), "←")
+        XCTAssertEqual(KeyCatalog.name(for: 124), "→")
+        XCTAssertEqual(KeyCatalog.name(for: 125), "↓")
+        XCTAssertEqual(KeyCatalog.name(for: 126), "↑")
+    }
+
+    func testTheRestOfTheNavigationKeysAreNamedToo() {
+        XCTAssertEqual(KeyCatalog.name(for: 115), "Inicio")
+        XCTAssertEqual(KeyCatalog.name(for: 119), "Fin")
+        XCTAssertEqual(KeyCatalog.name(for: 116), "Re Pág")
+        XCTAssertEqual(KeyCatalog.name(for: 121), "Av Pág")
+        XCTAssertEqual(KeyCatalog.name(for: 76), "⌤")
+        XCTAssertEqual(KeyCatalog.name(for: 117), "⌦")
+        XCTAssertEqual(KeyCatalog.name(for: 114), "Ayuda")
+    }
+
+    /// Copy guard: the interface is Spanish, and the old catalog printed English words on the
+    /// badges. Glyphs and single characters are language neutral, so only whole words are checked.
+    func testNoKnownNameIsAnEnglishWord() {
+        let englishWords = [
+            "Arrow", "Space", "Tab", "Return", "Delete", "Escape", "Enter", "Help",
+            "Home", "End", "Page", "Up", "Down", "Left", "Right",
+        ]
+
+        let offenders = KeyCatalog.names.filter { _, name in
+            let words = name.split(whereSeparator: { !$0.isLetter }).map(String.init)
+            return words.contains { englishWords.contains($0) }
+        }
+
+        XCTAssertTrue(offenders.isEmpty, "English names left in the catalog: \(offenders)")
     }
 
     func testFunctionKeysHaveNames() {
@@ -47,8 +72,16 @@ final class KeyCatalogTests: XCTestCase {
         let combo = KeyCombo(keyCode: 12, modifiers: [.command, .shift, .option, .control])
         XCTAssertEqual(combo.displayName, "⌃⌥⇧⌘Q")
 
-        XCTAssertEqual(KeyCombo(keyCode: 48).displayName, "Tab")
+        XCTAssertEqual(KeyCombo(keyCode: 48).displayName, "⇥")
         XCTAssertEqual(KeyCombo(keyCode: 200).displayName, KeyCatalog.name(for: 200))
+    }
+
+    /// A shortcut is rendered modifiers-first around the Spanish key name, which is what the table
+    /// and the badges show once a capture lands.
+    func testComboDisplayNameWrapsTheSpanishKeyName() {
+        XCTAssertEqual(KeyCombo(keyCode: 48, modifiers: [.command]).displayName, "⌘⇥")
+        XCTAssertEqual(KeyCombo(keyCode: 126, modifiers: [.shift, .option]).displayName, "⌥⇧↑")
+        XCTAssertEqual(KeyCombo(keyCode: 51, modifiers: [.control]).displayName, "⌃Borrar")
     }
 
     func testComboKeepsAnyKeyCode() {

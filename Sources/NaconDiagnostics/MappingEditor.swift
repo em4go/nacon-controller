@@ -24,8 +24,9 @@ struct MappingEditor: View {
     /// Applies one mapping to the profile the capture was armed for. Supplied by the section, which
     /// drops the write when that profile is no longer the selected one.
     let setAction: (UUID, XInputControl, MappedAction) -> Void
-
-    @StateObject private var capture = MappingCapture()
+    /// The one capture of the section, shared with the graphical view. The section owns it so a
+    /// capture armed in either view is the same session, with the same monitor and the same rules.
+    @ObservedObject var capture: MappingCapture
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -66,20 +67,11 @@ struct MappingEditor: View {
             .font(.caption)
             .foregroundStyle(.secondary)
         }
-        .onChange(of: isEmulationEnabled) { isRunning in
-            // A capture started before emulation began would keep swallowing key presses.
-            if isRunning {
-                capture.end()
-            }
-        }
         .onDisappear {
+            // Leaving the table (a switch to «Gráfica», a profile change) removes this view, so the
+            // pending press and its monitor must go with it: the section installs the write, and a
+            // capture must never land on a control the user is no longer looking at.
             capture.end()
-        }
-        .onAppear {
-            capture.onFinish = { outcome in
-                guard case let .mapped(armedProfileID, control, action) = outcome else { return }
-                setAction(armedProfileID, control, action)
-            }
         }
     }
 
@@ -198,6 +190,10 @@ private struct MappingRow: View {
 /// becomes, when the capture ends and which profile the mapping belongs to. This object is the
 /// AppKit translation layer -- it installs the monitor, reads the key code and modifiers, and hands
 /// the outcome to the view -- plus the observable wrapper SwiftUI needs to redraw the rows.
+///
+/// One instance belongs to `ProfileSection`, which hands it to the table and to the graphical view:
+/// both arms are therefore the same session, and a capture started in one view follows the same rules
+/// as the other.
 ///
 /// A local monitor is used on purpose: it sees the press before the rest of the app and can swallow
 /// it, so the captured shortcut never reaches a text field or a menu. Normal typing is untouched

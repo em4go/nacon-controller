@@ -21,12 +21,14 @@ public enum KeyCatalog {
         // Punctuation.
         24: "=", 27: "-", 30: "]", 33: "[", 39: "'", 41: ";", 42: "\\", 43: ",", 44: "/",
         47: ".", 50: "`",
-        // Editing and whitespace.
-        36: "Return", 48: "Tab", 49: "Space", 51: "Delete", 53: "Escape", 76: "Enter",
-        117: "Forward Delete", 114: "Help",
+        // Editing and whitespace. The interface is Spanish, so the names are Spanish words or the
+        // glyph macOS already prints on the key itself: ↩ for return, ⇥ for tab, ⌤ for the keypad
+        // enter and ⌦ for forward delete.
+        36: "↩", 48: "⇥", 49: "Espacio", 51: "Borrar", 53: "Esc", 76: "⌤",
+        117: "⌦", 114: "Ayuda",
         // Arrows and navigation.
-        115: "Home", 116: "Page Up", 119: "End", 121: "Page Down",
-        123: "Left Arrow", 124: "Right Arrow", 125: "Down Arrow", 126: "Up Arrow",
+        115: "Inicio", 116: "Re Pág", 119: "Fin", 121: "Av Pág",
+        123: "←", 124: "→", 125: "↓", 126: "↑",
         // Function keys.
         122: "F1", 120: "F2", 99: "F3", 118: "F4", 96: "F5", 97: "F6", 98: "F7",
         100: "F8", 101: "F9", 109: "F10", 103: "F11", 111: "F12",

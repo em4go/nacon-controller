@@ -113,7 +113,8 @@ final class MappingRulesTests: XCTestCase {
         let action = MappedAction.key(KeyCombo(keyCode: 12, modifiers: [.command]))
 
         XCTAssertEqual(MappingRules.label(for: action), "⌘Q")
-        XCTAssertEqual(MappingRules.label(for: .key(KeyCombo(.tab))), "Tab")
+        // The label of a key action comes from `KeyCatalog`, so it reads in Spanish like the badges.
+        XCTAssertEqual(MappingRules.label(for: .key(KeyCombo(.tab))), "⇥")
     }
 
     func testMouseButtonActionsRenderReadably() {

@@ -74,18 +74,18 @@ La ventana incluye un interruptor **Emulación activa**, apagado por defecto.
 | --- | --- |
 | Stick izquierdo | Mueve el cursor (zona muerta radial + curva) |
 | Stick derecho (vertical) | Desplazamiento |
-| A / B / X | Clic izquierdo / derecho / central |
-| Y | Escape |
+| ✕ / ○ / □ | Clic izquierdo / derecho / central |
+| △ | Escape |
 | Cruceta | Flechas |
-| LB / RB | Tab / Return |
-| Back / Start | Borrar / Espacio |
-| Guide (Xbox) | **Detiene la emulación al instante** |
+| L1 / R1 | Tab / Return |
+| Share / Options | Borrar / Espacio |
+| PS | **Activa y desactiva la emulación al instante** |
 
 Reglas de seguridad que el código garantiza:
 
 - La emulación **nunca arranca activada**.
 - Desactivarla **suelta todas las teclas y botones** retenidos: no puede quedar nada pulsado.
-- Pulsar **Guide** la detiene sin usar el ratón.
+- Pulsar **PS** la activa si está parada y la detiene si está en marcha, sin usar el ratón.
 - Si el mando se **desconecta**, la emulación se detiene y suelta lo que tuviera retenido.
 
 ### Sensibilidad por perfil

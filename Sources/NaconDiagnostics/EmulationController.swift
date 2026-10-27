@@ -9,6 +9,7 @@ final class EmulationController: ObservableObject {
     @Published private(set) var isEnabled = false
     @Published private(set) var hasAccessibility = AccessibilityPermission.isGranted
     @Published private(set) var stoppedByPad = false
+    @Published private(set) var startedByPad = false
 
     private let engine = EmulationEngine(emitter: CGEventEmitter())
     /// Supplies the mapping to run. The app points it at the saved profiles, so a start uses the
@@ -28,6 +29,23 @@ final class EmulationController: ObservableObject {
                 self?.stoppedByPad = true
             }
         }
+        // S12: the opposite direction. It also fires on the USB I/O queue, so the hop to the main
+        // queue comes first: the published state must not be touched from there.
+        engine.onGuidePress = { [weak self] in
+            DispatchQueue.main.async {
+                self?.startFromPad()
+            }
+        }
+    }
+
+    /// S12: Guide asked to start the emulation.
+    ///
+    /// A denied Accessibility permission leaves everything untouched: starting without it would
+    /// inject nothing, and the pad would look ignored instead of blocked by a missing permission.
+    private func startFromPad() {
+        guard !isEnabled, GuideToggle.canStartFromPad(hasAccessibility: hasAccessibility) else { return }
+        setEnabled(true)
+        startedByPad = isEnabled
     }
 
     func attach(to service: ControllerService, profiles: ProfileLibraryController) {
@@ -101,6 +119,7 @@ final class EmulationController: ObservableObject {
 
     func setEnabled(_ newValue: Bool) {
         stoppedByPad = false
+        startedByPad = false
         guard newValue else {
             isEnabled = false
             engine.setEnabled(false)

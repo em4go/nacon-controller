@@ -195,8 +195,8 @@ struct AnalogSection: View {
                 StickView(title: "Stick izquierdo", stick: report.leftStick)
                 StickView(title: "Stick derecho", stick: report.rightStick)
                 VStack(spacing: 16) {
-                    TriggerBar(title: "LT", value: report.leftTrigger)
-                    TriggerBar(title: "RT", value: report.rightTrigger)
+                    TriggerBar(title: "L2", value: report.leftTrigger)
+                    TriggerBar(title: "R2", value: report.rightTrigger)
                     Spacer(minLength: 0)
                 }
                 .frame(maxWidth: .infinity)

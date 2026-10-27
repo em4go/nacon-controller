@@ -51,8 +51,8 @@ struct EmulationSection: View {
             .foregroundStyle(.secondary)
             Text(
                 "El stick izquierdo mueve el cursor y el derecho desplaza. "
-                + "A/B/X son los botones del ratón, la cruceta envía flechas. "
-                + "El botón Guide (Xbox) detiene la emulación al instante."
+                + "✕/○/□ son los botones del ratón, la cruceta envía flechas. "
+                + "El botón PS activa y desactiva la emulación al instante."
             )
             .font(.callout)
             .foregroundStyle(.secondary)
@@ -60,6 +60,11 @@ struct EmulationSection: View {
                 Text("Emulación detenida desde el mando.")
                     .font(.callout.bold())
                     .foregroundStyle(.orange)
+            }
+            if emulation.startedByPad {
+                Text("Emulación activada desde el mando.")
+                    .font(.callout.bold())
+                    .foregroundStyle(.green)
             }
         }
         .onAppear {

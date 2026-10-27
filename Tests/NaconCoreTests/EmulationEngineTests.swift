@@ -97,6 +97,52 @@ final class EmulationEngineTests: XCTestCase {
         XCTAssertTrue(emitter.events.contains { if case .release = $0 { return true } else { return false } } == false)
     }
 
+    func testGuideIsReportedWhileTheEmulationIsStopped() {
+        var presses = 0
+        engine.onGuidePress = { presses += 1 }
+
+        engine.handle(report(buttons: [.guide]))
+
+        XCTAssertEqual(presses, 1, "a stopped emulation has to hear Guide to be able to start it")
+    }
+
+    func testHoldingGuideReportsOnePressOnly() {
+        // The engine clears `previousReport` when it stops, so an edge computed from nil would see the
+        // same physical press again and start the emulation back up the instant it stopped.
+        var presses = 0
+        engine.onGuidePress = { presses += 1 }
+
+        engine.handle(report(buttons: [.guide]))
+        engine.handle(report(buttons: [.guide]))
+        engine.handle(report(buttons: [.guide]))
+
+        XCTAssertEqual(presses, 1)
+    }
+
+    func testGuideReportsAgainAfterBeingReleased() {
+        var presses = 0
+        engine.onGuidePress = { presses += 1 }
+
+        engine.handle(report(buttons: [.guide]))
+        engine.handle(report())
+        engine.handle(report(buttons: [.guide]))
+
+        XCTAssertEqual(presses, 2)
+    }
+
+    func testGuideStopsTheEmulationWithoutReportingAStart() {
+        // While it runs, Guide is the engine's own emergency stop; only the stopped case needs the
+        // app layer, so reporting both would toggle twice on one press.
+        var presses = 0
+        engine.onGuidePress = { presses += 1 }
+        engine.setEnabledNow(true)
+        engine.handle(report())
+
+        engine.handle(report(buttons: [.guide]))
+
+        XCTAssertEqual(presses, 0)
+    }
+
     func testDisablingReleasesHeldActions() {
         engine.setEnabledNow(true)
         engine.handle(report())

@@ -10,7 +10,7 @@ import SwiftUI
 /// itself is handed in by the caller so this view never touches persistence. Two safety rules shape
 /// the layout:
 ///
-/// - Guide has no editor row at all, because it is the emergency stop.
+/// - PS has no editor row at all, because it is the emulation switch and must stay reachable.
 /// - The whole editor is disabled while emulation runs: swapping a mapping with a button held can
 ///   leave a key stuck down.
 struct MappingEditor: View {
@@ -60,8 +60,8 @@ struct MappingEditor: View {
             }
             .disabled(isEmulationEnabled)
             Text(
-                "El botón Guide no se puede reasignar: es el freno de emergencia que detiene la "
-                + "emulación sin tocar el ratón ni el teclado."
+                "El botón PS no se puede reasignar: es el interruptor que activa y desactiva la "
+                + "emulación sin tocar el ratón ni el teclado, así que debe seguir siempre a mano."
             )
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -102,7 +102,7 @@ struct MappingEditor: View {
             Text(MappingRules.controlLabel(for: MappingRules.reservedControl))
                 .font(.callout.weight(.medium))
                 .frame(width: 96, alignment: .leading)
-            Label("Reservado: detiene la emulación al instante", systemImage: "stop.circle")
+            Label("Reservado: activa y desactiva la emulación al instante", systemImage: "power")
                 .font(.callout)
                 .foregroundStyle(.secondary)
             Spacer(minLength: 0)

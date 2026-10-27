@@ -17,8 +17,8 @@ public enum CaptureOutcome: Equatable, Sendable {
 public enum MappingRules {
     /// The control that is never remappable.
     ///
-    /// Guide is the emergency stop: it halts emulation without touching the mouse or the keyboard,
-    /// so it must always stay reachable even when every other mapping has been broken.
+    /// PS is the emulation switch: it starts and stops emulation without touching the mouse or the
+    /// keyboard, so it must always stay reachable even when every other mapping has been broken.
     public static let reservedControl: XInputControl = .guide
 
     /// Controls the editor shows a row for, in the same stable order as the rest of the UI.
@@ -85,17 +85,17 @@ public enum MappingRules {
         case .dpadDown: return "Cruceta ↓"
         case .dpadLeft: return "Cruceta ←"
         case .dpadRight: return "Cruceta →"
-        case .buttonA: return "Botón A"
-        case .buttonB: return "Botón B"
-        case .buttonX: return "Botón X"
-        case .buttonY: return "Botón Y"
-        case .leftBumper: return "LB"
-        case .rightBumper: return "RB"
-        case .leftTrigger: return "LT"
-        case .rightTrigger: return "RT"
-        case .back: return "Atrás"
-        case .start: return "Inicio"
-        case .guide: return "Guide"
+        case .buttonA: return "✕ Cruz"
+        case .buttonB: return "○ Círculo"
+        case .buttonX: return "□ Cuadrado"
+        case .buttonY: return "△ Triángulo"
+        case .leftBumper: return "L1"
+        case .rightBumper: return "R1"
+        case .leftTrigger: return "L2"
+        case .rightTrigger: return "R2"
+        case .back: return "Share"
+        case .start: return "Options"
+        case .guide: return "PS"
         case .leftThumb: return "L3"
         case .rightThumb: return "R3"
         }

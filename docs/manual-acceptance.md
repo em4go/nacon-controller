@@ -25,7 +25,7 @@ El mando debe estar conectado y el permiso de Accesibilidad concedido.
 | 4 | Cerrar y reabrir la app | El perfil y el mapeo siguen ahí |
 | 5 | Iniciar emulación y pulsar **A** con un editor de texto delante | Escribe `h` |
 | 6 | Con la emulación activa, mirar el editor | Está bloqueado, con su aviso, y el eje Y también |
-| 7 | Pulsar **Guide** | Detiene la emulación al instante |
+| 7 | Pulsar **PS** | Detiene la emulación al instante; pulsarlo de nuevo la activa |
 
 ## Qué NO cubre
 

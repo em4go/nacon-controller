@@ -7,12 +7,14 @@ struct NaconDiagnosticsApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var service = ControllerService()
     @StateObject private var emulation = EmulationController()
+    @StateObject private var profiles = ProfileLibraryController()
 
     var body: some Scene {
         WindowGroup("NACON Diagnostics") {
             ContentView()
                 .environmentObject(service)
                 .environmentObject(emulation)
+                .environmentObject(profiles)
                 .frame(minWidth: 780, minHeight: 780)
                 .onAppear {
                     service.start()

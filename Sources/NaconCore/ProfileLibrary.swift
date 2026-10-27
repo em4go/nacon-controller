@@ -72,6 +72,101 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
         try JSONEncoder.profileEncoder.encode(normalized())
     }
 
+    // MARK: - Profile management (S4, S5, S8)
+
+    /// Base name of a new profile. Shown in the profile picker, so it follows the UI language.
+    public static let newProfileNameBase = "Perfil"
+
+    /// Prefix of a duplicated profile, so a copy is recognisable in the picker.
+    public static let duplicateNamePrefix = "Copia de "
+
+    /// Deleting the last profile is impossible: the app always needs one to work with.
+    public var canDeleteProfile: Bool {
+        profiles.count > 1
+    }
+
+    /// `base` when no profile uses it, otherwise the smallest free `"base N"`.
+    public func uniqueName(basedOn base: String) -> String {
+        let root = base.trimmingCharacters(in: .whitespacesAndNewlines)
+        let taken = Set(profiles.map(\.name))
+        let candidate = root.isEmpty ? ProfileLibrary.newProfileNameBase : root
+        guard taken.contains(candidate) else { return candidate }
+        var suffix = 2
+        while taken.contains("\(candidate) \(suffix)") {
+            suffix += 1
+        }
+        return "\(candidate) \(suffix)"
+    }
+
+    /// Appends a profile and selects it.
+    ///
+    /// A new profile copies an existing mapping instead of starting empty (S5): an empty mapping
+    /// would leave the pad dead until the user reassigned every control.
+    @discardableResult
+    public mutating func addProfile(copying source: InputProfile = .standard) -> StoredProfile {
+        let created = StoredProfile(
+            name: uniqueName(basedOn: ProfileLibrary.newProfileNameBase),
+            profile: source
+        )
+        profiles.append(created)
+        selectedProfileID = created.id
+        return created
+    }
+
+    /// Copies the selected profile next to it and selects the copy.
+    ///
+    /// Returns `nil` only when there is nothing to copy and no standard mapping to fall back on,
+    /// which cannot happen because an empty library still copies `InputProfile.standard`.
+    @discardableResult
+    public mutating func duplicateSelectedProfile() -> StoredProfile? {
+        guard let source = selectedProfile else { return addProfile() }
+        let copy = StoredProfile(
+            name: uniqueName(basedOn: ProfileLibrary.duplicateNamePrefix + source.name),
+            profile: source.profile
+        )
+        if let index = profiles.firstIndex(where: { $0.id == source.id }) {
+            profiles.insert(copy, at: profiles.index(after: index))
+        } else {
+            profiles.append(copy)
+        }
+        selectedProfileID = copy.id
+        return copy
+    }
+
+    /// Removes a profile, refusing to leave the library empty.
+    ///
+    /// When the deleted profile was the selected one, the selection moves to the following
+    /// neighbour, or to the previous one when the deleted profile was last.
+    @discardableResult
+    public mutating func deleteProfile(id: UUID) -> Bool {
+        guard canDeleteProfile else { return false }
+        guard let index = profiles.firstIndex(where: { $0.id == id }) else { return false }
+        profiles.remove(at: index)
+        if !profiles.contains(where: { $0.id == selectedProfileID }) {
+            selectedProfileID = profiles[min(index, profiles.count - 1)].id
+        }
+        return true
+    }
+
+    /// Renames a profile, rejecting names that would leave it nameless.
+    @discardableResult
+    public mutating func renameProfile(id: UUID, to proposedName: String) -> Bool {
+        let name = proposedName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else { return false }
+        guard let index = profiles.firstIndex(where: { $0.id == id }) else { return false }
+        profiles[index].name = name
+        return true
+    }
+
+    /// Selects a known profile; an unknown identifier leaves a still-valid selection alone.
+    public mutating func selectProfile(id: UUID) {
+        if profiles.contains(where: { $0.id == id }) {
+            selectedProfileID = id
+        } else {
+            selectedProfileID = selectedProfile?.id
+        }
+    }
+
     private enum CodingKeys: String, CodingKey {
         case version
         case profiles

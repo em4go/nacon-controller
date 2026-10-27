@@ -20,8 +20,8 @@ Feature document. Read until `## Log` before starting a task.
 
 | ID | Specs | Ruta | Estado |
 | --- | --- | --- | --- |
-| T1 | S1, S2, S6, S7 | Modelo persistible, catálogo de teclas y almacén con tests (NaconCore) | pendiente |
-| T2 | S4, S5, S8 | Selector de perfiles y alta, duplicado, renombrado y borrado (UI) | pendiente |
+| T1 | S1, S2, S6, S7 | Modelo persistible, catálogo de teclas y almacén con tests (NaconCore) | hecho — `8b6e45f` |
+| T2 | S4, S5, S8 | Selector de perfiles y alta, duplicado, renombrado y borrado (UI) | pendiente — en curso |
 | T3 | S3 | Editor de mapeos por control con captura de pulsaciones | pendiente |
 | T4 | S1, S8 | Conectar el perfil activo con el motor de emulación y el arranque | pendiente |
 

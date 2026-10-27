@@ -5,12 +5,15 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject private var service: ControllerService
     @EnvironmentObject private var emulation: EmulationController
+    @EnvironmentObject private var profiles: ProfileLibraryController
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 StatusBanner(state: service.state)
                 DeviceListSection(devices: service.devices)
+                // S1, S4, S5, S8: the profiles live above the emulation settings they feed.
+                ProfileSection(profiles: profiles)
                 EmulationSection(emulation: emulation)
                 if service.state.isConnected, let report = service.report {
                     ButtonMatrixSection(report: report)

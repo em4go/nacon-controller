@@ -1,0 +1,129 @@
+import Foundation
+
+/// Modifier keys applied to a synthesized keystroke.
+public struct ModifierSet: OptionSet, Hashable, Sendable {
+    public let rawValue: UInt8
+
+    public init(rawValue: UInt8) {
+        self.rawValue = rawValue
+    }
+
+    public static let command = ModifierSet(rawValue: 1 << 0)
+    public static let option = ModifierSet(rawValue: 1 << 1)
+    public static let control = ModifierSet(rawValue: 1 << 2)
+    public static let shift = ModifierSet(rawValue: 1 << 3)
+}
+
+/// A virtual key plus the modifiers held with it. Key codes are `CGKeyCode` values.
+public struct KeyCombo: Hashable, Sendable {
+    public let keyCode: UInt16
+    public let modifiers: ModifierSet
+
+    public init(_ key: VirtualKey, modifiers: ModifierSet = []) {
+        self.keyCode = key.rawValue
+        self.modifiers = modifiers
+    }
+
+    public init(keyCode: UInt16, modifiers: ModifierSet = []) {
+        self.keyCode = keyCode
+        self.modifiers = modifiers
+    }
+}
+
+/// The virtual keys this first profile needs.
+public enum VirtualKey: UInt16, CaseIterable, Sendable {
+    case returnKey = 36
+    case tab = 48
+    case space = 49
+    case deleteKey = 51
+    case escape = 53
+    case leftArrow = 123
+    case rightArrow = 124
+    case downArrow = 125
+    case upArrow = 126
+}
+
+public enum MouseButton: String, Hashable, Sendable {
+    case left
+    case right
+    case middle
+}
+
+/// What a physical control does when pressed.
+public enum MappedAction: Hashable, Sendable {
+    case none
+    case key(KeyCombo)
+    case mouseButton(MouseButton)
+    case scrollLines(Int)
+}
+
+/// Parameters of the stick-to-cursor curve.
+public struct CursorSettings: Equatable, Sendable {
+    /// Radial dead zone: below this deflection the cursor does not move at all.
+    public var deadzone: Double
+    /// Deflection at which the cursor reaches its maximum speed.
+    public var fullSpeedFraction: Double
+    /// Cursor speed in points per second at full deflection.
+    public var maxSpeed: Double
+    /// Shape of the response curve. 1 is linear, higher values give finer control near the centre.
+    public var curveExponent: Double
+    /// Scroll lines per second at full deflection of the right stick.
+    public var scrollLinesPerSecond: Double
+
+    public init(
+        deadzone: Double = 0.18,
+        fullSpeedFraction: Double = 0.85,
+        maxSpeed: Double = 1_400,
+        curveExponent: Double = 2.0,
+        scrollLinesPerSecond: Double = 14
+    ) {
+        self.deadzone = deadzone
+        self.fullSpeedFraction = fullSpeedFraction
+        self.maxSpeed = maxSpeed
+        self.curveExponent = curveExponent
+        self.scrollLinesPerSecond = scrollLinesPerSecond
+    }
+
+    public static let standard = CursorSettings()
+}
+
+/// The full mapping used by the emulation engine.
+public struct InputProfile: Equatable, Sendable {
+    public var mappings: [XInputControl: MappedAction]
+    public var cursor: CursorSettings
+
+    public init(mappings: [XInputControl: MappedAction], cursor: CursorSettings = .standard) {
+        self.mappings = mappings
+        self.cursor = cursor
+    }
+
+    /// Left stick moves the cursor, right stick scrolls, face buttons click, d-pad sends arrows.
+    public static let standard = InputProfile(mappings: [
+        .buttonA: .mouseButton(.left),
+        .buttonB: .mouseButton(.right),
+        .buttonX: .mouseButton(.middle),
+        .buttonY: .key(KeyCombo(.escape)),
+        .dpadUp: .key(KeyCombo(.upArrow)),
+        .dpadDown: .key(KeyCombo(.downArrow)),
+        .dpadLeft: .key(KeyCombo(.leftArrow)),
+        .dpadRight: .key(KeyCombo(.rightArrow)),
+        .leftBumper: .key(KeyCombo(.tab)),
+        .rightBumper: .key(KeyCombo(.returnKey)),
+        .back: .key(KeyCombo(.deleteKey)),
+        .start: .key(KeyCombo(.space)),
+        .leftThumb: .none,
+        .rightThumb: .none,
+        .guide: .none,
+        .leftTrigger: .none,
+        .rightTrigger: .none,
+    ])
+
+    public func action(for control: XInputControl) -> MappedAction {
+        mappings[control] ?? .none
+    }
+
+    /// Controls that produce a discrete press/release action, in a stable order.
+    public var discreteControls: [XInputControl] {
+        XInputControl.allCases.filter { action(for: $0) != .none }
+    }
+}

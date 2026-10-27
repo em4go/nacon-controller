@@ -90,3 +90,13 @@ Riesgos aceptados, con motivo:
   distingue los dos caminos de reserva. Se dejan como están, anotados.
 - F3, F4 y F5 viven en el ejecutable, sin objetivo de tests: verificados por compilación y razonamiento,
   y F3 y F5 además por la prueba manual del usuario.
+
+## Nivel A: captura extraída
+
+La máquina de estados de la captura salió de la vista a `Sources/NaconCore/KeyCaptureSession.swift`.
+La vista conserva el monitor de `NSEvent` y la escritura; las decisiones —si es seguro armar, qué
+significa una pulsación y a qué perfil pertenece— son ahora un tipo puro con 16 tests.
+
+Con eso, la única zona del proyecto sin cobertura automática pasa a estar cubierta en su lógica.
+Lo que sigue sin cubrirse es el cableado de AppKit y el hardware real, que es justo lo que documenta
+`docs/manual-acceptance.md`.

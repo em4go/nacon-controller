@@ -1,3 +1,4 @@
+import AppKit
 import Combine
 import Foundation
 import NaconCore
@@ -12,6 +13,7 @@ final class EmulationController: ObservableObject {
     private let engine = EmulationEngine(emitter: CGEventEmitter())
     private var cancellables: Set<AnyCancellable> = []
     private var permissionTimer: Timer?
+    private var terminationObserver: NSObjectProtocol?
 
     init() {
         engine.onEmergencyStop = { [weak self] in
@@ -38,6 +40,16 @@ final class EmulationController: ObservableObject {
             }
             .store(in: &cancellables)
 
+        terminationObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.willTerminateNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.shutdown()
+            }
+        }
+
         permissionTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 self?.hasAccessibility = AccessibilityPermission.isGranted
@@ -47,6 +59,10 @@ final class EmulationController: ObservableObject {
 
     func shutdown() {
         engine.stop()
+        if let terminationObserver {
+            NotificationCenter.default.removeObserver(terminationObserver)
+            self.terminationObserver = nil
+        }
         permissionTimer?.invalidate()
         permissionTimer = nil
         cancellables.removeAll()

@@ -107,6 +107,18 @@ final class EmulationEngineTests: XCTestCase {
         XCTAssertEqual(emitter.events, [.release(.mouseButton(.left))])
     }
 
+    func testStopReleasesHeldActionsSynchronously() {
+        engine.setEnabledNow(true)
+        engine.handle(report())
+        engine.handle(report(buttons: [.buttonA]))
+        emitter.reset()
+
+        engine.stop()
+
+        // The release must already be posted when stop() returns: the process may exit next.
+        XCTAssertEqual(emitter.events, [.release(.mouseButton(.left))])
+    }
+
     func testTickMovesCursorOnlyWhenEnabled() {
         engine.handle(report(left: stick(normalizedX: 1)))
         engine.tick(seconds: 0.1)

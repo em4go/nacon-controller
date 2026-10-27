@@ -9,6 +9,7 @@ public final class EmulationEngine {
     public var onEmergencyStop: (() -> Void)?
 
     private let queue = DispatchQueue(label: "dev.nacon.emulation")
+    private let queueKey = DispatchSpecificKey<Void>()
     private let emitter: InputEmitter
     private let profile: InputProfile
     private let tickInterval: TimeInterval = 1.0 / 60.0
@@ -24,6 +25,7 @@ public final class EmulationEngine {
     public init(emitter: InputEmitter, profile: InputProfile = .standard) {
         self.emitter = emitter
         self.profile = profile
+        queue.setSpecific(key: queueKey, value: ())
     }
 
     deinit {
@@ -44,12 +46,21 @@ public final class EmulationEngine {
         }
     }
 
+    /// Stops the engine and releases anything it is holding.
+    ///
+    /// This runs synchronously so that a caller on the way out (window close, application
+    /// termination) can be sure the key-release events were posted before the process ends.
     public func stop() {
-        queue.async { [weak self] in
+        let shutdown = { [weak self] in
             guard let self else { return }
             self.disableOnQueue(notify: false)
             self.timer?.cancel()
             self.timer = nil
+        }
+        if DispatchQueue.getSpecific(key: queueKey) != nil {
+            shutdown()
+        } else {
+            queue.sync(execute: shutdown)
         }
     }
 

@@ -88,6 +88,21 @@ Reglas de seguridad que el código garantiza:
 - Pulsar **Guide** la detiene sin usar el ratón.
 - Si el mando se **desconecta**, la emulación se detiene y suelta lo que tuviera retenido.
 
+### Firma estable (recomendado antes de la primera concesión)
+
+La firma ad-hoc ancla el permiso de Accesibilidad al hash del binario, así que **cada recompilación
+invalida el permiso**. Para evitarlo, crea una vez una identidad local autofirmada:
+
+```bash
+./scripts/setup-signing-identity.sh
+```
+
+Puede pedir la contraseña del Llavero y una aprobación. A partir de ahí `build-app.sh` firma con esa
+identidad automáticamente y el permiso sobrevive a las recompilaciones. Solo habría que volver a
+concederlo si cambia el `CFBundleIdentifier`, si el certificado caduca (10 años) o si se borra.
+
+Si no existe la identidad, `build-app.sh` sigue funcionando con firma ad-hoc y avisa por consola.
+
 ### Permiso de Accesibilidad
 
 macOS descarta los eventos sintetizados sin este permiso. La app lo comprueba, lo solicita y

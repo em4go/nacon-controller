@@ -31,5 +31,13 @@ cat > "$APP_DIR/Contents/Info.plist" <<'PLIST'
 </plist>
 PLIST
 
-codesign --force --sign - "$APP_DIR" >/dev/null 2>&1 || echo "warning: ad-hoc signing skipped"
+IDENTITY="NACON Local Signing"
+if security find-identity -v -p codesigning 2>/dev/null | grep -q "$IDENTITY"; then
+    codesign --force --sign "$IDENTITY" --timestamp=none "$APP_DIR"
+    echo "Firmado con la identidad local '$IDENTITY' (el permiso sobrevive a las recompilaciones)."
+else
+    codesign --force --sign - "$APP_DIR" >/dev/null 2>&1 || echo "warning: ad-hoc signing skipped"
+    echo "AVISO: firmado ad-hoc. Cada recompilación invalidará el permiso de Accesibilidad."
+    echo "       Ejecuta ./scripts/setup-signing-identity.sh una vez para evitarlo."
+fi
 echo "Built $APP_DIR"

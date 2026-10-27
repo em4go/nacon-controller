@@ -46,9 +46,18 @@ struct PadGraphView: View {
     /// wall of artwork. Below this width it shrinks with the window and is never cropped.
     private static let maxDrawingWidth: CGFloat = 520
 
-    /// How strongly a highlighted control is tinted. The masks are the artwork's own strokes, so the
-    /// accent reads through the line work instead of hiding the button underneath.
-    private static let highlightOpacity: Double = 0.42
+    /// How strongly a control is tinted while it waits for a key, or while it is down on the pad.
+    ///
+    /// The masks are the artwork's own strokes, so the accent reads through the line work instead of
+    /// hiding the button underneath.
+    private static let armedOpacity: Double = 0.42
+
+    /// How strongly a control is tinted under the pointer.
+    ///
+    /// Deliberately much lighter than `armedOpacity`. With one shared strength, hovering looked exactly
+    /// like «waiting for a key», so after Escape the button seemed stuck in blue when all it was doing
+    /// was following the pointer.
+    private static let hoverOpacity: Double = 0.14
 
     /// How much of the interactive layer survives while emulation runs. The drawing itself stays at
     /// full contrast: what is locked is the editing, not the picture.
@@ -133,10 +142,10 @@ struct PadGraphView: View {
     private func highlights(in size: CGSize) -> some View {
         ZStack(alignment: .topLeading) {
             ForEach(XInputControl.allCases, id: \.self) { control in
-                if isHighlighted(control), let mask = Masks.image(for: control) {
+                if let strength = highlightStrength(for: control), let mask = Masks.image(for: control) {
                     Rectangle()
                         .fill(Color.accentColor)
-                        .opacity(Self.highlightOpacity)
+                        .opacity(strength)
                         .mask(
                             Image(nsImage: mask)
                                 .resizable()
@@ -229,14 +238,16 @@ struct PadGraphView: View {
         )
     }
 
-    /// Whether this control is lit right now: waiting for a key, or down on the pad.
+    /// How strongly this control is tinted right now, or nil when it is not.
     ///
-    /// Hovering and picking deliberately do NOT tint. A tint that outlives the gesture reads as
-    /// «still waiting», which is exactly the confusion this avoids: after a key lands or Escape
-    /// cancels, the drawing is normal again even if the pointer never moved. The strip is what tells
-    /// the user which control the pointer is on.
-    private func isHighlighted(_ control: XInputControl) -> Bool {
-        isArmed(control) || isPressed(control)
+    /// Two states, two strengths. Waiting for a key (or a physical press) is a strong accent; the
+    /// pointer being over a control is a light one, so moving the mouse is visible feedback while a
+    /// finished gesture leaves the drawing as it found it. Picking does not tint at all — the strip is
+    /// what names the control.
+    private func highlightStrength(for control: XInputControl) -> Double? {
+        if isArmed(control) || isPressed(control) { return Self.armedOpacity }
+        if hovered == control { return Self.hoverOpacity }
+        return nil
     }
 
     /// Whether this control is the one waiting for a key press.

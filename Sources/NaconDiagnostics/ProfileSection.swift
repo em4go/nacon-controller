@@ -1,13 +1,15 @@
 import NaconCore
 import SwiftUI
 
-/// S1, S4, S5, S6, S8: the saved profiles, listed and switchable from the app window.
+/// S1, S3, S4, S5, S6, S8: the saved profiles and the mapping of the selected one, in the app window.
 ///
 /// The section only renders state and forwards intents. Every rule (unique names, the standard
-/// mapping for a new profile, refusing to delete the last profile, which neighbour to select) lives
-/// in `ProfileLibrary` and is covered by its tests.
+/// mapping for a new profile, refusing to delete the last profile, which neighbour to select, which
+/// controls may be remapped) lives in `ProfileLibrary` and `MappingRules` and is covered by tests.
 struct ProfileSection: View {
     @ObservedObject var profiles: ProfileLibraryController
+    /// S3: the mapping editor has to be locked while emulation runs, so the section reads that state.
+    @EnvironmentObject private var emulation: EmulationController
 
     @State private var isRenaming = false
     @State private var draftName = ""
@@ -17,6 +19,21 @@ struct ProfileSection: View {
             SectionTitle("Perfiles")
             profilePicker
             actions
+            // S3: the editor for the profile being edited, right below the picker that selects it.
+            if let profile = profiles.selectedProfile?.profile {
+                Divider()
+                MappingEditor(
+                    profile: profile,
+                    isEmulationEnabled: emulation.isEnabled,
+                    setAction: { control, action in
+                        // The controller persists every change, so the edit survives a restart (S6).
+                        profiles.setAction(action, for: control)
+                    }
+                )
+                // Switching profiles rebuilds the editor, which ends any armed capture: a pending
+                // press must never land on the profile the user has just selected.
+                .id(profiles.selectedProfile?.id)
+            }
             Text(
                 "Los cambios se guardan solos, sin botón de guardar. Un perfil nuevo parte del perfil "
                 + "estándar, y el perfil activo se recuerda la próxima vez que abras la app."

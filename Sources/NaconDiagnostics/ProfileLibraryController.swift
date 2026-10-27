@@ -60,6 +60,14 @@ final class ProfileLibraryController: ObservableObject {
         mutate { library in library.renameProfile(id: id, to: name) }
     }
 
+    /// S3: applies one mapping to the profile being edited and saves it straight away.
+    ///
+    /// The rule that refuses Guide and the meaning of `.none` live in `ProfileLibrary.setAction`,
+    /// so the controller only sequences "change, then save".
+    func setAction(_ action: MappedAction, for control: XInputControl) {
+        mutate { $0.setAction(action, for: control) }
+    }
+
     func rename(_ id: UUID, to name: String) {
         mutate { library in library.renameProfile(id: id, to: name) }
     }

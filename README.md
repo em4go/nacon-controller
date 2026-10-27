@@ -122,8 +122,17 @@ Esta vía no accede a controles que el mando solo expone en otros modos:
   (`146B:0D05`, ~0,23 s) su descriptor HID tampoco declara la página de digitizer. Retener ese
   modo no habría dado acceso al touchpad. Detalle y evidencia en
   [`docs/ps4-mode-window.md`](docs/ps4-mode-window.md).
-- **Jack de audio, luz y vibración**: igualmente exclusivos del modo PS4. Esa ventana dura unas
-  décimas de segundo al conectar y se cierra sola.
+- **Jack de audio**: exclusivo del modo PS4 (`146B:0D05`), cuya ventana dura unas décimas de
+  segundo al conectar y se cierra sola.
+
+En cambio, **la luz y la vibración sí funcionan en modo XInput** y está verificado en hardware:
+
+- El paquete de vibración (`00 08 00 L R 00 00 00`) hace vibrar el mando.
+- El paquete de LED (`01 03 XX`) enciende en azul la pequeña luz situada bajo el botón PS
+  (`0x06`) o la apaga (`0x00`).
+
+Ambos se probaron con `swift run nacon-padtest both`, que alterna vibración y luz para poder
+distinguir un canal de salida muerto de una luz no controlable.
 - **Modo bootloader** (`2F24:0001`, «Updater»): se alcanza manteniendo `SHARE` + `OPTIONS` al
   conectar y sirve para actualizar firmware. No envía entradas.
 - La aplicación **no** interpreta esos modos: los detecta, los muestra y avisa.

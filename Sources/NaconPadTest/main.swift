@@ -44,6 +44,35 @@ case "rumble":
         service.sendOutput(XInputOutputReport.rumble(left: 0, right: 0))
         pump(0.6)
     }
+case "both":
+    // Differential test: rumble proves the output channel actually has an effect on the pad,
+    // so a silent LED afterwards means the light is not host-controllable rather than unreachable.
+    print("1) vibración fuerte — ¿la notas?")
+    fflush(stdout)
+    service.sendOutput(XInputOutputReport.rumble(left: 220, right: 220))
+    pump(0.3)
+    print("   escritura: \(service.lastWriteStatus)")
+    fflush(stdout)
+    pump(0.9)
+    service.sendOutput(XInputOutputReport.rumble(left: 0, right: 0))
+    pump(1.3)
+
+    let alternation: [(String, XInputOutputReport.LEDPattern)] = [
+        ("2) LED apagado", .off),
+        ("3) LED encendido", .player1),
+        ("4) LED apagado", .off),
+        ("5) LED encendido", .player1),
+    ]
+    for (label, pattern) in alternation {
+        let value = String(format: "%02x", pattern.rawValue)
+        print("\(label) — byte 0x\(value) — 3 s")
+        fflush(stdout)
+        service.sendOutput(XInputOutputReport.led(pattern))
+        pump(0.3)
+        print("   escritura: \(service.lastWriteStatus)")
+        fflush(stdout)
+        pump(2.7)
+    }
 default:
     print("uso: nacon-padtest [led|rumble]")
 }

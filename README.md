@@ -115,11 +115,13 @@ identidad estable y macOS volverá a pedir el permiso o lo ignorará.
 
 Esta vía no accede a controles que el mando solo expone en otros modos:
 
-- **Touchpad**: medido, no supuesto. En modo XInput no produce **ninguna** señal: sus seis bytes
-  reservados (14-19) permanecen a cero y la pulsación no aparece en la máscara de botones. Se
-  comprobó con `nacon-touchpad` y un control positivo: el botón A sí se registra (máscara `0x1000`)
-  y el touchpad no. El mando solo lo entrega en modo PS4 (`146B:0D05`), que es HID y dura unas
-  décimas de segundo al conectar antes de que el firmware se re-enumere como XInput.
+- **Touchpad**: medido en los dos modos alcanzables y **no está expuesto en ninguno**. En modo
+  XInput no produce ninguna señal: sus seis bytes reservados (14-19) permanecen a cero y la
+  pulsación no aparece en la máscara de botones, comprobado con control positivo en
+  `nacon-touchpad` (el botón A sí se registra, máscara `0x1000`). En la ventana de modo PS4
+  (`146B:0D05`, ~0,23 s) su descriptor HID tampoco declara la página de digitizer. Retener ese
+  modo no habría dado acceso al touchpad. Detalle y evidencia en
+  [`docs/ps4-mode-window.md`](docs/ps4-mode-window.md).
 - **Jack de audio, luz y vibración**: igualmente exclusivos del modo PS4. Esa ventana dura unas
   décimas de segundo al conectar y se cierra sola.
 - **Modo bootloader** (`2F24:0001`, «Updater»): se alcanza manteniendo `SHARE` + `OPTIONS` al
@@ -133,6 +135,7 @@ Sources/NaconCore/XInputReport.swift      Decodificador puro del informe de 20 b
 Sources/NaconCore/NaconDevice.swift       Identidades USB y modos conocidos
 Sources/NaconCore/ControllerService.swift Ciclo de vida IOUSBHost, lectura y reconexión
 Sources/NaconTouchWatch/main.swift      Observador del touchpad en modo XInput
+Sources/NaconPS4Probe/main.swift        Sonda de la ventana de modo PS4
 Sources/NaconDiagnostics/                 Aplicación SwiftUI
 Sources/NaconSelfTest/                    Comprobación headless del enlace
 Tests/NaconCoreTests/                     Tests del decodificador

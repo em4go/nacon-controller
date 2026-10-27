@@ -84,18 +84,14 @@ public final class ControllerService: ObservableObject {
         let found = Self.scanForNaconDevices()
         publishDevices(found.map(\.info))
 
-        if let current = link {
-            if current.isDead {
-                link = nil
-            } else {
-                let idle = Date().timeIntervalSince(lastReportStamp ?? Date())
-                if idle <= staleAfter {
-                    // Healthy link: the freshly scanned services are not needed.
-                    found.forEach { IOObjectRelease($0.service) }
-                    return
-                }
-                teardown(reason: "el mando dejó de enviar datos")
+        if link != nil {
+            let idle = Date().timeIntervalSince(lastReportStamp ?? Date())
+            if idle <= staleAfter {
+                // Healthy link: the freshly scanned services are not needed.
+                found.forEach { IOObjectRelease($0.service) }
+                return
             }
+            teardown(reason: "el mando dejó de enviar datos")
         }
 
         guard let candidate = found.first(where: { $0.info.isReadable }) else {
@@ -129,13 +125,13 @@ public final class ControllerService: ObservableObject {
             guard let interfaceService = Self.waitForInterface(number: 0, childOf: found.service) else {
                 throw ControllerError.interfaceMissing
             }
+            defer { IOObjectRelease(interfaceService) }
             let openedInterface = try IOUSBHostInterface(
                 __ioService: interfaceService,
                 options: [],
                 queue: nil,
                 interestHandler: nil
             )
-            IOObjectRelease(interfaceService)
             hostInterface = openedInterface
             let pipe = try openedInterface.copyPipe(withAddress: NaconIDs.xinputEndpointAddress)
             let fresh = DeviceLink(
@@ -154,8 +150,8 @@ public final class ControllerService: ObservableObject {
             publishReport(nil, count: 0, hex: "", at: nil)
             readNext(link: fresh)
         } catch {
-            device?.destroy()
             hostInterface?.destroy()
+            device?.destroy()
             IOObjectRelease(found.service)
             publish(state: .failed(error.localizedDescription))
         }

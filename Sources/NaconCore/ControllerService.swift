@@ -84,10 +84,32 @@ public final class ControllerService: ObservableObject {
 
     /// Sends a control packet (LED or rumble) to the pad. Safe to call from any thread.
     public func sendOutput(_ packet: [UInt8]) {
+        enqueueOutput(packet) {}
+    }
+
+    /// Sends a packet and waits until the pad accepted it, or until `timeout` elapses.
+    ///
+    /// The app needs this at termination: an ordinary send is asynchronous, so asking the pad to go
+    /// dark and then exiting immediately leaves the packet unsent and the light on. Blocking briefly
+    /// at quit time is acceptable; what is not acceptable is calling this from the I/O queue itself,
+    /// which is where the completion runs.
+    /// - Returns: whether the write completed before the timeout.
+    @discardableResult
+    public func sendOutputAndWait(_ packet: [UInt8], timeout: TimeInterval = 0.3) -> Bool {
+        let done = DispatchSemaphore(value: 0)
+        enqueueOutput(packet) { done.signal() }
+        return done.wait(timeout: .now() + timeout) == .success
+    }
+
+    private func enqueueOutput(_ packet: [UInt8], completion: @escaping () -> Void) {
         ioQueue.async { [weak self] in
-            guard let self else { return }
+            guard let self else {
+                completion()
+                return
+            }
             guard let current = self.link, let outPipe = current.outPipe else {
                 self.publishWriteStatus("sin endpoint de salida")
+                completion()
                 return
             }
             let buffer = NSMutableData(bytes: packet, length: packet.count)
@@ -96,17 +118,23 @@ public final class ControllerService: ObservableObject {
                     with: buffer,
                     completionTimeout: 0
                 ) { [weak self] status, transferred in
-                    guard let self else { return }
+                    guard let self else {
+                        completion()
+                        return
+                    }
                     self.ioQueue.async {
-                        guard !current.isDead else { return }
-                        let text = status == kIOReturnSuccess
-                            ? "ok (\(transferred) bytes)"
-                            : "error \(Self.hex(status))"
-                        self.publishWriteStatus(text)
+                        if !current.isDead {
+                            let text = status == kIOReturnSuccess
+                                ? "ok (\(transferred) bytes)"
+                                : "error \(Self.hex(status))"
+                            self.publishWriteStatus(text)
+                        }
+                        completion()
                     }
                 }
             } catch {
                 self.publishWriteStatus("no se pudo enviar: \(error.localizedDescription)")
+                completion()
             }
         }
     }

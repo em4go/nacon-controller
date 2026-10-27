@@ -69,32 +69,56 @@ public struct CursorSettings: Equatable, Sendable {
     public var curveExponent: Double
     /// Scroll lines per second at full deflection of the right stick.
     public var scrollLinesPerSecond: Double
+    /// Flips the vertical direction of cursor movement and scrolling. Some units report the Y axis
+    /// with the opposite sign for the same physical movement.
+    public var invertVerticalAxis: Bool
 
     public init(
         deadzone: Double = 0.18,
         fullSpeedFraction: Double = 0.85,
         maxSpeed: Double = 1_400,
         curveExponent: Double = 2.0,
-        scrollLinesPerSecond: Double = 14
+        scrollLinesPerSecond: Double = 14,
+        invertVerticalAxis: Bool = false
     ) {
         self.deadzone = deadzone
         self.fullSpeedFraction = fullSpeedFraction
         self.maxSpeed = maxSpeed
         self.curveExponent = curveExponent
         self.scrollLinesPerSecond = scrollLinesPerSecond
+        self.invertVerticalAxis = invertVerticalAxis
     }
 
     public static let standard = CursorSettings()
+}
+
+/// How a held key behaves, mirroring the system keyboard repeat.
+public struct KeyRepeatSettings: Equatable, Sendable {
+    public var initialDelay: Double
+    public var interval: Double
+
+    public init(initialDelay: Double = 0.35, interval: Double = 0.05) {
+        self.initialDelay = initialDelay
+        self.interval = interval
+    }
+
+    public static let standard = KeyRepeatSettings()
 }
 
 /// The full mapping used by the emulation engine.
 public struct InputProfile: Equatable, Sendable {
     public var mappings: [XInputControl: MappedAction]
     public var cursor: CursorSettings
+    public var keyRepeat: KeyRepeatSettings
 
-    public init(mappings: [XInputControl: MappedAction], cursor: CursorSettings = .standard) {
+    public init(
+        mappings: [XInputControl: MappedAction],
+        cursor: CursorSettings = .standard,
+        keyRepeat: KeyRepeatSettings = .standard
+    ) {
         self.mappings = mappings
         self.cursor = cursor
+        self.keyRepeat = keyRepeat
     }
 
     /// Left stick moves the cursor, right stick scrolls, face buttons click, d-pad sends arrows.

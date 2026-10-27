@@ -27,7 +27,7 @@ public enum StickMotion {
     /// multiplied by `maxSpeed`.
     public static func cursorVelocity(stick: XInputStick, settings: CursorSettings) -> CursorVelocity {
         let axisX = stick.normalizedX
-        let axisY = stick.normalizedY
+        let axisY = settings.invertVerticalAxis ? -stick.normalizedY : stick.normalizedY
         let magnitude = (axisX * axisX + axisY * axisY).squareRoot()
         guard magnitude > settings.deadzone, magnitude > 0 else { return .zero }
 
@@ -43,7 +43,7 @@ public enum StickMotion {
 
     /// Scroll amount in lines per second. Only the vertical axis of the right stick is used.
     public static func scrollLinesPerSecond(stick: XInputStick, settings: CursorSettings) -> Double {
-        let axisY = stick.normalizedY
+        let axisY = settings.invertVerticalAxis ? -stick.normalizedY : stick.normalizedY
         let magnitude = abs(axisY)
         guard magnitude > settings.deadzone else { return 0 }
         let span = max(settings.fullSpeedFraction - settings.deadzone, 0.000_1)

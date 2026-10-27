@@ -119,6 +119,55 @@ final class EmulationEngineTests: XCTestCase {
         XCTAssertEqual(emitter.events, [.release(.mouseButton(.left))])
     }
 
+    private func makeEngine(profile: InputProfile) -> (EmulationEngine, RecordingEmitter) {
+        let localEmitter = RecordingEmitter()
+        let localEngine = EmulationEngine(emitter: localEmitter, profile: profile)
+        localEngine.setEnabledNow(true)
+        return (localEngine, localEmitter)
+    }
+
+    func testHeldKeyRepeatsAfterTheInitialDelay() {
+        let profile = InputProfile(
+            mappings: [.dpadUp: .key(KeyCombo(.upArrow))],
+            keyRepeat: KeyRepeatSettings(initialDelay: 0.2, interval: 0.05)
+        )
+        let (localEngine, localEmitter) = makeEngine(profile: profile)
+        localEngine.handle(report())
+        localEngine.handle(report(buttons: [.dpadUp]))
+        XCTAssertEqual(localEmitter.events, [.press(.key(KeyCombo(.upArrow)))])
+
+        localEngine.tick(seconds: 0.1)
+        XCTAssertEqual(localEmitter.events.count, 1, "must not repeat before the initial delay")
+
+        localEngine.tick(seconds: 0.15)
+        XCTAssertEqual(localEmitter.events.count, 2, "must repeat once the delay has passed")
+    }
+
+    func testReleaseStopsTheRepeats() {
+        let profile = InputProfile(
+            mappings: [.dpadUp: .key(KeyCombo(.upArrow))],
+            keyRepeat: KeyRepeatSettings(initialDelay: 0.2, interval: 0.05)
+        )
+        let (localEngine, localEmitter) = makeEngine(profile: profile)
+        localEngine.handle(report())
+        localEngine.handle(report(buttons: [.dpadUp]))
+        localEngine.tick(seconds: 0.3)
+        localEngine.handle(report())
+        let countAfterRelease = localEmitter.events.count
+
+        localEngine.tick(seconds: 1.0)
+        XCTAssertEqual(localEmitter.events.count, countAfterRelease)
+        XCTAssertEqual(localEmitter.events.last, .release(.key(KeyCombo(.upArrow))))
+    }
+
+    func testHeldMouseButtonDoesNotRepeat() {
+        let (localEngine, localEmitter) = makeEngine(profile: .standard)
+        localEngine.handle(report())
+        localEngine.handle(report(buttons: [.buttonA]))
+        localEngine.tick(seconds: 1.0)
+        XCTAssertEqual(localEmitter.events, [.press(.mouseButton(.left))])
+    }
+
     func testTickMovesCursorOnlyWhenEnabled() {
         engine.handle(report(left: stick(normalizedX: 1)))
         engine.tick(seconds: 0.1)

@@ -65,6 +65,27 @@ final class StickMotionTests: XCTestCase {
         XCTAssertLessThan(StickMotion.cursorVelocity(stick: upward, settings: settings).dy, 0)
     }
 
+    func testInvertedVerticalAxisFlipsCursorDirection() {
+        var settings = CursorSettings.standard
+        settings.invertVerticalAxis = true
+        let upward = stick(normalizedX: 0, normalizedY: 1)
+        XCTAssertGreaterThan(StickMotion.cursorVelocity(stick: upward, settings: settings).dy, 0)
+    }
+
+    func testInvertedVerticalAxisFlipsScrollDirection() {
+        var settings = CursorSettings.standard
+        settings.invertVerticalAxis = true
+        let upward = stick(normalizedX: 0, normalizedY: 1)
+        XCTAssertLessThan(StickMotion.scrollLinesPerSecond(stick: upward, settings: settings), 0)
+    }
+
+    func testInversionDoesNotAffectHorizontalAxis() {
+        var settings = CursorSettings.standard
+        settings.invertVerticalAxis = true
+        let rightward = stick(normalizedX: 1, normalizedY: 0)
+        XCTAssertGreaterThan(StickMotion.cursorVelocity(stick: rightward, settings: settings).dx, 0)
+    }
+
     func testScrollIsZeroInsideDeadzone() {
         let inside = stick(normalizedX: 0, normalizedY: settings.deadzone - 0.05)
         XCTAssertEqual(StickMotion.scrollLinesPerSecond(stick: inside, settings: settings), 0)

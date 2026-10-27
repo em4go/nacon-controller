@@ -17,6 +17,17 @@ struct EmulationSection: View {
             ))
             .toggleStyle(.switch)
             .disabled(!emulation.hasAccessibility)
+            Toggle("Invertir eje vertical", isOn: Binding(
+                get: { emulation.invertVerticalAxis },
+                set: { emulation.setInvertVerticalAxis($0) }
+            ))
+            .toggleStyle(.switch)
+            Text(
+                "Actívalo si al empujar el stick hacia arriba el cursor baja. Afecta al cursor y al "
+                + "desplazamiento, no al indicador del stick en pantalla."
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
             Text(
                 "El stick izquierdo mueve el cursor y el derecho desplaza. "
                 + "A/B/X son los botones del ratón, la cruceta envía flechas. "

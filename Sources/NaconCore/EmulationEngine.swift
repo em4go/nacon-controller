@@ -11,7 +11,7 @@ public final class EmulationEngine {
     private let queue = DispatchQueue(label: "dev.nacon.emulation")
     private let queueKey = DispatchSpecificKey<Void>()
     private let emitter: InputEmitter
-    private let profile: InputProfile
+    private var profile: InputProfile
     private let tickInterval: TimeInterval = 1.0 / 60.0
 
     private var timer: DispatchSourceTimer?
@@ -21,6 +21,8 @@ public final class EmulationEngine {
     private var leftStick: XInputStick = .center
     private var rightStick: XInputStick = .center
     private var scroll = ScrollAccumulator()
+    private var repeatElapsed: [XInputControl: Double] = [:]
+    private var nextRepeatAt: [XInputControl: Double] = [:]
 
     public init(emitter: InputEmitter, profile: InputProfile = .standard) {
         self.emitter = emitter
@@ -75,6 +77,13 @@ public final class EmulationEngine {
         }
     }
 
+    /// Replaces the active profile, for example after the user flips the vertical axis.
+    public func setProfile(_ newProfile: InputProfile) {
+        queue.async { [weak self] in
+            self?.profile = newProfile
+        }
+    }
+
     /// Feeds one input report. Called for every report, before any UI throttling.
     public func ingest(_ report: XInputReport) {
         queue.async { [weak self] in
@@ -97,6 +106,8 @@ public final class EmulationEngine {
         }
         // Release first so a control that swaps action can never leave the old one held.
         for control in transitions.released {
+            repeatElapsed.removeValue(forKey: control)
+            nextRepeatAt.removeValue(forKey: control)
             if let action = heldActions.removeValue(forKey: control) {
                 emitter.release(action)
             }
@@ -107,6 +118,10 @@ public final class EmulationEngine {
             if case .scrollLines = action { continue }
             heldActions[control] = action
             emitter.press(action)
+            if case .key = action {
+                repeatElapsed[control] = 0
+                nextRepeatAt[control] = profile.keyRepeat.initialDelay
+            }
         }
     }
 
@@ -130,6 +145,28 @@ public final class EmulationEngine {
         if lines != 0 {
             emitter.scroll(lines: lines)
         }
+        advanceKeyRepeats(seconds: seconds)
+    }
+
+    /// A synthesized key-down does not trigger the system keyboard repeat, so a held d-pad
+    /// direction would move exactly once. This mirrors the system behaviour: one initial event,
+    /// then repeats after a delay.
+    private func advanceKeyRepeats(seconds: Double) {
+        guard !repeatElapsed.isEmpty else { return }
+        let interval = max(profile.keyRepeat.interval, 0.005)
+        for (control, action) in heldActions {
+            guard case .key = action else { continue }
+            guard var elapsed = repeatElapsed[control], var due = nextRepeatAt[control] else { continue }
+            elapsed += seconds
+            repeatElapsed[control] = elapsed
+            // At most one repeat per tick: catching up on missed repeats would burst several
+            // key-downs at once after a stall, which would type faster than the user held it.
+            if elapsed >= due {
+                emitter.press(action)
+                due = elapsed + interval
+            }
+            nextRepeatAt[control] = due
+        }
     }
 
     private func disableOnQueue(notify: Bool) {
@@ -140,6 +177,8 @@ public final class EmulationEngine {
             emitter.release(action)
         }
         heldActions.removeAll()
+        repeatElapsed.removeAll()
+        nextRepeatAt.removeAll()
         previousReport = nil
         if notify {
             DispatchQueue.main.async { [weak self] in

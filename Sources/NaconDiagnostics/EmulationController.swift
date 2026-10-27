@@ -9,8 +9,10 @@ final class EmulationController: ObservableObject {
     @Published private(set) var isEnabled = false
     @Published private(set) var hasAccessibility = AccessibilityPermission.isGranted
     @Published private(set) var stoppedByPad = false
+    @Published private(set) var invertVerticalAxis = false
 
     private let engine = EmulationEngine(emitter: CGEventEmitter())
+    private var profile = InputProfile.standard
     private var cancellables: Set<AnyCancellable> = []
     private var permissionTimer: Timer?
     private var terminationObserver: NSObjectProtocol?
@@ -100,6 +102,16 @@ final class EmulationController: ObservableObject {
         hasAccessibility = true
         isEnabled = true
         engine.setEnabled(true)
+    }
+
+    /// Flips the vertical direction of cursor movement and scrolling.
+    ///
+    /// Some units report the Y axis with the opposite sign for the same physical movement, so this
+    /// has to be a per-unit setting rather than a fixed convention.
+    func setInvertVerticalAxis(_ newValue: Bool) {
+        invertVerticalAxis = newValue
+        profile.cursor.invertVerticalAxis = newValue
+        engine.setProfile(profile)
     }
 
     func requestAccessibility() {

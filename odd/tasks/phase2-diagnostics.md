@@ -69,3 +69,14 @@ held the IOUSBHostDevice exclusively and a second reader failed with "Error de a
 
 L7 (user): "continúa" — authorizes the emulation phase (S11-S13). The permission prompt is accepted
 as a known consequence; granting it is the user's action in System Settings.
+
+L8 (user, three defects after using emulation):
+"- no entiende los límites reales de la pantalla. Se puede mover entre las coordenadas infinitamente
+(de forma virtual) y luego tiene que recorrerlas para volver
+- el eje y está invertido (tendría que ser configurable)
+- los botones de la cruceta solo se pueden pulsar de una vez en una vez, no dejar mantenido para
+moverme."
+
+S14. The cursor must stay inside the real display layout.
+S15. The vertical axis direction must be configurable at runtime.
+S16. Holding a d-pad direction must keep moving, not fire once.

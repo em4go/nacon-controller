@@ -56,8 +56,10 @@ public final class CGEventEmitter: InputEmitter {
 
     public func moveCursor(deltaX: Double, deltaY: Double) {
         guard deltaX != 0 || deltaY != 0 else { return }
-        let current = Self.cursorLocation()
-        let target = CGPoint(x: current.x + deltaX, y: current.y + deltaY)
+        let displays = ScreenGeometry.activeDisplayBounds()
+        let current = ScreenGeometry.clamped(Self.cursorLocation(), to: displays)
+        let requested = CGPoint(x: current.x + deltaX, y: current.y + deltaY)
+        let target = ScreenGeometry.clamped(requested, to: displays)
         guard let event = CGEvent(
             mouseEventSource: source,
             mouseType: .mouseMoved,

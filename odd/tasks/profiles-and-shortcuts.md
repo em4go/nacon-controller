@@ -100,3 +100,8 @@ significa una pulsación y a qué perfil pertenece— son ahora un tipo puro con
 Con eso, la única zona del proyecto sin cobertura automática pasa a estar cubierta en su lógica.
 Lo que sigue sin cubrirse es el cableado de AppKit y el hardware real, que es justo lo que documenta
 `docs/manual-acceptance.md`.
+
+## Deuda anotada, no oculta
+
+Dos tests débiles quedan documentados con su ubicación exacta en `docs/pruebas-debiles.md` para que
+se borren o arreglen de forma deliberada, no por descuido. Estado actual: 161 tests, todos en verde.

@@ -6,9 +6,15 @@ let package = Package(
     platforms: [.macOS(.v13)],
     products: [
         .library(name: "NaconCore", targets: ["NaconCore"]),
+        .executable(name: "nacon-selftest", targets: ["NaconSelfTest"]),
     ],
     targets: [
         .target(name: "NaconCore", path: "Sources/NaconCore"),
+        .executableTarget(
+            name: "NaconSelfTest",
+            dependencies: ["NaconCore"],
+            path: "Sources/NaconSelfTest"
+        ),
         .testTarget(
             name: "NaconCoreTests",
             dependencies: ["NaconCore"],

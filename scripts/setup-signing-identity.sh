@@ -6,6 +6,14 @@
 # Nothing is installed outside the login keychain.
 set -euo pipefail
 
+# macOS's keychain importer only accepts the legacy PKCS#12 encoding. OpenSSL 3 from Homebrew
+# defaults to AES/PBES2, which fails with "MAC verification failed". Apple's LibreSSL produces the
+# format the Security framework accepts, so prefer it when present.
+OPENSSL_BIN="/usr/bin/openssl"
+if [ ! -x "$OPENSSL_BIN" ]; then
+    OPENSSL_BIN="$(command -v openssl)"
+fi
+
 IDENTITY_NAME="NACON Local Signing"
 KEYCHAIN="$HOME/Library/Keychains/login.keychain-db"
 
@@ -43,14 +51,14 @@ subjectKeyIdentifier = hash
 CONF
 
     echo "1/3 Generando certificado autofirmado (validez 10 años)…"
-    openssl req -x509 -newkey rsa:2048 -nodes \
+    "$OPENSSL_BIN" req -x509 -newkey rsa:2048 -nodes \
         -keyout "$WORK_DIR/key.pem" \
         -out "$WORK_DIR/cert.pem" \
         -days 3650 \
         -config "$WORK_DIR/openssl.cnf" >/dev/null 2>&1
 
     echo "2/3 Empaquetando e importando en el Llavero de inicio…"
-    openssl pkcs12 -export \
+    "$OPENSSL_BIN" pkcs12 -export \
         -out "$WORK_DIR/identity.p12" \
         -inkey "$WORK_DIR/key.pem" \
         -in "$WORK_DIR/cert.pem" \

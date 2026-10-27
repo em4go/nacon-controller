@@ -43,7 +43,11 @@ struct ProfileSection: View {
                         profileID: selected.id,
                         report: service.report,
                         isEmulationEnabled: emulation.isEnabled,
-                        capture: capture
+                        capture: capture,
+                        onAssign: { control, action in
+                            // Same guard as a capture: the write belongs to the profile on screen.
+                            applyCapturedAction(selected.id, control, action)
+                        }
                     )
                     // A capture belongs to the profile it was armed for, so the graph is rebuilt when
                     // the profile changes, exactly like the table: a pending press must never land on

@@ -30,6 +30,9 @@ struct PadGraphView: View {
     let isEmulationEnabled: Bool
     /// The one capture of the section. Armed by a tap here, by «Capturar» in the table, or by neither.
     @ObservedObject var capture: MappingCapture
+    /// Writes an assignment the capture cannot express: mouse buttons, scrolling, clearing and the
+    /// ready-made macOS shortcuts. The section applies the same profile guard it applies to a capture.
+    let onAssign: (XInputControl, MappedAction) -> Void
 
     /// The control under the pointer, cleared when it leaves. Hovering only previews a control: it
     /// never arms anything, so moving the mouse across the drawing is safe.
@@ -84,6 +87,13 @@ struct PadGraphView: View {
             // when it started would otherwise stay in the strip forever.
             if isRunning {
                 hovered = nil
+            }
+        }
+        .onChange(of: capture.session.isArmed) { armed in
+            // A capture that ended, whether a key landed or Escape cancelled it, must leave the
+            // drawing as it found it: the tint means «waiting for a key», not «last one touched».
+            if !armed {
+                selected = nil
             }
         }
     }
@@ -219,9 +229,14 @@ struct PadGraphView: View {
         )
     }
 
-    /// Whether this control is lit right now: hovered, picked, armed, or down on the pad.
+    /// Whether this control is lit right now: waiting for a key, or down on the pad.
+    ///
+    /// Hovering and picking deliberately do NOT tint. A tint that outlives the gesture reads as
+    /// «still waiting», which is exactly the confusion this avoids: after a key lands or Escape
+    /// cancels, the drawing is normal again even if the pointer never moved. The strip is what tells
+    /// the user which control the pointer is on.
     private func isHighlighted(_ control: XInputControl) -> Bool {
-        isArmed(control) || selected == control || hovered == control || isPressed(control)
+        isArmed(control) || isPressed(control)
     }
 
     /// Whether this control is the one waiting for a key press.
@@ -265,6 +280,43 @@ struct PadGraphView: View {
                 .foregroundStyle(isArmed ? Color.accentColor : Color.primary)
                 .lineLimit(1)
                 .truncationMode(.tail)
+            if let control, MappingRules.isRemappable(control), !isEmulationEnabled {
+                Menu {
+                    Button("Capturar tecla…") { select(control) }
+                    Divider()
+                    ForEach([MouseButton.left, .middle, .right], id: \.self) { button in
+                        Button(MappingRules.label(for: .mouseButton(button))) {
+                            assign(control, .mouseButton(button))
+                        }
+                    }
+                    Divider()
+                    Button(MappingRules.label(for: MappingRules.scrollUpAction)) {
+                        assign(control, MappingRules.scrollUpAction)
+                    }
+                    Button(MappingRules.label(for: MappingRules.scrollDownAction)) {
+                        assign(control, MappingRules.scrollDownAction)
+                    }
+                    Divider()
+                    // The catalog from the table, so a system combination that macOS would swallow
+                    // before any local monitor sees it can still be assigned here.
+                    ForEach(SystemShortcut.Category.allCases, id: \.self) { category in
+                        Menu(category.title) {
+                            ForEach(SystemShortcut.inCategory(category)) { shortcut in
+                                Button("\(shortcut.name) — \(shortcut.combo.glyph)") {
+                                    assign(control, shortcut.action)
+                                }
+                            }
+                        }
+                    }
+                    Divider()
+                    Button(MappingRules.label(for: .none)) { assign(control, .none) }
+                } label: {
+                    Label("Asignar…", systemImage: "ellipsis.circle")
+                        .labelStyle(.titleAndIcon)
+                }
+                .menuStyle(.borderlessButton)
+                .fixedSize()
+            }
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
@@ -274,6 +326,16 @@ struct PadGraphView: View {
             RoundedRectangle(cornerRadius: 8).strokeBorder(Color.secondary.opacity(0.25), lineWidth: 1)
         )
         .help(control.map { "\(MappingRules.controlLabel(for: $0)): \(assignment(for: $0))" } ?? "")
+    }
+
+    /// Writes one assignment and returns the drawing to its normal state.
+    ///
+    /// The selection exists to arm one thing; once it is done, keeping the control tinted would say
+    /// «still waiting» when nothing is waiting.
+    private func assign(_ control: XInputControl, _ action: MappedAction) {
+        onAssign(control, action)
+        selected = nil
+        hovered = nil
     }
 
     /// What a control sends today, in the words the table uses.

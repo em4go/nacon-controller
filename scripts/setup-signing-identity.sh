@@ -82,6 +82,16 @@ if security find-identity -v -p codesigning 2>/dev/null | grep -q "$IDENTITY_NAM
     echo "Listo. Identidad disponible:"
     security find-identity -v -p codesigning | grep "$IDENTITY_NAME"
     echo
+    echo "NOTA: la primera vez que compiles, macOS puede pedir autorización para usar la clave."
+    echo "      Elige \"Permitir siempre\" (Allow Always), no \"Permitir\": solo la primera añade la"
+    echo "      regla permanente. Desde macOS Sierra el flag -T de la importación no basta."
+    echo
+    echo "Si aun así vuelve a pedirla en cada compilación, la partition list de la clave no incluye"
+    echo "codesign. Arréglalo con (te pedirá tu contraseña):"
+    echo "  security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k TU_CONTRASEÑA login.keychain-db"
+    echo "  OJO: sin filtro afecta a todas las claves de ese llavero. Para evitarlo, usa un llavero"
+    echo "  dedicado solo para esta identidad."
+    echo
     echo "Ahora recompila una vez y concede el permiso por última vez:"
     echo "  ./scripts/build-app.sh"
     echo "  tccutil reset Accessibility dev.nacon.diagnostics"

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Prototipo: el dibujo como botones</title>
+<style>
+  :root {
+    --bg: #1c1c1e;
+    --card: #242427;
+    --line: #3a3a3e;
+    --text: #e8e8ea;
+    --dim: #a0a0a6;
+    --accent: #0a84ff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px;
+    background: var(--bg); color: var(--text);
+    font: 13px/1.45 -apple-system, "SF Pro Text", system-ui, sans-serif;
+  }
+  h1 { font-size: 17px; margin: 0 0 6px; }
+  p.lead { color: var(--dim); margin: 0 0 20px; max-width: 900px; }
+  .options { display: grid; grid-template-columns: repeat(3, minmax(380px, 1fr)); gap: 18px; }
+  .option { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+  .option h2 { font-size: 14px; margin: 0 0 2px; }
+  .option .tag { color: var(--dim); font-size: 11px; margin: 0 0 10px; }
+  .stage { position: relative; width: 100%; aspect-ratio: 1452 / 940; background: #151517; border-radius: 8px; overflow: hidden; }
+  .stage img.base { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .layer { position: absolute; inset: 0; }
+  .hl {
+    position: absolute; inset: 0;
+    background: var(--accent);
+    -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+    opacity: 0; transition: opacity .09s;
+    pointer-events: none;
+  }
+  .hot {
+    position: absolute; transform: translate(-50%, -50%);
+    border-radius: 50%; cursor: pointer;
+    background: transparent;
+  }
+  .hot:hover + .hl, .hl.on { opacity: .42; }
+  .glyph {
+    position: absolute; transform: translate(-50%, -50%);
+    color: #f2f2f4; font-size: 17px; font-weight: 600;
+    pointer-events: none; text-shadow: 0 0 3px #000;
+  }
+  .piece { position: absolute; transform: translate(-50%, -50%); cursor: pointer; pointer-events: auto; }
+  .piece:hover { filter: drop-shadow(0 0 5px var(--accent)) brightness(1.35); }
+  .piece.sel { filter: drop-shadow(0 0 6px var(--accent)) brightness(1.5); }
+  .panel {
+    margin-top: 10px; padding: 8px 10px; background: #1a1a1d;
+    border: 1px solid var(--line); border-radius: 8px; min-height: 46px;
+  }
+  .panel .who { color: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  .panel .val { font-size: 14px; font-weight: 600; }
+  .panel .val.armed { color: var(--accent); }
+  .note { color: var(--dim); font-size: 11px; margin: 10px 0 0; }
+  .note b { color: var(--text); }
+  kbd { background: #313136; border-radius: 4px; padding: 1px 5px; font: inherit; }
+</style>
+</head>
+<body>
+<h1>El dibujo como botones</h1>
+<p class="lead">
+  Tres formas de que el mando de la pantalla <em>sea</em> el control, sin cajas encima. Pasa el ratón por
+  un botón: se ilumina su propia forma. Haz clic y pulsa una tecla para asignarla. <kbd>Esc</kbd> cancela.
+</p>
+
+<div class="options">
+  <!-- Opción 1 -->
+  <section class="option" data-art="simple">
+    <h2>1 · Arte de líneas + máscaras</h2>
+    <p class="tag">El dibujo actual. Cada control se recorta con su máscara de alfa.</p>
+    <div class="stage" id="stage-simple">
+      <img class="base" src="assets/ps4-simple.png" alt="">
+      <div class="layer" id="layer-simple"></div>
+    </div>
+    <div class="panel" data-panel="simple">
+      <div class="who">Sin seleccionar</div>
+      <div class="val">—</div>
+    </div>
+    <p class="note">
+      <b>Real:</b> las máscaras salen del canal alfa del propio PNG, así que se ilumina el trazo exacto.
+      Los glifos ✕ ○ □ △ los pinta la página dentro de los círculos vacíos.
+      <b>Simulado:</b> nada. <b>Coste en la app:</b> bajo, las máscaras ya están generadas.
+    </p>
+  </section>
+
+  <!-- Opción 2 -->
+  <section class="option" data-art="diagram">
+    <h2>2 · Diagrama etiquetado</h2>
+    <p class="tag">La variante que ya imprime ✕ ○ □ △ y el logo PS.</p>
+    <div class="stage" id="stage-diagram">
+      <img class="base" src="assets/ps4-diagram.png" alt="">
+      <div class="layer" id="layer-diagram"></div>
+    </div>
+    <div class="panel" data-panel="diagram">
+      <div class="who">Sin seleccionar</div>
+      <div class="val">—</div>
+    </div>
+    <p class="note">
+      <b>Real:</b> también por máscaras, y el dibujo ya habla PlayStation sin que pintemos nada.
+      <b>Coste:</b> el glifo impreso no puede cambiar cuando reasignas, así que la tecla nueva solo se
+      ve en el panel. Pierdes el sitio donde poner la asignación encima del botón.
+    </p>
+  </section>
+
+  <!-- Opción 3 -->
+  <section class="option" data-art="pieces">
+    <h2>3 · Piezas auténticas</h2>
+    <p class="tag">El cuerpo del dibujo y, encima, los botones reales del paquete.</p>
+    <div class="stage" id="stage-pieces">
+      <img class="base" src="assets/ps4-simple.png" alt="">
+      <div class="layer" id="layer-pieces"></div>
+    </div>
+    <div class="panel" data-panel="pieces">
+      <div class="who">Sin seleccionar</div>
+      <div class="val">—</div>
+    </div>
+    <p class="note">
+      <b>Real:</b> cada botón es su propia imagen del paquete (✕ ○ □ △, cruceta, hombros, sticks), no una
+      forma que yo dibuje. <b>Coste:</b> hay que colocarlas y escalarlas, y las piezas vienen a 100 px.
+      Se ve más «de consola» y menos «de plano técnico».
+    </p>
+  </section>
+</div>
+
+<script>
+// Las coordenadas son las de PadLayout.swift, medidas del PNG (normalizadas 0..1).
+const CONTROLS = {
+  dpadUp:      { x: 0.2205, y: 0.3606, name: "Cruceta ↑" },
+  dpadDown:    { x: 0.2204, y: 0.4981, name: "Cruceta ↓" },
+  dpadLeft:    { x: 0.1740, y: 0.4297, name: "Cruceta ←" },
+  dpadRight:   { x: 0.2669, y: 0.4296, name: "Cruceta →" },
+  buttonA:     { x: 0.7837, y: 0.5224, name: "✕ Cruz" },
+  buttonB:     { x: 0.8484, y: 0.4299, name: "○ Círculo" },
+  buttonX:     { x: 0.7196, y: 0.4296, name: "□ Cuadrado" },
+  buttonY:     { x: 0.7838, y: 0.3373, name: "△ Triángulo" },
+  leftBumper:  { x: 0.2305, y: 0.1187, name: "L1" },
+  rightBumper: { x: 0.7730, y: 0.1189, name: "R1" },
+  leftTrigger: { x: 0.2253, y: 0.1692, name: "L2" },
+  rightTrigger:{ x: 0.7787, y: 0.1693, name: "R2" },
+  back:        { x: 0.3172, y: 0.2941, name: "Share" },
+  start:       { x: 0.6857, y: 0.2941, name: "Options" },
+  guide:       { x: 0.5025, y: 0.6300, name: "PS" },
+  leftThumb:   { x: 0.3594, y: 0.6259, name: "L3" },
+  rightThumb:  { x: 0.6445, y: 0.6259, name: "R3" },
+};
+
+// Perfil estándar de la app, en las etiquetas que ya usa.
+const DEFAULTS = {
+  dpadUp: "↑", dpadDown: "↓", dpadLeft: "←", dpadRight: "→",
+  buttonA: "Izq.", buttonB: "Der.", buttonX: "Centro", buttonY: "Esc",
+  leftBumper: "⇥", rightBumper: "↩", leftTrigger: "—", rightTrigger: "—",
+  back: "Borrar", start: "Espacio", guide: "Activa/apaga",
+  leftThumb: "—", rightThumb: "—",
+};
+
+const GLYPHS = { buttonA: "✕", buttonB: "○", buttonX: "□", buttonY: "△" };
+const RADIUS = { buttonA: 46, buttonB: 46, buttonX: 46, buttonY: 46,
+                 dpadUp: 42, dpadDown: 42, dpadLeft: 42, dpadRight: 42,
+                 leftThumb: 62, rightThumb: 62, guide: 40,
+                 leftBumper: 60, rightBumper: 60, leftTrigger: 60, rightTrigger: 60,
+                 back: 34, start: 34 };
+
+// Option 3 places the pack's own 100 px button images over the body.
+const PIECES = {
+  buttonA: { src: "assets/pieces/PS4_Cross.png", size: 62 },
+  buttonB: { src: "assets/pieces/PS4_Circle.png", size: 62 },
+  buttonX: { src: "assets/pieces/PS4_Square.png", size: 62 },
+  buttonY: { src: "assets/pieces/PS4_Triangle.png", size: 62 },
+  // dy separates the shoulder from the trigger: their measured points are 17 px apart on a 940 px
+  // tall drawing, which is less than the height of one of these images.
+  leftBumper: { src: "assets/pieces/PS4_L1.png", size: 60, dy: -16 },
+  rightBumper: { src: "assets/pieces/PS4_R1.png", size: 60, dy: -16 },
+  leftTrigger: { src: "assets/pieces/PS4_L2.png", size: 60, dy: 30 },
+  rightTrigger: { src: "assets/pieces/PS4_R2.png", size: 60, dy: 30 },
+  back: { src: "assets/pieces/PS4_Share.png", size: 40 },
+  start: { src: "assets/pieces/PS4_Options.png", size: 40 },
+};
+
+const state = { art: null, control: null, armed: false };
+const assignments = Object.assign({}, DEFAULTS);
+
+function panelFor(art) { return document.querySelector(`[data-panel="${art}"]`); }
+
+function render(art) {
+  state.art = art;
+  const layer = document.getElementById(`layer-${art}`);
+  layer.textContent = "";
+  for (const [key, c] of Object.entries(CONTROLS)) {
+    // La máscara ilumina la forma del propio control.
+    const mask = document.createElement("div");
+    mask.className = "hl";
+    mask.dataset.key = key;
+    mask.style.webkitMaskImage = `url("assets/masks/${art === "pieces" ? "simple" : art}-${key}.png")`;
+    mask.style.maskImage = mask.style.webkitMaskImage;
+    layer.appendChild(mask);
+
+    if (art === "pieces" && PIECES[key]) {
+      const img = document.createElement("img");
+      img.className = "piece";
+      img.src = PIECES[key].src;
+      img.style.left = `${c.x * 100}%`;
+      img.style.top = `${c.y * 100 + ((PIECES[key].dy || 0) / 940) * 100}%`;
+      img.style.width = `${(PIECES[key].size / 1452) * 100}%`;
+      img.dataset.key = key;
+      img.title = c.name;
+      img.addEventListener("mouseenter", () => hover(art, key, true));
+      img.addEventListener("mouseleave", () => hover(art, key, false));
+      img.addEventListener("click", () => select(art, key));
+      layer.appendChild(img);
+      continue;
+    }
+
+    const hot = document.createElement("div");
+    hot.className = "hot";
+    hot.dataset.key = key;
+    hot.title = c.name;
+    const d = ((RADIUS[key] || 40) * 2 / 1452) * 100;
+    hot.style.left = `${c.x * 100}%`;
+    hot.style.top = `${c.y * 100}%`;
+    hot.style.width = `${d}%`;
+    hot.style.paddingTop = `${d}%`;
+    hot.addEventListener("mouseenter", () => hover(art, key, true));
+    hot.addEventListener("mouseleave", () => hover(art, key, false));
+    hot.addEventListener("click", () => select(art, key));
+    layer.appendChild(hot);
+
+    if (art === "simple" && GLYPHS[key]) {
+      const g = document.createElement("div");
+      g.className = "glyph";
+      g.textContent = GLYPHS[key];
+      g.style.left = `${c.x * 100}%`;
+      g.style.top = `${c.y * 100}%`;
+      layer.appendChild(g);
+    }
+  }
+  updatePanel(art);
+}
+
+function hover(art, key, on) {
+  if (state.art !== art) return;
+  const mask = document.querySelector(`#layer-${art} .hl[data-key="${key}"]`);
+  if (mask) mask.classList.toggle("on", on || state.control === key);
+  if (on && !state.armed) showPanel(art, key, false);
+  if (!on && !state.armed && state.control !== key) updatePanel(art);
+}
+
+function select(art, key) {
+  if (state.armed && state.control === key) { state.armed = false; updatePanel(art); return; }
+  state.art = art;
+  state.control = key;
+  state.armed = key !== "guide";
+  document.querySelectorAll(".hl").forEach(el => el.classList.remove("on"));
+  const mask = document.querySelector(`#layer-${art} .hl[data-key="${key}"]`);
+  if (mask) mask.classList.add("on");
+  document.querySelectorAll(".piece").forEach(el => el.classList.remove("sel"));
+  if (art === "pieces") {
+    const piece = document.querySelector(`#layer-pieces .piece[data-key="${key}"]`);
+    if (piece) piece.classList.add("sel");
+  }
+  updatePanel(art);
+}
+
+function showPanel(art, key, armed) {
+  const panel = panelFor(art);
+  if (!panel) return;
+  panel.querySelector(".who").textContent = CONTROLS[key].name;
+  const val = panel.querySelector(".val");
+  val.textContent = armed ? "Pulsa una tecla…" : assignments[key];
+  val.classList.toggle("armed", armed);
+}
+
+function updatePanel(art) {
+  if (!state.control || state.art !== art) {
+    const panel = panelFor(art);
+    panel.querySelector(".who").textContent = "Sin seleccionar";
+    panel.querySelector(".val").textContent = "—";
+    panel.querySelector(".val").classList.remove("armed");
+    return;
+  }
+  showPanel(art, state.control, state.armed);
+}
+
+document.addEventListener("keydown", event => {
+  if (!state.armed || !state.control) return;
+  if (event.key === "Escape") {
+    state.armed = false;
+    updatePanel(state.art);
+    return;
+  }
+  event.preventDefault();
+  const parts = [];
+  if (event.ctrlKey) parts.push("⌃");
+  if (event.altKey) parts.push("⌥");
+  if (event.shiftKey) parts.push("⇧");
+  if (event.metaKey) parts.push("⌘");
+  const key = event.key.length === 1 ? event.key.toUpperCase() : event.key;
+  assignments[state.control] = parts.join("") + key;
+  state.armed = false;
+  updatePanel(state.art);
+});
+
+render("simple");
+render("diagram");
+render("pieces");
+</script>
+</body>
+</html>

@@ -35,6 +35,11 @@ public enum KeyStrokePlan {
         (.function, 63),
     ]
 
+    /// The modifier a key code stands for, or nil when it is an ordinary key.
+    public static func modifierSet(for keyCode: UInt16) -> ModifierSet? {
+        modifiers.first { $0.keyCode == keyCode }?.set
+    }
+
     /// True when the key is a modifier, so the mapping holds it rather than typing it.
     public static func isModifier(_ keyCode: UInt16) -> Bool {
         modifiers.contains { $0.keyCode == keyCode }

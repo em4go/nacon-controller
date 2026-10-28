@@ -40,6 +40,8 @@ public enum AccessibilityPermission {
 /// Posts keyboard and mouse events to the system through CoreGraphics.
 public final class CGEventEmitter: InputEmitter {
     private let source = CGEventSource(stateID: .hidSystemState)
+    /// The modifiers this emitter is holding down right now, from the strokes it posted.
+    private var heldByUs: ModifierSet = []
 
     public init() {}
 
@@ -115,7 +117,21 @@ public final class CGEventEmitter: InputEmitter {
             virtualKey: CGKeyCode(stroke.keyCode),
             keyDown: stroke.isDown
         ) else { return }
-        event.flags = Self.strokeFlags(for: stroke, ambient: Self.heldModifiers())
+        event.flags = Self.strokeFlags(
+            for: stroke,
+            ambient: Self.heldModifiers(),
+            held: heldByUs
+        )
+        // Remember what this app itself is holding. The system's own report arrives a moment later,
+        // and the next stroke must not depend on that race: ⌘ held on one control and ⇥ pressed on
+        // another have to combine even if the report has not caught up yet.
+        if let own = KeyStrokePlan.modifierSet(for: stroke.keyCode) {
+            if stroke.isDown {
+                heldByUs.insert(own)
+            } else {
+                heldByUs.remove(own)
+            }
+        }
         event.post(tap: .cghidEventTap)
     }
 
@@ -157,8 +173,27 @@ public final class CGEventEmitter: InputEmitter {
     /// Still assigned, never inherited: the flags come from the modifiers this app knows about, so an
     /// inherited NumericPad or CapsLock flag can never reach the event — those made many applications
     /// drop it, which looked like the controller disconnecting after a few arrow presses.
-    static func strokeFlags(for stroke: KeyStroke, ambient: ModifierSet) -> CGEventFlags {
-        flags(for: stroke.modifiers.union(ambient))
+    static func strokeFlags(for stroke: KeyStroke, ambient: ModifierSet, held: ModifierSet = []) -> CGEventFlags {
+        flags(for: resolvedModifiers(for: stroke, ambient: ambient, held: held))
+    }
+
+    /// The modifiers one stroke says are held, which is the state *after* it: its own, the ones the
+    /// system reports, and the ones this app is holding.
+    ///
+    /// A modifier's own release drops it. Without that, the Command key-up still claims Command is
+    /// down — the system does report it as held at that instant — and a listener that reads the flags
+    /// of a flagsChanged event never sees the release: the application switcher stays on screen after
+    /// the button that opened it has been let go.
+    static func resolvedModifiers(
+        for stroke: KeyStroke,
+        ambient: ModifierSet,
+        held: ModifierSet
+    ) -> ModifierSet {
+        var resolved = stroke.modifiers.union(ambient).union(held)
+        if !stroke.isDown, let released = KeyStrokePlan.modifierSet(for: stroke.keyCode) {
+            resolved.remove(released)
+        }
+        return resolved
     }
 
     /// The modifiers the system currently has down, as far as this app is concerned.

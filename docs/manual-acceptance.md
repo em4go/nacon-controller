@@ -26,6 +26,7 @@ El mando debe estar conectado y el permiso de Accesibilidad concedido.
 | 5 | Iniciar emulación y pulsar **A** con un editor de texto delante | Escribe `h` |
 | 6 | Con la emulación activa, mirar el editor | Está bloqueado, con su aviso, y el eje Y también |
 | 7 | Pulsar **PS** | Detiene la emulación al instante; pulsarlo de nuevo la activa |
+| 14 | Con □ asignado a «Mantener modificador → ⌘» y L1 a ⇥, mantener □, pulsar L1 y soltar los dos | El conmutador de aplicaciones aparece y **desaparece al soltar**: no se queda en pantalla, y ⌘ no queda pulsado |
 | 12 | Elegir «Tecla MOD: Share»; en la tabla, asignar ✕ en la base a ⌘ y ✕ en la columna MOD a ⌥; después mantener Share y pulsar ✕ | Con Share pulsado, ✕ envía ⌥; sin Share, ✕ envía ⌘; y Share solo, sin más botones, no envía nada |
 | 13 | Con Share pulsado y ✕ mantenido, soltar Share y después ✕; luego pulsar ○ con Share pulsado | ✕ sigue enviando ⌥ hasta que se suelta ✕, y al final no queda ninguna tecla pulsada; ○, que no tiene entrada en la capa, envía lo de la base |
 | 11 | En Hex, atajo ⌃⇧ y modo **Hold**; asignar un control del mando a «Mantener modificador → ⌃⇧» y mantenerlo pulsado | Dicta mientras se mantiene, transcribe al soltar, y al soltar **⌃ y ⇧ no quedan pulsados**: el teclado sigue escribiendo normal |

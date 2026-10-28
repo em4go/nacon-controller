@@ -44,4 +44,41 @@ final class InputEmitterFlagsTests: XCTestCase {
         XCTAssertEqual(CGEventEmitter.modifiers(from: [.maskAlphaShift, .maskNumericPad]), [])
         XCTAssertEqual(CGEventEmitter.modifiers(from: [.maskAlphaShift, .maskCommand]), [.command])
     }
+
+    func testAModifiersOwnReleaseNeverClaimsItIsStillHeld() {
+        // The system does report Command as held at the instant its key-up is posted. An event that
+        // repeats that leaves the switcher on screen after the button was let go.
+        let commandUp = KeyStroke(keyCode: 55, isDown: false, modifiers: [])
+        XCTAssertEqual(
+            CGEventEmitter.resolvedModifiers(for: commandUp, ambient: [.command], held: [.command]),
+            []
+        )
+    }
+
+    func testAModifierPressAndItsReleaseEndWithNothingHeld() {
+        let commandDown = KeyStroke(keyCode: 55, isDown: true, modifiers: [.command])
+        XCTAssertEqual(
+            CGEventEmitter.strokeFlags(for: commandDown, ambient: []),
+            .maskCommand
+        )
+        let commandUp = KeyStroke(keyCode: 55, isDown: false, modifiers: [])
+        XCTAssertEqual(CGEventEmitter.strokeFlags(for: commandUp, ambient: []), [])
+    }
+
+    func testWhatThisAppHoldsCountsEvenBeforeTheSystemReportsIt() {
+        // ⌘ held on one control and ⇥ pressed on another: the next stroke must combine without
+        // depending on the race with the system's own report.
+        XCTAssertEqual(
+            CGEventEmitter.strokeFlags(for: tabStroke, ambient: [], held: [.command]),
+            .maskCommand
+        )
+    }
+
+    func testAnOrdinaryKeyReleaseKeepsTheModifiersHeld() {
+        let tabUp = KeyStroke(keyCode: 48, isDown: false, modifiers: [])
+        XCTAssertEqual(
+            CGEventEmitter.strokeFlags(for: tabUp, ambient: [.command], held: [.command]),
+            .maskCommand
+        )
+    }
 }

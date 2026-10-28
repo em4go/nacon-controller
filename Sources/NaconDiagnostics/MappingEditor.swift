@@ -187,7 +187,7 @@ private struct MappingRow: View {
             Text(ControlFacts.of(control).label)
                 .font(.callout.weight(.medium))
                 .frame(width: 96, alignment: .leading)
-            Text(isWaitingInBase ? "Pulsa una tecla…" : MappingRules.label(for: action))
+            Text(isWaitingInBase ? "Pulsa una tecla…" : action.displayName)
                 .font(.system(.callout, design: .monospaced))
                 .foregroundStyle(isWaitingInBase ? Color.accentColor : Color.primary)
                 .lineLimit(1)
@@ -233,7 +233,7 @@ private struct MappingRow: View {
     /// something with MOD held: it does what the base says (S2).
     private var layerCell: some View {
         HStack(spacing: 10) {
-            Text(isWaitingInMod ? "Pulsa una tecla…" : layerAction.map(MappingRules.label(for:)) ?? "—")
+            Text(isWaitingInMod ? "Pulsa una tecla…" : layerAction.map(\.displayName) ?? "—")
                 .font(.system(.callout, design: .monospaced))
                 .foregroundStyle(layerAction == nil || isWaitingInMod ? Color.secondary : Color.primary)
                 .lineLimit(1)
@@ -279,7 +279,7 @@ private struct MappingRow: View {
         guard let layerAction else {
             return "Con la tecla MOD usa la acción de la base"
         }
-        return "Con la tecla MOD pulsada envía «\(MappingRules.label(for: layerAction))»"
+        return "Con la tecla MOD pulsada envía «\(layerAction.displayName)»"
     }
 
     /// What the capture button cannot express: mouse buttons, scrolling, the system catalog, the

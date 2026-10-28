@@ -43,15 +43,15 @@ struct AssignMenuItems: View {
         }
         Divider()
         ForEach([MouseButton.left, .middle, .right], id: \.self) { button in
-            Button(MappingRules.label(for: .mouseButton(button))) {
+            Button(MappedAction.mouseButton(button).displayName) {
                 onChoose(.mouseButton(button))
             }
         }
         Divider()
-        Button(MappingRules.label(for: MappingRules.scrollUpAction)) {
+        Button(MappingRules.scrollUpAction.displayName) {
             onChoose(MappingRules.scrollUpAction)
         }
-        Button(MappingRules.label(for: MappingRules.scrollDownAction)) {
+        Button(MappingRules.scrollDownAction.displayName) {
             onChoose(MappingRules.scrollDownAction)
         }
         Divider()
@@ -83,7 +83,7 @@ struct AssignMenuItems: View {
             }
         }
         Divider()
-        Button(MappingRules.label(for: .none)) {
+        Button(MappedAction.none.displayName) {
             onChoose(.none)
         }
     }

@@ -183,3 +183,34 @@ public struct InputProfile: Equatable, Sendable {
         XInputControl.allCases.filter { action(for: $0) != .none }
     }
 }
+
+extension MappedAction {
+    /// Readable label for a mapping. Never empty, so a row always shows something.
+    ///
+    /// Keys defer to `KeyCombo.displayName`, which already covers every key code including the ones
+    /// the catalog does not know.
+    public var displayName: String {
+        switch self {
+        case .none:
+            return "Sin asignar"
+        case .key(let combo):
+            return combo.displayName
+        case .mouseButton(.left):
+            return "Clic izquierdo"
+        case .mouseButton(.right):
+            return "Clic derecho"
+        case .mouseButton(.middle):
+            return "Clic central"
+        case .scrollLines(0):
+            return "Sin desplazamiento"
+        case .sequence(let steps):
+            return steps.map(\.displayName).joined(separator: " luego ")
+        case .scrollLines(let lines):
+            let amount = abs(lines)
+            let unit = amount == 1 ? "línea" : "líneas"
+            return lines > 0
+                ? "Desplazar arriba \(amount) \(unit)"
+                : "Desplazar abajo \(amount) \(unit)"
+        }
+    }
+}

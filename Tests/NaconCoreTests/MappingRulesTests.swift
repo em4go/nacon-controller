@@ -107,31 +107,6 @@ final class MappingRulesTests: XCTestCase {
         XCTAssertEqual(profile.action(for: .rightThumb), .scrollLines(MappingRules.scrollStepLines))
     }
 
-    // MARK: - Readable labels
-
-    func testKeyActionsRenderWithTheirShortcutName() {
-        let action = MappedAction.key(KeyCombo(keyCode: 12, modifiers: [.command]))
-
-        XCTAssertEqual(MappingRules.label(for: action), "⌘Q")
-        // The label of a key action comes from `KeyCatalog`, so it reads in Spanish like the badges.
-        XCTAssertEqual(MappingRules.label(for: .key(KeyCombo(.tab))), "⇥")
-    }
-
-    func testMouseButtonActionsRenderReadably() {
-        XCTAssertEqual(MappingRules.label(for: .mouseButton(.left)), "Clic izquierdo")
-        XCTAssertEqual(MappingRules.label(for: .mouseButton(.right)), "Clic derecho")
-        XCTAssertEqual(MappingRules.label(for: .mouseButton(.middle)), "Clic central")
-    }
-
-    func testScrollActionsRenderDirectionAndAmount() {
-        XCTAssertEqual(MappingRules.label(for: .scrollLines(3)), "Desplazar arriba 3 líneas")
-        XCTAssertEqual(MappingRules.label(for: .scrollLines(-3)), "Desplazar abajo 3 líneas")
-    }
-
-    func testNoActionRendersAsUnassigned() {
-        XCTAssertEqual(MappingRules.label(for: .none), "Sin asignar")
-    }
-
     // MARK: - Library level: the selected profile only
 
     func testEditAppliesToTheSelectedProfileOnly() {

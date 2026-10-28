@@ -349,11 +349,11 @@ struct PadGraphView: View {
         guard MappingRules.isRemappable(control) else {
             return "Reservado: activa y apaga la emulación"
         }
-        let base = MappingRules.label(for: profile.action(for: control))
+        let base = profile.action(for: control).displayName
         guard profile.layer.isActive, let layered = profile.layer.action(for: control) else {
             return base
         }
-        return base + " · MOD " + MappingRules.label(for: layered)
+        return base + " · MOD " + layered.displayName
     }
 
     // MARK: - The line under the strip

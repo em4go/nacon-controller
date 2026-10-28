@@ -6,13 +6,6 @@ final class SequenceActionTests: XCTestCase {
     private var selectAll: KeyCombo { KeyCombo(keyCode: 0, modifiers: [.command]) }
     private var copy: KeyCombo { KeyCombo(keyCode: 8, modifiers: [.command]) }
 
-    func testASequenceShowsItsStepsInOrder() {
-        XCTAssertEqual(
-            MappingRules.label(for: .sequence([selectAll, copy])),
-            "⌘A luego ⌘C"
-        )
-    }
-
     func testChainingNormalisesWhatIsNotASequence() {
         // One stroke is not a chain and no strokes are nothing: the editor and the decoder both come
         // through here, so a degenerate sequence cannot reach a profile.

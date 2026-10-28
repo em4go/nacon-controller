@@ -227,8 +227,13 @@ se elige del menú.
 ### Resumen de mapeos
 
 Mantén la tecla MOD y pulsa PS: aparece un panel flotante con lo que envía cada control, en la base y
-—si el perfil tiene capa— con MOD. Al volver a pulsar MOD+PS se cierra, y también se cierra solo a los
-ocho segundos o al apagar la emulación.
+—si el perfil tiene capa— con MOD. Se cierra con **Esc**, con un **clic fuera** del panel, volviendo a
+pulsar MOD+PS, solo a los ocho segundos, o al apagar la emulación.
+
+Para Esc y el clic fuera se usan dos monitores de eventos, uno global y otro local, porque ninguno basta
+solo: el global solo ve lo que va a otras aplicaciones y el local solo lo que llega a la nuestra. Si no
+concedes el permiso de Accesibilidad, el cierre con Esc desde otra aplicación no funcionará; las demás
+formas de cerrarlo, sí.
 
 Es un panel que no roba el foco ni el ratón, así que puedes leerlo encima de la aplicación en la que
 estés trabajando, como Spotlight. PS sin MOD sigue haciendo lo suyo: encender y apagar la emulación.

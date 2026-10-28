@@ -38,3 +38,11 @@ L2. El panel se verificó con capturas reales, no solo compilando: primero no ap
 
 L3. Se añadió un argumento de desarrollo (`--show-summary`) que abre el panel sin mando, para poder
     capturarlo. Es la única forma de ver un panel flotante sin hardware.
+
+L4. El panel era pequeño: tipografía y relleno suben un escalón y la tabla tiene ancho mínimo de 760.
+
+L5. Esc no cerraba el panel. Un monitor **global** solo recibe eventos entregados a *otras*
+    aplicaciones, y con esta app en primer plano Escape llegaba a ella como una pulsación normal. Ahora
+    hay dos monitores, uno global y otro local, que juntos cubren las dos situaciones. Comprobado con
+    capturas: Escape lo cierra, un clic dentro de nuestra ventana lo cierra (camino local) y un clic en
+    el Dock, que es otro proceso, también (camino global).

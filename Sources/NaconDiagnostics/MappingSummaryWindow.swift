@@ -13,6 +13,8 @@ final class MappingSummaryWindow {
     /// The visible panel, if any. Toggling replaces it, so a profile change while open is fine.
     private var panel: NSPanel?
     private var autoHide: Timer?
+    private var globalMonitor: Any?
+    private var localMonitor: Any?
 
     /// What the panel shows: the profile by name, and its mapping.
     struct Content {
@@ -31,8 +33,53 @@ final class MappingSummaryWindow {
     func hide() {
         autoHide?.invalidate()
         autoHide = nil
+        removeClosingMonitors()
         panel?.orderOut(nil)
         panel = nil
+    }
+
+    /// Esc, or a click anywhere else, closes the summary.
+    ///
+    /// Two monitors, because neither alone is enough: a global monitor reports only events delivered to
+    /// **other** applications, and a local one only events delivered to ours. When this app is in front,
+    /// Escape reaches it as a normal key press and the global monitor never sees it — which is exactly
+    /// what happened the first time this was tried: the panel ignored Escape. Together they cover the
+    /// case of the user who is still in this window and the one who has moved on to another app.
+    ///
+    /// Only Escape closes a key press; every other key is left alone, and the local monitor returns it
+    /// untouched. The keyboard half of the global monitor needs the Accessibility permission the
+    /// emulation already uses; without it the panel still closes with MOD+PS, on its own, or when the
+    /// emulation stops.
+    private func installClosingMonitors() {
+        removeClosingMonitors()
+        let mouseEvents: NSEvent.EventTypeMask = [.leftMouseDown, .rightMouseDown, .otherMouseDown]
+
+        globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: mouseEvents.union(.keyDown)) {
+            [weak self] event in
+            if event.type == .keyDown, event.keyCode != 53 { return }
+            DispatchQueue.main.async { self?.hide() }
+        }
+        localMonitor = NSEvent.addLocalMonitorForEvents(matching: mouseEvents.union(.keyDown)) {
+            [weak self] event in
+            if event.type == .keyDown {
+                guard event.keyCode == 53 else { return event }
+                self?.hide()
+                return nil
+            }
+            self?.hide()
+            return event
+        }
+    }
+
+    private func removeClosingMonitors() {
+        if let globalMonitor {
+            NSEvent.removeMonitor(globalMonitor)
+        }
+        if let localMonitor {
+            NSEvent.removeMonitor(localMonitor)
+        }
+        globalMonitor = nil
+        localMonitor = nil
     }
 
     private func show(_ content: Content) {
@@ -65,6 +112,7 @@ final class MappingSummaryWindow {
         autoHide = Timer.scheduledTimer(withTimeInterval: 8, repeats: false) { [weak self] _ in
             DispatchQueue.main.async { self?.hide() }
         }
+        installClosingMonitors()
     }
 }
 
@@ -99,45 +147,51 @@ private struct MappingSummaryView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(name.isEmpty ? "Perfil" : name)
-                .font(.headline)
-            Text("Resumen de mapeos")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(name.isEmpty ? "Perfil" : name)
+                    .font(.title2.weight(.semibold))
+                Text("Resumen de mapeos")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
 
-            Grid(alignment: .leading, horizontalSpacing: 16) {
+            Grid(alignment: .leading, horizontalSpacing: 24, verticalSpacing: 8) {
                 GridRow {
-                    Text("Control").font(.caption.weight(.semibold))
-                    Text("Base").font(.caption.weight(.semibold))
+                    Text("Control")
+                    Text("Base")
                     if profile.layer.isActive {
-                        Text("MOD").font(.caption.weight(.semibold))
+                        Text("MOD")
                     }
                 }
+                .font(.callout.weight(.semibold))
+                .foregroundStyle(.secondary)
+
                 ForEach(rows) { row in
                     GridRow {
                         Text(MappingRules.controlLabel(for: row.control))
-                            .font(.callout.weight(.medium))
+                            .font(.body.weight(.medium))
                         Text(row.base)
-                            .font(.system(.callout, design: .monospaced))
+                            .font(.system(.title3, design: .monospaced))
                         if profile.layer.isActive {
                             Text(row.mod ?? "—")
-                                .font(.system(.callout, design: .monospaced))
+                                .font(.system(.title3, design: .monospaced))
                                 .foregroundStyle(row.mod == nil ? Color.secondary : Color.primary)
                         }
                     }
                 }
             }
 
-            Text("PS: encender o apagar · MOD + PS: este resumen")
-                .font(.caption2)
+            Text("PS: encender o apagar · MOD + PS: este resumen · Esc o un clic fuera: cerrar")
+                .font(.footnote)
                 .foregroundStyle(.secondary)
         }
-        .padding(16)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
+        .padding(24)
+        .frame(minWidth: 760, alignment: .leading)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
         .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .strokeBorder(Color.primary.opacity(0.1), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(Color.primary.opacity(0.12), lineWidth: 1)
         )
     }
 }

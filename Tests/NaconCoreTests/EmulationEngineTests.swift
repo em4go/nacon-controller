@@ -259,6 +259,84 @@ final class EmulationEngineTests: XCTestCase {
         XCTAssertEqual(localEmitter.events, [.scroll(16), .scroll(-32)])
     }
 
+    // MARK: - MOD layer
+
+    /// Base: ✕ clicks. Layer (held with L1): ✕ sends Tab.
+    private func layeredProfile() -> InputProfile {
+        InputProfile(
+            mappings: [.buttonA: .mouseButton(.left)],
+            layer: ProfileLayer(key: .leftBumper, mappings: [.buttonA: .key(KeyCombo(.tab))])
+        )
+    }
+
+    func testTheLayerActionIsSentOnlyWhileTheLayerKeyIsHeld() {
+        let (localEngine, localEmitter) = makeEngine(profile: layeredProfile())
+        localEngine.handle(report())
+        localEngine.handle(report(buttons: [.buttonA]))
+        localEngine.handle(report())
+        localEngine.handle(report(buttons: [.leftBumper, .buttonA]))
+        localEngine.handle(report(buttons: [.leftBumper]))
+
+        XCTAssertEqual(localEmitter.events, [
+            .press(.mouseButton(.left)),
+            .release(.mouseButton(.left)),
+            .press(.key(KeyCombo(.tab))),
+            .release(.key(KeyCombo(.tab))),
+        ])
+    }
+
+    func testTheLayerKeyEmitsNothingEvenWhenTheBaseMapsIt() {
+        // S5: the MOD key is a selector, not a "hold modifier": whatever the base says it does, it
+        // is spent choosing the layer and must never reach the system.
+        let profile = InputProfile(
+            mappings: [
+                .buttonA: .mouseButton(.left),
+                .leftBumper: .key(KeyCombo(.returnKey)),
+            ],
+            layer: ProfileLayer(key: .leftBumper, mappings: [.buttonA: .key(KeyCombo(.tab))])
+        )
+        let (localEngine, localEmitter) = makeEngine(profile: profile)
+        localEngine.handle(report())
+        localEngine.handle(report(buttons: [.leftBumper]))
+        localEngine.tick(seconds: 1.0)
+        localEngine.handle(report())
+
+        XCTAssertTrue(localEmitter.events.isEmpty, "the layer key must not press, repeat or release anything")
+    }
+
+    func testReleasingTheLayerKeyKeepsTheHeldControlOnItsLayerAction() {
+        // S1, the safety rule: what was pressed is what is released. Dropping back to the base
+        // action here would either send a key the user never pressed or release the wrong one, and
+        // the layer key would look stuck to the system.
+        let (localEngine, localEmitter) = makeEngine(profile: layeredProfile())
+        localEngine.handle(report())
+        localEngine.handle(report(buttons: [.leftBumper]))
+        localEngine.handle(report(buttons: [.leftBumper, .buttonA]))
+        localEmitter.reset()
+
+        localEngine.handle(report(buttons: [.buttonA]))
+        XCTAssertTrue(localEmitter.events.isEmpty, "releasing the layer key must not swap the held action")
+
+        localEngine.handle(report())
+        XCTAssertEqual(localEmitter.events, [.release(.key(KeyCombo(.tab)))])
+    }
+
+    func testAProfileWithoutALayerBehavesAsBefore() {
+        // S6: a profile saved before the layer existed holds nothing open, so every press is the
+        // base press, selector or not.
+        let (localEngine, localEmitter) = makeEngine(profile: InputProfile(mappings: [
+            .buttonA: .mouseButton(.left),
+        ]))
+        localEngine.handle(report())
+        localEngine.handle(report(buttons: [.leftBumper, .buttonA]))
+        localEngine.handle(report())
+
+        XCTAssertEqual(localEmitter.events, [
+            .press(.mouseButton(.left)),
+            .release(.mouseButton(.left)),
+        ])
+    }
+
     // MARK: - The timer is a hint, not a metronome
 
     /// The seam that once made the cursor crawl: a fixed step per callback.

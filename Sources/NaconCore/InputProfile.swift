@@ -111,15 +111,19 @@ public struct KeyRepeatSettings: Equatable, Sendable {
 /// The full mapping used by the emulation engine.
 public struct InputProfile: Equatable, Sendable {
     public var mappings: [XInputControl: MappedAction]
+    /// The MOD layer: a second reading of the same controls, applied only while its key is held.
+    public var layer: ProfileLayer
     public var cursor: CursorSettings
     public var keyRepeat: KeyRepeatSettings
 
     public init(
         mappings: [XInputControl: MappedAction],
+        layer: ProfileLayer = .empty,
         cursor: CursorSettings = .standard,
         keyRepeat: KeyRepeatSettings = .standard
     ) {
         self.mappings = mappings
+        self.layer = layer
         self.cursor = cursor
         self.keyRepeat = keyRepeat
     }
@@ -147,6 +151,17 @@ public struct InputProfile: Equatable, Sendable {
 
     public func action(for control: XInputControl) -> MappedAction {
         mappings[control] ?? .none
+    }
+
+    /// The action a control produces right now, with the MOD layer open or closed.
+    ///
+    /// The layer only replaces what it redefines; every other control keeps its base action, which is
+    /// what lets the user add one exception without rebuilding the whole map.
+    public func action(for control: XInputControl, layerActive: Bool) -> MappedAction {
+        if layerActive, let layered = layer.action(for: control) {
+            return layered
+        }
+        return action(for: control)
     }
 
     /// Controls that produce a discrete press/release action, in a stable order.

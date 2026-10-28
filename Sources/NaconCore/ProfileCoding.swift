@@ -173,42 +173,49 @@ extension KeyRepeatSettings: Codable {
     }
 }
 
+/// Key for one control inside a JSON object of assignments, shared by the base map and the layer.
+private struct ControlKey: CodingKey {
+    let stringValue: String
+    var intValue: Int? { nil }
+
+    init(_ stringValue: String) {
+        self.stringValue = stringValue
+    }
+
+    init?(stringValue: String) {
+        self.init(stringValue)
+    }
+
+    init?(intValue: Int) {
+        return nil
+    }
+}
+
 extension InputProfile: Codable {
     private enum CodingKeys: String, CodingKey {
         case mappings
+        case layer
         case cursor
         case keyRepeat
-    }
-
-    /// Key for one control inside the `mappings` JSON object.
-    private struct ControlKey: CodingKey {
-        let stringValue: String
-        var intValue: Int? { nil }
-
-        init(_ stringValue: String) {
-            self.stringValue = stringValue
-        }
-
-        init?(stringValue: String) {
-            self.init(stringValue)
-        }
-
-        init?(intValue: Int) {
-            return nil
-        }
     }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let cursor = try container.decodeIfPresent(CursorSettings.self, forKey: .cursor) ?? .standard
         let keyRepeat = try container.decodeIfPresent(KeyRepeatSettings.self, forKey: .keyRepeat) ?? .standard
+        let layer = try container.decodeIfPresent(ProfileLayer.self, forKey: .layer) ?? .empty
 
         guard let storedMappings = try container.decodeIfPresent(
             [String: MappedAction].self,
             forKey: .mappings
         ) else {
             // An older file without mappings still opens with the standard assignment.
-            self.init(mappings: InputProfile.standard.mappings, cursor: cursor, keyRepeat: keyRepeat)
+            self.init(
+                mappings: InputProfile.standard.mappings,
+                layer: layer,
+                cursor: cursor,
+                keyRepeat: keyRepeat
+            )
             return
         }
 
@@ -223,7 +230,7 @@ extension InputProfile: Codable {
             guard MappingRules.isRemappable(control) || action == .none else { continue }
             mappings[control] = action
         }
-        self.init(mappings: mappings, cursor: cursor, keyRepeat: keyRepeat)
+        self.init(mappings: mappings, layer: layer, cursor: cursor, keyRepeat: keyRepeat)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -234,8 +241,58 @@ extension InputProfile: Codable {
             guard let action = mappings[control] else { continue }
             try mappingsContainer.encode(action, forKey: ControlKey(control.profileKey))
         }
+        // Only written when it says something, so a profile that never used the layer keeps the file
+        // it already had, byte for byte.
+        if !layer.isEmpty {
+            try container.encode(layer, forKey: .layer)
+        }
         try container.encode(cursor, forKey: .cursor)
         try container.encode(keyRepeat, forKey: .keyRepeat)
+    }
+}
+
+extension ProfileLayer: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case key
+        case mappings
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let storedMappings = try container.decodeIfPresent(
+            [String: MappedAction].self,
+            forKey: .mappings
+        ) ?? [:]
+
+        var mappings: [XInputControl: MappedAction] = [:]
+        for (name, action) in storedMappings {
+            // Same rule as the base map: unknown names come from another version and are dropped,
+            // and Guide is never remappable. The invariant holds here, not only in the engine.
+            guard let control = XInputControl(profileKey: name),
+                  MappingRules.isRemappable(control) || action == .none
+            else { continue }
+            mappings[control] = action
+        }
+
+        // A key that may not select the layer is dropped instead of kept: PS is the emergency stop,
+        // and a hand-edited file must not be able to turn it into a selector (S5).
+        let key = try container.decodeIfPresent(String.self, forKey: .key).flatMap { name in
+            XInputControl(profileKey: name).flatMap { control in
+                MappingRules.isLayerKeyEligible(control) ? control : nil
+            }
+        }
+        self.init(key: key, mappings: mappings)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(key?.profileKey, forKey: .key)
+        var mappingsContainer = container.nestedContainer(keyedBy: ControlKey.self, forKey: .mappings)
+        // Iterating the cases instead of the dictionary keeps the output byte-stable.
+        for control in XInputControl.allCases {
+            guard let action = mappings[control] else { continue }
+            try mappingsContainer.encode(action, forKey: ControlKey(control.profileKey))
+        }
     }
 }
 

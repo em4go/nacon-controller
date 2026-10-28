@@ -30,6 +30,15 @@ public enum MappingRules {
         control != reservedControl
     }
 
+    /// Whether a control may select the MOD layer.
+    ///
+    /// Same rule as the editor's rows: PS is the emergency stop, and a MOD key is spent choosing the
+    /// layer instead of acting, so letting PS be one would put the way out of the emulation behind a
+    /// button that no longer does what it says.
+    public static func isLayerKeyEligible(_ control: XInputControl) -> Bool {
+        isRemappable(control)
+    }
+
     /// Scroll amount used by the editor's "scroll" choices.
     public static let scrollStepLines = 3
 

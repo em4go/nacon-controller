@@ -58,3 +58,8 @@ La base y la capa MOD se editan a la vista, sin conmutador de modo.
   escribir en el perfil del usuario.
 - **L7.** Decisión anotada del contrato de «Ninguna»: cerrar la capa conserva sus entradas —quedan
   inertes y vuelven si se elige otra tecla— y «Quitar capa» es la vía destructiva.
+- **L8.** El clic del ratón no llevaba cuenta de clics. Con cero, las vistas que piden un clic y no
+  una pulsación —enlaces en texto con formato, y un control que nunca había respondido— descartaban
+  la pulsación entera. La hipótesis de que el enlace necesitaba ⌘ era falsa: lo que lo arregló fue la
+  cuenta. Límite anotado: cada clic se declara el primero, así que un doble clic del mando no se puede
+  expresar todavía.

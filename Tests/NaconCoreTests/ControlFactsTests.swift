@@ -1,0 +1,170 @@
+import XCTest
+
+@testable import NaconCore
+
+/// S2, S5: every fact the app knows about one control, answered by one lookup.
+///
+/// The expectations are written down here on purpose. They are the values the six tables used to hold
+/// in six files — the stored key, the label, the colour and the pointer radius — so this suite is what
+/// proves the move changed nothing, and a rename or a re-tint has to be a deliberate edit in two
+/// places instead of slipping through a refactor.
+final class ControlFactsTests: XCTestCase {
+    /// The keys the persisted format uses. Renaming one rewrites every `profiles.json`, so the set is
+    /// written down rather than derived from the code under test (S3).
+    private let profileKeys: [XInputControl: String] = [
+        .dpadUp: "dpadUp",
+        .dpadDown: "dpadDown",
+        .dpadLeft: "dpadLeft",
+        .dpadRight: "dpadRight",
+        .buttonA: "buttonA",
+        .buttonB: "buttonB",
+        .buttonX: "buttonX",
+        .buttonY: "buttonY",
+        .leftBumper: "leftBumper",
+        .rightBumper: "rightBumper",
+        .leftTrigger: "leftTrigger",
+        .rightTrigger: "rightTrigger",
+        .back: "back",
+        .start: "start",
+        .guide: "guide",
+        .leftThumb: "leftThumb",
+        .rightThumb: "rightThumb",
+    ]
+
+    /// The names the editor prints. Spanish, like the rest of the user-facing copy.
+    private let labels: [XInputControl: String] = [
+        .dpadUp: "Cruceta ↑",
+        .dpadDown: "Cruceta ↓",
+        .dpadLeft: "Cruceta ←",
+        .dpadRight: "Cruceta →",
+        .buttonA: "✕ Cruz",
+        .buttonB: "○ Círculo",
+        .buttonX: "□ Cuadrado",
+        .buttonY: "△ Triángulo",
+        .leftBumper: "L1",
+        .rightBumper: "R1",
+        .leftTrigger: "L2",
+        .rightTrigger: "R2",
+        .back: "Share",
+        .start: "Options",
+        .guide: "PS",
+        .leftThumb: "L3",
+        .rightThumb: "R3",
+    ]
+
+    /// Radii in pixels of the artwork the drawing is cut from.
+    private let hitRadii: [XInputControl: Double] = {
+        var radii: [XInputControl: Double] = [:]
+        for control in [XInputControl.buttonA, .buttonB, .buttonX, .buttonY] {
+            radii[control] = 46
+        }
+        for control in [XInputControl.dpadUp, .dpadDown, .dpadLeft, .dpadRight] {
+            radii[control] = 42
+        }
+        for control in [XInputControl.leftThumb, .rightThumb] {
+            radii[control] = 62
+        }
+        radii[.guide] = 40
+        for control in [XInputControl.leftBumper, .rightBumper, .leftTrigger, .rightTrigger] {
+            radii[control] = 60
+        }
+        for control in [XInputControl.back, .start] {
+            radii[control] = 34
+        }
+        return radii
+    }()
+
+    // MARK: - One answer for every case (S5)
+
+    func testEveryCaseAnswersWithFacts() {
+        for control in XInputControl.allCases {
+            let facts = ControlFacts.of(control)
+
+            XCTAssertFalse(facts.profileKey.isEmpty, "\(control) has no stored key")
+            XCTAssertFalse(facts.label.isEmpty, "\(control) has no label")
+            XCTAssertGreaterThan(facts.hitRadius, 0, "\(control) has no pointer radius")
+        }
+    }
+
+    func testTheLookupIsTheSameValueEveryTime() {
+        for control in XInputControl.allCases {
+            XCTAssertEqual(ControlFacts.of(control), ControlFacts.of(control))
+        }
+    }
+
+    // MARK: - Stored key (S3)
+
+    func testProfileKeysMatchThePersistedFormat() {
+        for control in XInputControl.allCases {
+            XCTAssertEqual(
+                ControlFacts.of(control).profileKey,
+                profileKeys[control],
+                "\(control) writes a different key into profiles.json"
+            )
+        }
+        XCTAssertEqual(profileKeys.count, XInputControl.allCases.count, "a control is missing a key")
+    }
+
+    func testProfileKeysAreUniqueAndNonEmpty() {
+        let keys = XInputControl.allCases.map { ControlFacts.of($0).profileKey }
+
+        XCTAssertEqual(Set(keys).count, keys.count, "two controls share a stored key")
+        XCTAssertFalse(keys.contains(where: \.isEmpty))
+    }
+
+    // MARK: - Labels
+
+    func testLabelsMatchTheEditorCopy() {
+        for control in XInputControl.allCases {
+            XCTAssertEqual(
+                ControlFacts.of(control).label,
+                labels[control],
+                "\(control) reads differently in the editor"
+            )
+        }
+    }
+
+    // MARK: - Pointer radius
+
+    func testHitRadiiMatchTheDrawing() {
+        for control in XInputControl.allCases {
+            XCTAssertEqual(
+                ControlFacts.of(control).hitRadius,
+                hitRadii[control],
+                "\(control) answers a different pointer radius"
+            )
+        }
+        XCTAssertTrue(XInputControl.allCases.allSatisfy { ControlFacts.of($0).hitRadius > 0 })
+    }
+
+    // MARK: - Colour
+
+    func testOnlyTheEightControlsWithAColourOfTheirOwnAreColoured() {
+        let expected: [XInputControl: ControlTint] = [
+            .dpadUp: ControlTint(red: 0.184, green: 0.749, blue: 0.427),
+            .dpadDown: ControlTint(red: 0.604, green: 0.361, blue: 1.000),
+            .dpadLeft: ControlTint(red: 0.145, green: 0.780, blue: 0.851),
+            .dpadRight: ControlTint(red: 0.961, green: 0.651, blue: 0.137),
+            .buttonA: ControlTint(red: 0.239, green: 0.435, blue: 0.878),
+            .buttonB: ControlTint(red: 0.886, green: 0.231, blue: 0.231),
+            .buttonX: ControlTint(red: 0.878, green: 0.439, blue: 0.722),
+            .buttonY: ControlTint(red: 0.043, green: 0.478, blue: 0.220),
+        ]
+
+        for control in XInputControl.allCases {
+            XCTAssertEqual(
+                ControlFacts.of(control).tint,
+                expected[control],
+                "\(control) \(expected[control] == nil ? "should not" : "should") carry its own colour"
+            )
+        }
+        XCTAssertEqual(expected.count, 8, "the coloured set is the four directions and the four buttons")
+    }
+
+    func testTheEightColoursAreDistinct() {
+        let packed = XInputControl.allCases.compactMap { ControlFacts.of($0).tint?.packed }
+
+        XCTAssertEqual(packed.count, 8)
+        XCTAssertEqual(Set(packed).count, packed.count, "two controls share a colour")
+    }
+}

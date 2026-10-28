@@ -114,30 +114,8 @@ public enum MappingRules {
                 : "Desplazar abajo \(amount) \(unit)"
         }
     }
-
-    /// Name of a control as shown in the editor. Spanish, like the rest of the user-facing copy.
-    public static func controlLabel(for control: XInputControl) -> String {
-        switch control {
-        case .dpadUp: return "Cruceta ↑"
-        case .dpadDown: return "Cruceta ↓"
-        case .dpadLeft: return "Cruceta ←"
-        case .dpadRight: return "Cruceta →"
-        case .buttonA: return "✕ Cruz"
-        case .buttonB: return "○ Círculo"
-        case .buttonX: return "□ Cuadrado"
-        case .buttonY: return "△ Triángulo"
-        case .leftBumper: return "L1"
-        case .rightBumper: return "R1"
-        case .leftTrigger: return "L2"
-        case .rightTrigger: return "R2"
-        case .back: return "Share"
-        case .start: return "Options"
-        case .guide: return "PS"
-        case .leftThumb: return "L3"
-        case .rightThumb: return "R3"
-        }
-    }
 }
+
 
 extension InputProfile {
     /// Assigns one control, refusing the reserved control.

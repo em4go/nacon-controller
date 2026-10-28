@@ -154,7 +154,7 @@ struct ProfileSection: View {
             HStack(spacing: 8) {
                 Text("Tecla MOD:")
                     .font(.callout)
-                Text(layer.key.map(MappingRules.controlLabel(for:)) ?? "Ninguna")
+                Text(layer.key.map { ControlFacts.of($0).label } ?? "Ninguna")
                     .font(.system(.callout, design: .monospaced))
                     .foregroundStyle(layer.isActive ? Color.primary : Color.secondary)
                     .lineLimit(1)
@@ -171,7 +171,7 @@ struct ProfileSection: View {
                         XInputControl.allCases.filter { MappingRules.isLayerKeyEligible($0) },
                         id: \.self
                     ) { control in
-                        Button(MappingRules.controlLabel(for: control)) {
+                        Button(ControlFacts.of(control).label) {
                             profiles.setLayerKey(control)
                         }
                     }
@@ -246,7 +246,7 @@ struct ProfileSection: View {
     /// The PS row of the graphical view. The table draws its own, identical one.
     private var reservedControlRow: some View {
         HStack(spacing: 10) {
-            Text(MappingRules.controlLabel(for: MappingRules.reservedControl))
+            Text(ControlFacts.of(MappingRules.reservedControl).label)
                 .font(.callout.weight(.medium))
                 .frame(width: 96, alignment: .leading)
             Label("Reservado: activa y desactiva la emulación al instante", systemImage: "power")

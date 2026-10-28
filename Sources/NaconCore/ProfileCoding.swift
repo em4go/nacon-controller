@@ -249,7 +249,7 @@ extension InputProfile: Codable {
         // Iterating the cases instead of the dictionary keeps the output byte-stable.
         for control in XInputControl.allCases {
             guard let action = mappings[control] else { continue }
-            try mappingsContainer.encode(action, forKey: ControlKey(control.profileKey))
+            try mappingsContainer.encode(action, forKey: ControlKey(ControlFacts.of(control).profileKey))
         }
         // Only written when it says something, so a profile that never used the layer keeps the file
         // it already had, byte for byte.
@@ -296,46 +296,12 @@ extension ProfileLayer: Codable {
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encodeIfPresent(key?.profileKey, forKey: .key)
+        try container.encodeIfPresent(key.map { ControlFacts.of($0).profileKey }, forKey: .key)
         var mappingsContainer = container.nestedContainer(keyedBy: ControlKey.self, forKey: .mappings)
         // Iterating the cases instead of the dictionary keeps the output byte-stable.
         for control in XInputControl.allCases {
             guard let action = mappings[control] else { continue }
-            try mappingsContainer.encode(action, forKey: ControlKey(control.profileKey))
+            try mappingsContainer.encode(action, forKey: ControlKey(ControlFacts.of(control).profileKey))
         }
-    }
-}
-
-extension XInputControl {
-    /// Stable, language-independent identifier used as the key of the persisted mapping.
-    var profileKey: String {
-        switch self {
-        case .dpadUp: return "dpadUp"
-        case .dpadDown: return "dpadDown"
-        case .dpadLeft: return "dpadLeft"
-        case .dpadRight: return "dpadRight"
-        case .buttonA: return "buttonA"
-        case .buttonB: return "buttonB"
-        case .buttonX: return "buttonX"
-        case .buttonY: return "buttonY"
-        case .leftBumper: return "leftBumper"
-        case .rightBumper: return "rightBumper"
-        case .leftTrigger: return "leftTrigger"
-        case .rightTrigger: return "rightTrigger"
-        case .back: return "back"
-        case .start: return "start"
-        case .guide: return "guide"
-        case .leftThumb: return "leftThumb"
-        case .rightThumb: return "rightThumb"
-        }
-    }
-
-    private static let controlsByProfileKey: [String: XInputControl] = Dictionary(
-        uniqueKeysWithValues: allCases.map { ($0.profileKey, $0) }
-    )
-
-    init?(profileKey: String) {
-        guard let control = XInputControl.controlsByProfileKey[profileKey] else { return nil }
-        self = control
     }
 }

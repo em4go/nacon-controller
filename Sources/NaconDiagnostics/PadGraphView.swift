@@ -191,7 +191,7 @@ struct PadGraphView: View {
             guard let point = layout.point(for: control) else { continue }
             let centerX = point.horizontal * size.width
             let centerY = point.vertical * size.height
-            let radius = Self.hitRadius(for: control) / PadLayout.imageWidth * size.width
+            let radius = ControlFacts.of(control).hitRadius / PadLayout.imageWidth * size.width
             let gapX = location.x - centerX
             let gapY = location.y - centerY
             let distance = (gapX * gapX + gapY * gapY).squareRoot()
@@ -201,18 +201,6 @@ struct PadGraphView: View {
             }
         }
         return closest?.control
-    }
-
-    /// Radius of a control's hit circle, in pixels of the 1452 x 940 artwork.
-    private static func hitRadius(for control: XInputControl) -> Double {
-        switch control {
-        case .buttonA, .buttonB, .buttonX, .buttonY: return 46
-        case .dpadUp, .dpadDown, .dpadLeft, .dpadRight: return 42
-        case .leftThumb, .rightThumb: return 62
-        case .guide: return 40
-        case .leftBumper, .rightBumper, .leftTrigger, .rightTrigger: return 60
-        case .back, .start: return 34
-        }
     }
 
     /// Picks a control and, unless it is the reserved one, toggles the capture for it.
@@ -269,7 +257,7 @@ struct PadGraphView: View {
         let control = describedControl
         let isWaiting = control.map { capture.isCapturing($0) } ?? false
         return HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Text(control.map(MappingRules.controlLabel(for:)) ?? "Sin seleccionar")
+            Text(control.map { ControlFacts.of($0).label } ?? "Sin seleccionar")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
@@ -335,7 +323,7 @@ struct PadGraphView: View {
         .overlay(
             RoundedRectangle(cornerRadius: 8).strokeBorder(Color.secondary.opacity(0.25), lineWidth: 1)
         )
-        .help(control.map { "\(MappingRules.controlLabel(for: $0)): \(assignment(for: $0))" } ?? "")
+        .help(control.map { "\(ControlFacts.of($0).label): \(assignment(for: $0))" } ?? "")
     }
 
     /// Writes one assignment into one column and returns the drawing to its normal state.
@@ -386,7 +374,7 @@ struct PadGraphView: View {
                 .foregroundStyle(Color.accentColor)
                 .help(
                     "Se asignará la próxima pulsación a "
-                        + MappingRules.controlLabel(for: armed) + "."
+                        + ControlFacts.of(armed).label + "."
                 )
         } else {
             Text(
@@ -454,36 +442,15 @@ private enum Masks {
     /// `Bundle.module` is built by SwiftPM and then copied into the `.app` by `scripts/build-app.sh`,
     /// so the mask may sit at the bundle root or keep its folder depending on how it was processed.
     /// Both are tried; a miss is what the single note below the drawing reports.
+    ///
+    /// The file is named after the control's stored key (`diagram-buttonA.png`), which is exactly the
+    /// name `prototype/tools/make-masks.py` writes, so `ControlFacts.profileKey` is also the mask name.
     private static func load(_ control: XInputControl) -> NSImage? {
-        let name = "diagram-\(fileName(for: control))"
+        let name = "diagram-\(ControlFacts.of(control).profileKey)"
         let url = Bundle.module.url(forResource: name, withExtension: "png")
             ?? Bundle.module.url(forResource: name, withExtension: "png", subdirectory: "masks")
         guard let url else { return nil }
         return NSImage(contentsOf: url)
-    }
-
-    /// The name of the mask file, which is the control's case name: `diagram-buttonA.png` and
-    /// `diagram-leftThumb.png` follow the prototype's naming so the two stay comparable.
-    private static func fileName(for control: XInputControl) -> String {
-        switch control {
-        case .dpadUp: return "dpadUp"
-        case .dpadDown: return "dpadDown"
-        case .dpadLeft: return "dpadLeft"
-        case .dpadRight: return "dpadRight"
-        case .buttonA: return "buttonA"
-        case .buttonB: return "buttonB"
-        case .buttonX: return "buttonX"
-        case .buttonY: return "buttonY"
-        case .leftBumper: return "leftBumper"
-        case .rightBumper: return "rightBumper"
-        case .leftTrigger: return "leftTrigger"
-        case .rightTrigger: return "rightTrigger"
-        case .back: return "back"
-        case .start: return "start"
-        case .guide: return "guide"
-        case .leftThumb: return "leftThumb"
-        case .rightThumb: return "rightThumb"
-        }
     }
 }
 
@@ -524,7 +491,7 @@ struct PadHighlights: View {
     }
 
     private func tint(for control: XInputControl) -> Color {
-        guard let tint = ControlTint.color(for: control) else { return .accentColor }
+        guard let tint = ControlFacts.of(control).tint else { return .accentColor }
         return Color(red: tint.red, green: tint.green, blue: tint.blue)
     }
 

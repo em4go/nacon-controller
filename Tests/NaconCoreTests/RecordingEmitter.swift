@@ -13,6 +13,8 @@ final class RecordingEmitter: InputEmitter {
     }
 
     private(set) var events: [Event] = []
+    /// How many times the engine asked for the modifiers this emitter holds to be let go.
+    private(set) var releasedHeldModifiers = 0
 
     func press(_ action: MappedAction) {
         events.append(.press(action))
@@ -36,6 +38,10 @@ final class RecordingEmitter: InputEmitter {
 
     func reset() {
         events.removeAll()
+    }
+
+    func releaseHeldModifiers() {
+        releasedHeldModifiers += 1
     }
 
     /// Total pixels the engine asked to scroll, for tests that compare cadences.

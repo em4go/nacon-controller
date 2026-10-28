@@ -148,6 +148,12 @@ public final class EmulationEngine {
         guideActed = false
 
         guard enabled else { return }
+        // The layer is read from the report that presses the control, and the MOD key itself emits
+        // nothing: it is a selector, not a "hold modifier". What a control already sent lives in
+        // `heldActions`, so releasing the MOD key later never swaps the action under a button that is
+        // still down — the release is always the release of what was pressed.
+        let layerKey = profile.layer.key
+        let layerActive = layerKey.map { $0.isPressed(in: report) } ?? false
         // Release first so a control that swaps action can never leave the old one held.
         for control in transitions.released {
             repeatElapsed.removeValue(forKey: control)
@@ -157,7 +163,8 @@ public final class EmulationEngine {
             }
         }
         for control in transitions.pressed {
-            let action = profile.action(for: control)
+            guard control != layerKey else { continue }
+            let action = profile.action(for: control, layerActive: layerActive)
             guard action != .none else { continue }
             if case .scrollLines(let lines) = action {
                 // A press is one step, so there is nothing to hold and nothing to release.
@@ -229,6 +236,7 @@ public final class EmulationEngine {
             emitter.release(action)
         }
         heldActions.removeAll()
+        emitter.releaseHeldModifiers()
         repeatElapsed.removeAll()
         nextRepeatAt.removeAll()
         previousReport = nil

@@ -34,6 +34,9 @@ struct PadGraphView: View {
     /// Writes an assignment the capture cannot express: mouse buttons, scrolling, clearing and the
     /// ready-made macOS shortcuts. The section applies the same profile guard it applies to a capture.
     let onAssign: (XInputControl, MappedAction) -> Void
+    /// Writes one assignment into the layer of the profile on screen. The drawing offers the same two
+    /// layers as the table (S4), so it needs the same second destination.
+    let onAssignToLayer: (XInputControl, MappedAction) -> Void
 
     /// The control under the pointer, cleared when it leaves. Hovering only previews a control: it
     /// never arms anything, so moving the mouse across the drawing is safe.
@@ -233,11 +236,12 @@ struct PadGraphView: View {
         capture.session.armedControl ?? hovered ?? selected
     }
 
-    /// Name and current assignment of one control, in one line under the drawing.
+    /// Name and both readings of one control, in one line under the drawing.
     ///
     /// The printed glyph on the artwork cannot follow a remapping, so this strip is where the mapping
     /// is read. It is not decoration: without it the drawing alone would lie about ✕ once the user
-    /// assigns something else to it.
+    /// assigns something else to it. The line shows the same two layers as the table (S4): the base
+    /// value, and — only when the layer redefines this control — what it sends with MOD held.
     private var panel: some View {
         let control = describedControl
         let isWaiting = control.map { capture.isCapturing($0) } ?? false
@@ -254,12 +258,24 @@ struct PadGraphView: View {
                 .truncationMode(.tail)
             if let control, MappingRules.isRemappable(control), !isEmulationEnabled {
                 Menu {
-                    // The same list as the table row: one definition, so a control offers the same
-                    // destinations whichever view the user is in.
-                    AssignMenuItems(
-                        onCapture: { select(control) },
-                        onChoose: { assign(control, $0) }
-                    )
+                    // Two destinations, two submenus. Both render the one shared list, so a control
+                    // offers the same choices here as in the table whichever layer it writes to.
+                    Menu("Asignar a la base") {
+                        AssignMenuItems(
+                            onCapture: { select(control) },
+                            onChoose: { assign(control, $0) }
+                        )
+                    }
+                    // Only offered when a key can open the layer: without one the submenu would write
+                    // to a layer nothing can reach.
+                    if profile.layer.isActive {
+                        Menu("Asignar con MOD") {
+                            AssignMenuItems(
+                                includesCapture: false,
+                                onChoose: { assignToLayer(control, $0) }
+                            )
+                        }
+                    }
                 } label: {
                     Label("Asignar…", systemImage: "ellipsis.circle")
                         .labelStyle(.titleAndIcon)
@@ -288,16 +304,32 @@ struct PadGraphView: View {
         hovered = nil
     }
 
+    /// The same write, aimed at the layer, with the same tidy-up: the menu is not a capture, but the
+    /// pick is over either way.
+    private func assignToLayer(_ control: XInputControl, _ action: MappedAction) {
+        onAssignToLayer(control, action)
+        selected = nil
+        hovered = nil
+    }
+
     /// What a control sends today, in the words the table uses.
     ///
     /// Guide is reserved and never stored in the profile, so asking the profile would print «Sin
     /// asignar» on the one control that always does something.
+    ///
+    /// The layer part is printed only when the layer actually redefines this control and a key can
+    /// open it: a control without an entry keeps its base action with MOD held (S2), and an entry of a
+    /// layer with no key is inert, so neither earns a word here.
     private func assignment(for control: XInputControl?) -> String {
         guard let control else { return "—" }
         guard MappingRules.isRemappable(control) else {
             return "Reservado: activa y apaga la emulación"
         }
-        return MappingRules.label(for: profile.action(for: control))
+        let base = MappingRules.label(for: profile.action(for: control))
+        guard profile.layer.isActive, let layered = profile.layer.action(for: control) else {
+            return base
+        }
+        return base + " · MOD " + MappingRules.label(for: layered)
     }
 
     // MARK: - The line under the strip

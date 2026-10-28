@@ -81,6 +81,36 @@ final class ProfileLibraryController: ObservableObject {
         mutate { $0.setInvertVerticalAxis(newValue) }
     }
 
+    // MARK: - MOD layer (S3, S4, S5)
+
+    /// S5: the layer of the profile being edited, as the selector and both views read it.
+    var selectedLayer: ProfileLayer { library.selectedLayer }
+
+    /// S5: chooses the control that opens the layer, saving it like any other change. `nil` is
+    /// «Ninguna», which closes the layer and keeps its entries.
+    func setLayerKey(_ control: XInputControl?) {
+        guard let id = library.selectedProfile?.id else { return }
+        mutate { $0.setLayerKey(control, for: id) }
+    }
+
+    /// S3: writes one assignment into the layer and saves it straight away. `.none` clears the entry,
+    /// which is the same as never having made it.
+    func setLayerAction(_ action: MappedAction, for control: XInputControl) {
+        guard let id = library.selectedProfile?.id else { return }
+        mutate { $0.setLayerAction(action, for: control, in: id) }
+    }
+
+    /// Drops the key and every entry of the layer, returning the profile to having no layer at all.
+    func clearLayer() {
+        guard let id = library.selectedProfile?.id else { return }
+        mutate { $0.clearLayer(for: id) }
+    }
+
+    /// S3: the layer's own assignment for one control, or `nil` when it has none and uses the base.
+    func layerValue(for control: XInputControl) -> MappedAction? {
+        library.layerValue(for: control)
+    }
+
     // MARK: - S9: cursor sensitivity
 
     /// S9: the value a slider must show for the profile being edited.

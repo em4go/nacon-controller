@@ -169,6 +169,31 @@ control mientras hablas y lo sueltas al terminar.
 La captura del teclado no puede grabar una pulsación de solo modificadores, porque escucha teclas y no
 cambios de modificador; esas entradas se eligen del menú.
 
+### La capa MOD
+
+Una tecla del mando puede hacer de **selector de capa**: mientras la mantienes, los botones envían lo
+que diga su columna **MOD**; al soltarla vuelven a la columna **Base**. Se elige en **«Tecla MOD:»**,
+encima del editor, y PS no puede serlo: es la salida de emergencia y tiene que seguir siéndolo.
+
+Se edita a la vista, sin conmutadores: la tabla muestra **las dos columnas en la misma fila** y el
+dibujo las enseña en su franja —`⌘ · MOD ⌥`— y en su menú, con «Asignar a la base» y «Asignar con
+MOD». Las dos vistas ofrecen la misma lista de destinos porque comparten una sola definición.
+
+Cuatro reglas que conviene saber:
+
+- **La capa se lee al pulsar.** Si sueltas la tecla MOD con un botón aún pulsado, ese botón sigue
+  enviando lo de la capa hasta que lo sueltes. Lo que se pulsó es lo que se suelta, y así no puede
+  quedar una tecla pegada.
+- **Un control sin entrada en la capa usa su acción de la base.** La MOD solo cambia lo que tú
+  redefines, así que añadir una excepción cuesta una sola fila.
+- **La tecla MOD no envía nada.** No es «mantener ⌘»: esas entradas del menú emiten el modificador al
+  sistema, la capa no emite nada y solo elige qué columna se lee.
+- **La capa se congela al arrancar la emulación**, como el resto del perfil.
+
+Un perfil sin tecla MOD se comporta exactamente como antes, y los perfiles ya guardados se leen sin
+cambios: la capa empieza vacía. La captura de teclado escribe en la base; una asignación de la capa
+se elige del menú.
+
 ### Firma estable (recomendado antes de la primera concesión)
 
 La firma ad-hoc ancla el permiso de Accesibilidad al hash del binario, así que **cada recompilación

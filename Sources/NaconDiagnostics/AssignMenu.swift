@@ -12,17 +12,26 @@ import SwiftUI
 /// The capture button is not here: in the table it is a button of its own beside the menu, and in the
 /// strip it is a tap on the drawing. Only the menu is shared.
 struct AssignMenuItems: View {
+    /// Whether the menu offers the key capture at all.
+    ///
+    /// It is only meaningful for the base: a capture arms the base layer (the capture path does not
+    /// know about the layer), so a menu assigning to the layer shows the same catalog without an entry
+    /// that would write somewhere else. Omitting the entry and its divider is what keeps the two
+    /// submenus honest instead of greying out a button that must not be pressed.
+    var includesCapture: Bool = true
     /// Arms the capture for the control the menu belongs to, for the same reason the capture button
     /// exists: a key macOS swallows never reaches a local monitor, and a menu entry is then the only
-    /// way to express it.
-    let onCapture: () -> Void
+    /// way to express it. Only read when `includesCapture` is true.
+    var onCapture: () -> Void = {}
     let onChoose: (MappedAction) -> Void
 
     var body: some View {
-        Button("Capturar tecla…") {
-            onCapture()
+        if includesCapture {
+            Button("Capturar tecla…") {
+                onCapture()
+            }
+            Divider()
         }
-        Divider()
         ForEach([MouseButton.left, .middle, .right], id: \.self) { button in
             Button(MappingRules.label(for: .mouseButton(button))) {
                 onChoose(.mouseButton(button))
@@ -53,7 +62,9 @@ struct AssignMenuItems: View {
         // tool that listens for a combination of modifiers with no key — a dictation app on ⌃⇧ — needs
         // exactly this.
         Menu("Mantener modificador") {
-            ForEach(KeyStrokePlan.holdCombos, id: \.keyCode) { combo in
+            // Identity is the combo, not its key code: ⌃, ⌃⌥, ⌃⇧, ⌃⌘ and ⌃fn share code 59, and a
+            // ForEach keyed on that renders five rows for the same identifier with the labels mixed.
+            ForEach(KeyStrokePlan.holdCombos, id: \.self) { combo in
                 // The full name, not the key alone: ⌃ and ⌃⇧ share a key code and would print twice as
                 // "⌃", two entries the user cannot tell apart.
                 Button(combo.displayName) {

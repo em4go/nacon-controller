@@ -36,4 +36,13 @@ final class MouseMovementTests: XCTestCase {
         XCTAssertEqual(CGEventEmitter.movementType(pressed: [.left, .right]), .leftMouseDragged)
         XCTAssertEqual(CGEventEmitter.movementType(pressed: [.right, .middle]), .rightMouseDragged)
     }
+
+    func testAClickCarriesTheModifiersThisAppHolds() {
+        // A view that reacts to ⌘-click reads the flags of the event. A click that claims no modifiers
+        // is a plain click no matter what the pad is holding, which is why a link that needs ⌘ stayed
+        // inert while the buttons around it worked.
+        XCTAssertEqual(CGEventEmitter.mouseFlags(held: [.command]), .maskCommand)
+        XCTAssertEqual(CGEventEmitter.mouseFlags(held: []), [])
+        XCTAssertEqual(CGEventEmitter.mouseFlags(held: [.command, .shift]), [.maskCommand, .maskShift])
+    }
 }

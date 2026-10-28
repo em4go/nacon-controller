@@ -101,8 +101,14 @@ public final class CGEventEmitter: InputEmitter {
             mouseCursorPosition: target,
             mouseButton: Self.cgButton(for: pressedButtons)
         ) else { return }
-        event.flags = []
+        event.flags = Self.mouseFlags(held: heldByUs)
         event.post(tap: .cghidEventTap)
+    }
+
+    /// The flags a mouse event carries: the modifiers this app is holding, for the same reason the
+    /// key strokes carry them. A ⌘-click is a click whose event says ⌘.
+    static func mouseFlags(held: ModifierSet) -> CGEventFlags {
+        flags(for: held)
     }
 
     /// The type of a movement event: a drag while a button is held, a plain move otherwise.
@@ -189,7 +195,15 @@ public final class CGEventEmitter: InputEmitter {
             mouseCursorPosition: Self.cursorLocation(),
             mouseButton: cgButton
         ) else { return }
-        event.flags = []
+        // The click carries the modifiers this app is holding, like any other stroke: a view that
+        // reacts to ⌘-click reads the flags of the event, and a click that claims none is a plain
+        // click no matter what is held on the pad.
+        event.flags = Self.mouseFlags(held: heldByUs)
+        // A real click says how many clicks it is, and a zero means "not a click": views that ask for
+        // a click rather than a press ignored every press of this app until this was set. Confirmed on
+        // hardware with a link in a formatted text and with a control that had never responded.
+        // Every click declares itself the first, so a double-click gesture is still not expressible.
+        event.setIntegerValueField(.mouseEventClickState, value: 1)
         event.post(tap: .cghidEventTap)
         // Tracked so that movement while this button is down is published as a drag.
         if isDown {

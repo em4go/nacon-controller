@@ -14,6 +14,7 @@ import Foundation
 public struct SystemShortcut: Identifiable, Hashable, Sendable {
     /// Menu grouping.
     public enum Category: String, CaseIterable, Hashable, Sendable {
+        case editing
         case windows
         case apps
         case system
@@ -21,6 +22,7 @@ public struct SystemShortcut: Identifiable, Hashable, Sendable {
         /// Spanish heading.
         public var title: String {
             switch self {
+            case .editing: return "Editar y documentos"
             case .windows: return "Ventanas y escritorios"
             case .apps: return "Aplicaciones"
             case .system: return "Sistema"
@@ -53,6 +55,23 @@ public struct SystemShortcut: Identifiable, Hashable, Sendable {
     /// Kept to combinations macOS ships enabled by default, so the catalog works on a fresh system.
     /// Bare keys are absent on purpose: the engine sends them while the user may be typing.
     public static let all: [SystemShortcut] = [
+        // Editing and documents. These are conventions rather than system-wide shortcuts: every macOS
+        // application that edits text answers to them, which is why they save memorising a combination.
+        SystemShortcut("copy", "Copiar", .editing, 8, [.command]),
+        SystemShortcut("paste", "Pegar", .editing, 9, [.command]),
+        SystemShortcut("paste-plain", "Pegar sin formato", .editing, 9, [.shift, .option, .command]),
+        SystemShortcut("cut", "Cortar", .editing, 7, [.command]),
+        SystemShortcut("undo", "Deshacer", .editing, 6, [.command]),
+        SystemShortcut("redo", "Rehacer", .editing, 6, [.shift, .command]),
+        SystemShortcut("select-all", "Seleccionar todo", .editing, 0, [.command]),
+        SystemShortcut("save", "Guardar", .editing, 1, [.command]),
+        SystemShortcut("find", "Buscar en el documento", .editing, 3, [.command]),
+        SystemShortcut("print", "Imprimir", .editing, 35, [.command]),
+        SystemShortcut("new-tab", "Nueva pestaña", .editing, 17, [.command]),
+        SystemShortcut("delete-word", "Borrar la palabra anterior", .editing, 51, [.option]),
+        SystemShortcut("line-start", "Ir al principio de la línea", .editing, 123, [.command]),
+        SystemShortcut("line-end", "Ir al final de la línea", .editing, 124, [.command]),
+
         // Windows and desktops.
         SystemShortcut("mission-control", "Mission Control", .windows, 126, [.control]),
         SystemShortcut("app-windows", "Mostrar las ventanas de la app", .windows, 125, [.control]),
@@ -87,28 +106,8 @@ extension KeyCombo {
         if modifiers.contains(.option) { text += "⌥" }
         if modifiers.contains(.shift) { text += "⇧" }
         if modifiers.contains(.command) { text += "⌘" }
-        return text + Self.keyGlyph(for: keyCode)
+        return text + KeyCatalog.glyph(for: keyCode)
     }
 
-    /// Symbols for the keys this app can produce. An unknown code stays honest instead of guessing.
-    private static func keyGlyph(for keyCode: UInt16) -> String {
-        switch keyCode {
-        case 12: return "Q"
-        case 13: return "W"
-        case 20: return "3"
-        case 21: return "4"
-        case 23: return "5"
-        case 36: return "↩"
-        case 48: return "⇥"
-        case 49: return "Espacio"
-        case 50: return "`"
-        case 51: return "⌫"
-        case 53: return "⎋"
-        case 123: return "←"
-        case 124: return "→"
-        case 125: return "↓"
-        case 126: return "↑"
-        default: return "tecla \(keyCode)"
-        }
-    }
 }
+

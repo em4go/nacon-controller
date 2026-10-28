@@ -11,6 +11,17 @@ public enum KeyCatalog {
         names[keyCode] ?? "Key \(keyCode)"
     }
 
+    /// Symbol for a key as macOS prints it in a menu: the name, except for the few keys that have a
+    /// dedicated glyph. The menu and the row label both come from here, because two tables for the same
+    /// key is how ⌘C once read as «⌘tecla 8» in the catalog and «⌘C» everywhere else.
+    public static func glyph(for keyCode: UInt16) -> String {
+        switch keyCode {
+        case 51: return "⌫"
+        case 53: return "⎋"
+        default: return name(for: keyCode)
+        }
+    }
+
     static let names: [UInt16: String] = [
         // Letters.
         0: "A", 1: "S", 2: "D", 3: "F", 4: "H", 5: "G", 6: "Z", 7: "X", 8: "C", 9: "V",

@@ -75,4 +75,32 @@ final class SystemShortcutTests: XCTestCase {
         XCTAssertTrue(library.setAction(shortcut.action, for: .buttonA))
         XCTAssertEqual(library.selectedProfile?.profile.action(for: .buttonA), .key(shortcut.combo))
     }
+
+    func testTheEditingCatalogNamesTheCommandsEveryoneUses() {
+        // Asked for by name: «copiar (cmd + c), pegar (cmd + v)». They are offered as data so the user
+        // does not have to memorise the combination and capture it by hand.
+        let editing = SystemShortcut.inCategory(.editing)
+        let byID = Dictionary(uniqueKeysWithValues: editing.map { ($0.id, $0) })
+
+        XCTAssertEqual(byID["copy"]?.combo.glyph, "⌘C")
+        XCTAssertEqual(byID["paste"]?.combo.glyph, "⌘V")
+        XCTAssertEqual(byID["cut"]?.combo.glyph, "⌘X")
+        XCTAssertEqual(byID["select-all"]?.combo.glyph, "⌘A")
+        XCTAssertEqual(byID["paste-plain"]?.combo.glyph, "⌥⇧⌘V")
+        XCTAssertEqual(byID["copy"]?.name, "Copiar")
+        XCTAssertEqual(byID["paste"]?.name, "Pegar")
+    }
+
+    func testEveryCatalogEntryWritesWhatACaptureWouldWrite() {
+        // S7: choosing a catalog entry must produce exactly the mapping a captured press produces, so
+        // the two paths cannot drift into different actions for the same keys.
+        for shortcut in SystemShortcut.all {
+            let captured = MappingRules.capture(
+                forKeyCode: shortcut.combo.keyCode,
+                modifiers: shortcut.combo.modifiers
+            )
+
+            XCTAssertEqual(captured, .mapped(shortcut.action), shortcut.id)
+        }
+    }
 }

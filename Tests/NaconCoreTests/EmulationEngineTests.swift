@@ -179,6 +179,16 @@ final class EmulationEngineTests: XCTestCase {
         XCTAssertEqual(localEmitter.events.last, .release(.key(KeyCombo(.upArrow))))
     }
 
+    func testStoppingEmulationReleasesTheModifiersTheEmitterHolds() {
+        // A modifier left in the emitter's own count is added to every later event, which looks exactly
+        // like a key stuck down. Stopping is the moment to let them all go.
+        engine.setEnabledNow(true)
+        engine.handle(report(buttons: [.buttonA]))
+        engine.setEnabledNow(false)
+
+        XCTAssertEqual(emitter.releasedHeldModifiers, 1)
+    }
+
     func testAHeldModifierDoesNotRepeat() {
         // Holding the pad control holds the modifier. Repeating it would send modifier presses the
         // application never asked for while the user is holding a button and nothing else happens.

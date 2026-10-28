@@ -236,6 +236,7 @@ public final class EmulationEngine {
             emitter.release(action)
         }
         heldActions.removeAll()
+        emitter.releaseHeldModifiers()
         repeatElapsed.removeAll()
         nextRepeatAt.removeAll()
         previousReport = nil

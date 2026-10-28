@@ -10,6 +10,10 @@ public protocol InputEmitter: AnyObject {
     func release(_ action: MappedAction)
     /// Auto-repeat of a key that is being held down.
     func repeatKey(_ action: MappedAction)
+    /// Releases every modifier this emitter is holding. A safety net for emulation stopping: a
+    /// modifier left in its own count would be added to every later event, which looks exactly like a
+    /// key stuck down.
+    func releaseHeldModifiers()
     func moveCursor(deltaX: Double, deltaY: Double)
     func scroll(pixels: Int)
 }
@@ -21,6 +25,8 @@ public extension InputEmitter {
     func repeatKey(_ action: MappedAction) {
         press(action)
     }
+
+    func releaseHeldModifiers() {}
 }
 
 /// Whether this process may synthesize input events.
@@ -65,6 +71,14 @@ public final class CGEventEmitter: InputEmitter {
         case .mouseButton(let button):
             postMouse(button, isDown: false)
         }
+    }
+
+    public func releaseHeldModifiers() {
+        guard !heldByUs.isEmpty else { return }
+        for pair in KeyStrokePlan.modifiers where heldByUs.contains(pair.set) {
+            post(KeyStroke(keyCode: pair.keyCode, isDown: false, modifiers: []))
+        }
+        heldByUs = []
     }
 
     public func repeatKey(_ action: MappedAction) {
@@ -117,11 +131,7 @@ public final class CGEventEmitter: InputEmitter {
             virtualKey: CGKeyCode(stroke.keyCode),
             keyDown: stroke.isDown
         ) else { return }
-        event.flags = Self.strokeFlags(
-            for: stroke,
-            ambient: Self.heldModifiers(),
-            held: heldByUs
-        )
+        event.flags = Self.strokeFlags(for: stroke, held: heldByUs)
         // Remember what this app itself is holding. The system's own report arrives a moment later,
         // and the next stroke must not depend on that race: ⌘ held on one control and ⇥ pressed on
         // another have to combine even if the report has not caught up yet.
@@ -163,53 +173,24 @@ public final class CGEventEmitter: InputEmitter {
         CGEvent(source: nil)?.location ?? .zero
     }
 
-    /// The flags one stroke must carry: its own modifiers plus the ones already held.
+    /// The flags one stroke carries: its own modifiers plus the ones this app is holding.
     ///
-    /// A mapping of a plain ⇥ has to arrive as ⌘⇥ when ⌘ is held on another control of the pad, and as
-    /// ⇧⇥ when the keyboard holds shift. Each event carries its own flags and the receiving side reads
-    /// those, not the state behind them: an event that claims "no modifiers" is a plain Tab, which is
-    /// why combining a modifier hold with a key did nothing at all.
+    /// Deliberately not the system's reported state. That report lags: right after posting the release
+    /// of ⇧ it still says ⇧ is down, so the next event — the release of ⌃ that follows it — carried ⇧
+    /// again, and from then on every event claimed Shift was held. Applications read the flags of the
+    /// event, so Shift behaved as if it were stuck. The pad is its own keyboard: it combines exactly
+    /// the modifiers it is holding itself.
     ///
-    /// Still assigned, never inherited: the flags come from the modifiers this app knows about, so an
-    /// inherited NumericPad or CapsLock flag can never reach the event — those made many applications
-    /// drop it, which looked like the controller disconnecting after a few arrow presses.
-    static func strokeFlags(for stroke: KeyStroke, ambient: ModifierSet, held: ModifierSet = []) -> CGEventFlags {
-        flags(for: resolvedModifiers(for: stroke, ambient: ambient, held: held))
-    }
-
-    /// The modifiers one stroke says are held, which is the state *after* it: its own, the ones the
-    /// system reports, and the ones this app is holding.
-    ///
-    /// A modifier's own release drops it. Without that, the Command key-up still claims Command is
-    /// down — the system does report it as held at that instant — and a listener that reads the flags
-    /// of a flagsChanged event never sees the release: the application switcher stays on screen after
-    /// the button that opened it has been let go.
-    static func resolvedModifiers(
-        for stroke: KeyStroke,
-        ambient: ModifierSet,
-        held: ModifierSet
-    ) -> ModifierSet {
-        var resolved = stroke.modifiers.union(ambient).union(held)
+    /// Still assigned, never inherited: the flags are built from the model's own set, so an inherited
+    /// NumericPad or CapsLock flag can never reach the event — those made applications drop it, which
+    /// looked like the controller disconnecting after a few arrow presses.
+    static func strokeFlags(for stroke: KeyStroke, held: ModifierSet) -> CGEventFlags {
+        var resolved = stroke.modifiers.union(held)
+        // A modifier's own release drops it, so the event describes the state after itself.
         if !stroke.isDown, let released = KeyStrokePlan.modifierSet(for: stroke.keyCode) {
             resolved.remove(released)
         }
-        return resolved
-    }
-
-    /// The modifiers the system currently has down, as far as this app is concerned.
-    static func heldModifiers() -> ModifierSet {
-        modifiers(from: CGEventSource.flagsState(.hidSystemState))
-    }
-
-    /// Reads the modifier flags a `CGEvent` can carry into the model's own set.
-    static func modifiers(from flags: CGEventFlags) -> ModifierSet {
-        var modifiers: ModifierSet = []
-        if flags.contains(.maskCommand) { modifiers.insert(.command) }
-        if flags.contains(.maskAlternate) { modifiers.insert(.option) }
-        if flags.contains(.maskControl) { modifiers.insert(.control) }
-        if flags.contains(.maskShift) { modifiers.insert(.shift) }
-        if flags.contains(.maskSecondaryFn) { modifiers.insert(.function) }
-        return modifiers
+        return flags(for: resolved)
     }
 
     static func flags(for modifiers: ModifierSet) -> CGEventFlags {

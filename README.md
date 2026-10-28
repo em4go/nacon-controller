@@ -157,7 +157,7 @@ hacen falta permisos nuevos ni APIs privadas. El límite es el mismo que el del 
 
 ### Un control que mantiene modificadores
 
-El mismo menú tiene **Mantener modificador**: ⌃, ⌥, ⇧ y ⌘ por separado, y las seis parejas entre
+El mismo menú tiene **Mantener modificador**: ⌃, ⌥, ⇧, ⌘ y fn por separado, y las diez parejas entre
 ellos. Un control asignado a una de esas entradas se comporta como la tecla física —baja mientras lo
 mantienes y sube al soltarlo—, y las teclas se envían de verdad, no como banderas sobre otra tecla.
 

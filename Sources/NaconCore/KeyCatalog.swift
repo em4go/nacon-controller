@@ -31,7 +31,7 @@ public enum KeyCatalog {
         123: "←", 124: "→", 125: "↓", 126: "↑",
         // Modifiers on their own. A mapping to one of these is a hold, and the label has to say so
         // without the interface looking like a shortcut.
-        55: "⌘", 56: "⇧", 58: "⌥", 59: "⌃",
+        55: "⌘", 56: "⇧", 58: "⌥", 59: "⌃", 63: "fn",
         // Function keys.
         122: "F1", 120: "F2", 99: "F3", 118: "F4", 96: "F5", 97: "F6", 98: "F7",
         100: "F8", 101: "F9", 109: "F10", 103: "F11", 111: "F12",
@@ -46,7 +46,7 @@ extension KeyCombo {
     public var displayName: String {
         // A hold's key is one of its modifiers, so the set to print is the key plus its companions.
         let shown = isModifierHold ? KeyStrokePlan.heldModifiers(for: self) : modifiers
-        var result = ""
+        var result = shown.contains(.function) ? "fn" : ""
         if shown.contains(.control) {
             result += "⌃"
         }

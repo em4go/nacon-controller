@@ -1,3 +1,4 @@
+import CoreGraphics
 import XCTest
 
 @testable import NaconCore
@@ -112,12 +113,12 @@ final class KeyStrokePlanTests: XCTestCase {
 
     func testTheHoldCombosAreTheSinglesAndThePairs() {
         let holds = KeyStrokePlan.holdCombos
-        XCTAssertEqual(holds.count, 10, "four modifiers alone and the six pairs between them")
+        XCTAssertEqual(holds.count, 15, "five modifiers alone and the ten pairs between them")
         XCTAssertEqual(Set(holds).count, holds.count, "no hold is offered twice")
         for combo in holds {
             XCTAssertTrue(combo.isModifierHold, "\(combo.keyCode) is not a modifier")
         }
-        XCTAssertEqual(holds.prefix(4).map(\.keyCode), [59, 58, 56, 55], "singles first")
+        XCTAssertEqual(holds.prefix(5).map(\.keyCode), [59, 58, 56, 55, 63], "singles first")
     }
 
     func testAHoldCanHoldTwoModifiersAtOnce() {
@@ -153,8 +154,28 @@ final class KeyStrokePlanTests: XCTestCase {
         }
     }
 
+    func testTheFunctionKeyIsAHoldLikeTheOthers() {
+        // fn is a key of its own on this model's keyboard, not a helper flag: some applications and
+        // every laptop keyboard treat it as a modifier, so a control can hold it.
+        XCTAssertEqual(
+            KeyStrokePlan.strokes(for: KeyCombo(keyCode: 63), isDown: true),
+            [KeyStroke(keyCode: 63, isDown: true, modifiers: [.function])]
+        )
+        XCTAssertEqual(KeyStrokePlan.strokes(for: KeyCombo(keyCode: 63), isDown: false).last?.modifiers, [])
+        XCTAssertEqual(KeyCombo(keyCode: 63).displayName, "fn")
+    }
+
+    func testTheFunctionModifierSetsTheSecondaryFnFlag() {
+        XCTAssertEqual(CGEventEmitter.flags(for: [.function]), .maskSecondaryFn)
+        XCTAssertEqual(
+            CGEventEmitter.flags(for: [.function, .command]),
+            [.maskSecondaryFn, .maskCommand]
+        )
+    }
+
     func testAHoldPrintsItsModifiersInAppleOrder() {
         XCTAssertEqual(KeyCombo(keyCode: 59, modifiers: [.shift]).displayName, "⌃⇧")
+        XCTAssertEqual(KeyCombo(keyCode: 63, modifiers: [.control]).displayName, "fn⌃")
         XCTAssertEqual(KeyCombo(keyCode: 55).displayName, "⌘")
         XCTAssertEqual(KeyCombo(.tab, modifiers: [.command]).displayName, "⌘⇥")
     }

@@ -32,6 +32,7 @@ public enum KeyStrokePlan {
         (.option, 58),
         (.shift, 56),
         (.command, 55),
+        (.function, 63),
     ]
 
     /// True when the key is a modifier, so the mapping holds it rather than typing it.

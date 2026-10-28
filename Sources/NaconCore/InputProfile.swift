@@ -12,6 +12,9 @@ public struct ModifierSet: OptionSet, Hashable, Sendable {
     public static let option = ModifierSet(rawValue: 1 << 1)
     public static let control = ModifierSet(rawValue: 1 << 2)
     public static let shift = ModifierSet(rawValue: 1 << 3)
+    /// The `fn` key. It is a modifier for the system — arrows and function keys carry it on a laptop —
+    /// and it is also a key of its own, which is why a control can hold it.
+    public static let function = ModifierSet(rawValue: 1 << 4)
 }
 
 /// A virtual key plus the modifiers held with it. Key codes are `CGKeyCode` values.

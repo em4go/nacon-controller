@@ -149,12 +149,13 @@ public final class CGEventEmitter: InputEmitter {
         CGEvent(source: nil)?.location ?? .zero
     }
 
-    private static func flags(for modifiers: ModifierSet) -> CGEventFlags {
+    static func flags(for modifiers: ModifierSet) -> CGEventFlags {
         var flags: CGEventFlags = []
         if modifiers.contains(.command) { flags.insert(.maskCommand) }
         if modifiers.contains(.option) { flags.insert(.maskAlternate) }
         if modifiers.contains(.control) { flags.insert(.maskControl) }
         if modifiers.contains(.shift) { flags.insert(.maskShift) }
+        if modifiers.contains(.function) { flags.insert(.maskSecondaryFn) }
         return flags
     }
 }

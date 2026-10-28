@@ -67,3 +67,6 @@ La base y la capa MOD se editan a la vista, sin conmutador de modo.
   dan resultado correcto en hardware, incluidos el conmutador que ahora se cierra al soltar, la capa
   MOD con su caso de seguridad, la captura de zona con arrastre y el clic que las vistas daban por no
   ser un clic. La capa MOD queda cerrada; falta solo la decisión de fusionar la rama.
+- **L10.** El límite del punto L5 queda cerrado: la captura escribe ahora en la columna que armó el
+    menú (`MappingCapture.isLayerCapture`), así que las columnas Base y MOD ofrecen lo mismo —captura,
+    catálogo, pasos de comando— y ninguna de las dos es de segunda clase.

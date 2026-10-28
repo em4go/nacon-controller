@@ -98,7 +98,19 @@ struct ProfileSection: View {
             // of in one of the two views keeps that true whichever view is showing.
             capture.onFinish = { outcome in
                 guard case let .mapped(armedProfileID, control, action) = outcome else { return }
-                applyCapturedAction(armedProfileID, control, action)
+                // The armed menu declared the destination: the MOD column or the base. Reading it
+                // here, from the same flags the arming set, is what lets both columns offer the
+                // capture and the steps without a second capture path.
+                if capture.isLayerCapture {
+                    var written = action
+                    if capture.isAppendingStep, case .key(let combo) = action,
+                       let current = profiles.selectedProfile?.profile.layer.action(for: control) {
+                        written = MappingRules.appending(step: combo, to: current)
+                    }
+                    applyLayerAction(armedProfileID, control, written)
+                } else {
+                    applyCapturedAction(armedProfileID, control, action)
+                }
             }
         }
         .onChange(of: emulation.isEnabled) { isRunning in

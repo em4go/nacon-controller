@@ -12,21 +12,18 @@ import SwiftUI
 /// The capture button is not here: in the table it is a button of its own beside the menu, and in the
 /// strip it is a tap on the drawing. Only the menu is shared.
 struct AssignMenuItems: View {
-    /// Whether the menu offers the key capture at all.
+    /// Whether the menu offers the key capture and the step entries at all.
     ///
-    /// It is only meaningful for the base: a capture arms the base layer (the capture path does not
-    /// know about the layer), so a menu assigning to the layer shows the same catalog without an entry
-    /// that would write somewhere else. Omitting the entry and its divider is what keeps the two
-    /// submenus honest instead of greying out a button that must not be pressed.
+    /// The menu that arms decides where a capture writes, so both columns can offer the same list.
+    /// Only renderings that cannot write at all pass false.
     var includesCapture: Bool = true
     /// Arms the capture for the control the menu belongs to, for the same reason the capture button
     /// exists: a key macOS swallows never reaches a local monitor, and a menu entry is then the only
     /// way to express it. Only read when `includesCapture` is true.
     var onCapture: () -> Void = {}
     let onChoose: (MappedAction) -> Void
-    /// What the control has now, so the menu can offer to extend a command or shorten one. Only read
-    /// when `includesCapture` is true: a step is captured into the base, so a layer column must not
-    /// offer it.
+    /// What the control has now, so the menu can offer to extend a command or shorten one. Only
+    /// meaningful when `includesCapture` is true: without a capture there is nothing to append to.
     var current: MappedAction = .none
     /// Arms a capture whose key becomes one more step of the command in `current`.
     var onAppendStep: (() -> Void)?

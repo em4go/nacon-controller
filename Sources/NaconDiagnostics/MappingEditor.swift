@@ -85,7 +85,24 @@ struct MappingEditor: View {
                         },
                         // A menu choice applies to the profile on screen, so it carries that id.
                         onChoose: { setAction(profileID, control, $0) },
-                        onChooseLayer: { setLayerAction(profileID, control, $0) }
+                        onChooseLayer: { setLayerAction(profileID, control, $0) },
+                        onCaptureLayer: {
+                            capture.toggle(
+                                control,
+                                for: profileID,
+                                isEmulationRunning: isEmulationEnabled,
+                                layer: true
+                            )
+                        },
+                        onAppendStepLayer: {
+                            capture.toggle(
+                                control,
+                                for: profileID,
+                                isEmulationRunning: isEmulationEnabled,
+                                appending: true,
+                                layer: true
+                            )
+                        }
                     )
                 }
                 reservedRow
@@ -181,6 +198,9 @@ private struct MappingRow: View {
     let onAppendStep: () -> Void
     let onChoose: (MappedAction) -> Void
     let onChooseLayer: (MappedAction) -> Void
+    /// Arms a capture that writes into the MOD column, and one that extends a command there.
+    let onCaptureLayer: () -> Void
+    let onAppendStepLayer: () -> Void
 
     var body: some View {
         HStack(spacing: 10) {
@@ -230,10 +250,20 @@ private struct MappingRow: View {
                 .lineLimit(1)
                 .frame(width: 110, alignment: .leading)
                 .help(layerHelp)
-            // No capture here: a capture arms the base, so the layer is chosen from the same list
-            // without an entry that would write to the other column.
+            // The same list as the base, aimed at the column: a capture armed here writes into the
+            // layer because that is the intent the arming menu declares, not a property of capture.
             Menu {
-                AssignMenuItems(includesCapture: false, onChoose: onChooseLayer)
+                AssignMenuItems(
+                    onCapture: onCaptureLayer,
+                    onChoose: onChooseLayer,
+                    current: layerAction ?? .none,
+                    onAppendStep: onAppendStepLayer,
+                    onDropLastStep: {
+                        onChooseLayer(
+                            MappingRules.droppingLastStep(from: layerAction ?? .none)
+                        )
+                    }
+                )
             } label: {
                 Label("Elegir…", systemImage: "chevron.up.chevron.down")
                     .labelStyle(.titleAndIcon)
@@ -297,6 +327,10 @@ final class MappingCapture: ObservableObject {
     /// Whether the armed capture adds a step to the command instead of replacing it. Read by the write
     /// that follows a capture, and cleared as the capture ends so the next one cannot inherit it.
     private(set) var isAppendingStep = false
+    /// Whether the armed capture writes into the MOD layer instead of the base. The capture session
+    /// itself only knows the control and the profile — the destination is an intent of the menu that
+    /// armed it, so it lives beside the append flag and is read by the same write.
+    private(set) var isLayerCapture = false
 
     func isCapturing(_ candidate: XInputControl) -> Bool {
         session.isArmed(candidate)
@@ -308,14 +342,17 @@ final class MappingCapture: ObservableObject {
         _ candidate: XInputControl,
         for profileID: UUID,
         isEmulationRunning: Bool,
-        appending: Bool = false
+        appending: Bool = false,
+        layer: Bool = false
     ) {
         switch session.toggle(candidate, for: profileID, isEmulationRunning: isEmulationRunning) {
         case .armed:
             isAppendingStep = appending
+            isLayerCapture = layer
             installMonitor()
         case .disarmed, .refusedWhileEmulating:
             isAppendingStep = false
+            isLayerCapture = false
             removeMonitor()
         }
     }
@@ -324,6 +361,7 @@ final class MappingCapture: ObservableObject {
     func end() {
         session.disarm()
         isAppendingStep = false
+        isLayerCapture = false
         removeMonitor()
     }
 
@@ -359,11 +397,12 @@ final class MappingCapture: ObservableObject {
     private func handle(keyCode: UInt16, modifiers: ModifierSet) -> Bool {
         let outcome = session.handleKey(keyCode: keyCode, modifiers: modifiers)
         guard outcome != .ignored else { return false }
-        // A finished capture always disarms, so the monitor goes away with it. The append flag is read
-        // by the write inside `onFinish`, so it is cleared after that write, not before.
+        // A finished capture always disarms, so the monitor goes away with it. The intent flags are
+        // read by the write inside `onFinish`, so they are cleared after that write, not before.
         removeMonitor()
         onFinish?(outcome)
         isAppendingStep = false
+        isLayerCapture = false
         return true
     }
 }

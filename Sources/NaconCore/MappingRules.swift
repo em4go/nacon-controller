@@ -60,6 +60,32 @@ public enum MappingRules {
         return .mapped(.key(KeyCombo(keyCode: keyCode, modifiers: modifiers)))
     }
 
+    /// Whether a command can take one more step. A command is made of keystrokes, so a mouse button or
+    /// a scroll amount has nothing to chain.
+    public static func canAppendStep(to action: MappedAction) -> Bool {
+        switch action {
+        case .key, .sequence: return true
+        default: return false
+        }
+    }
+
+    /// The action with one more step at the end, normalised: appending to nothing is a plain key and
+    /// appending to a key starts the chain.
+    public static func appending(step combo: KeyCombo, to action: MappedAction) -> MappedAction {
+        switch action {
+        case .key(let existing): return .chained([existing, combo])
+        case .sequence(let steps): return .chained(steps + [combo])
+        default: return action
+        }
+    }
+
+    /// The action without its last step, normalised: two steps become a plain key again, and an action
+    /// that is not a chain is left alone.
+    public static func droppingLastStep(from action: MappedAction) -> MappedAction {
+        guard case .sequence(let steps) = action else { return action }
+        return .chained(Array(steps.dropLast()))
+    }
+
     /// Readable label for a mapping. Never empty, so a row always shows something.
     ///
     /// Keys defer to `KeyCombo.displayName`, which already covers every key code including the ones

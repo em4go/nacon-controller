@@ -75,6 +75,14 @@ struct MappingEditor: View {
                                 isEmulationRunning: isEmulationEnabled
                             )
                         },
+                        onAppendStep: {
+                            capture.toggle(
+                                control,
+                                for: profileID,
+                                isEmulationRunning: isEmulationEnabled,
+                                appending: true
+                            )
+                        },
                         // A menu choice applies to the profile on screen, so it carries that id.
                         onChoose: { setAction(profileID, control, $0) },
                         onChooseLayer: { setLayerAction(profileID, control, $0) }
@@ -169,6 +177,8 @@ private struct MappingRow: View {
     let showsLayer: Bool
     let isCapturing: Bool
     let onCapture: () -> Void
+    /// Arms a capture whose key becomes one more step of this control's command.
+    let onAppendStep: () -> Void
     let onChoose: (MappedAction) -> Void
     let onChooseLayer: (MappedAction) -> Void
 
@@ -246,7 +256,15 @@ private struct MappingRow: View {
     /// modifier holds and clearing the mapping. Shared with the drawing, so the two views cannot
     /// offer different destinations for the same control.
     private var alternatives: some View {
-        AssignMenuItems(onCapture: onCapture, onChoose: onChoose)
+        AssignMenuItems(
+            onCapture: onCapture,
+            onChoose: onChoose,
+            current: action,
+            onAppendStep: onAppendStep,
+            // Shortening a command is an ordinary write, so it goes through the same path a menu
+            // choice takes and the profile is saved once, the same way.
+            onDropLastStep: { onChoose(MappingRules.droppingLastStep(from: action)) }
+        )
     }
 }
 
@@ -276,17 +294,28 @@ final class MappingCapture: ObservableObject {
 
     private var monitor: Any?
 
+    /// Whether the armed capture adds a step to the command instead of replacing it. Read by the write
+    /// that follows a capture, and cleared as the capture ends so the next one cannot inherit it.
+    private(set) var isAppendingStep = false
+
     func isCapturing(_ candidate: XInputControl) -> Bool {
         session.isArmed(candidate)
     }
 
     /// Arms a control for one profile, or disarms it when it is already the one being captured.
     /// The refusal while emulation runs is a result, so the caller never has to guess.
-    func toggle(_ candidate: XInputControl, for profileID: UUID, isEmulationRunning: Bool) {
+    func toggle(
+        _ candidate: XInputControl,
+        for profileID: UUID,
+        isEmulationRunning: Bool,
+        appending: Bool = false
+    ) {
         switch session.toggle(candidate, for: profileID, isEmulationRunning: isEmulationRunning) {
         case .armed:
+            isAppendingStep = appending
             installMonitor()
         case .disarmed, .refusedWhileEmulating:
+            isAppendingStep = false
             removeMonitor()
         }
     }
@@ -294,6 +323,7 @@ final class MappingCapture: ObservableObject {
     /// Removes the monitor and forgets the armed control and profile. Safe to call at any time.
     func end() {
         session.disarm()
+        isAppendingStep = false
         removeMonitor()
     }
 
@@ -329,9 +359,11 @@ final class MappingCapture: ObservableObject {
     private func handle(keyCode: UInt16, modifiers: ModifierSet) -> Bool {
         let outcome = session.handleKey(keyCode: keyCode, modifiers: modifiers)
         guard outcome != .ignored else { return false }
-        // A finished capture always disarms, so the monitor goes away with it.
+        // A finished capture always disarms, so the monitor goes away with it. The append flag is read
+        // by the write inside `onFinish`, so it is cleared after that write, not before.
         removeMonitor()
         onFinish?(outcome)
+        isAppendingStep = false
         return true
     }
 }

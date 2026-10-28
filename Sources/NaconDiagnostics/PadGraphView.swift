@@ -213,13 +213,14 @@ struct PadGraphView: View {
     /// Selection and arming are one gesture on purpose: a tap on the drawing is the same intent as
     /// pressing «Capturar» in the table for that row. PS is the exception — it is the emulation switch,
     /// so it can be inspected but never rebound.
-    private func select(_ control: XInputControl) {
+    private func select(_ control: XInputControl, appending: Bool = false) {
         selected = control
         guard MappingRules.isRemappable(control) else { return }
         capture.toggle(
             control,
             for: profileID,
-            isEmulationRunning: isEmulationEnabled
+            isEmulationRunning: isEmulationEnabled,
+            appending: appending
         )
     }
 
@@ -263,7 +264,15 @@ struct PadGraphView: View {
                     Menu("Asignar a la base") {
                         AssignMenuItems(
                             onCapture: { select(control) },
-                            onChoose: { assign(control, $0) }
+                            onChoose: { assign(control, $0) },
+                            current: profile.action(for: control),
+                            onAppendStep: { select(control, appending: true) },
+                            onDropLastStep: {
+                                assign(
+                                    control,
+                                    MappingRules.droppingLastStep(from: profile.action(for: control))
+                                )
+                            }
                         )
                     }
                     // Only offered when a key can open the layer: without one the submenu would write

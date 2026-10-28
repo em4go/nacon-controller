@@ -24,11 +24,29 @@ struct AssignMenuItems: View {
     /// way to express it. Only read when `includesCapture` is true.
     var onCapture: () -> Void = {}
     let onChoose: (MappedAction) -> Void
+    /// What the control has now, so the menu can offer to extend a command or shorten one. Only read
+    /// when `includesCapture` is true: a step is captured into the base, so a layer column must not
+    /// offer it.
+    var current: MappedAction = .none
+    /// Arms a capture whose key becomes one more step of the command in `current`.
+    var onAppendStep: (() -> Void)?
+    /// Removes the last step of a command. A plain `onChoose` write already expresses the result.
+    var onDropLastStep: (() -> Void)?
 
     var body: some View {
         if includesCapture {
             Button("Capturar tecla…") {
                 onCapture()
+            }
+            if MappingRules.canAppendStep(to: current), let onAppendStep {
+                Button("Añadir paso al comando…") {
+                    onAppendStep()
+                }
+                if case .sequence = current, let onDropLastStep {
+                    Button("Quitar el último paso") {
+                        onDropLastStep()
+                    }
+                }
             }
             Divider()
         }

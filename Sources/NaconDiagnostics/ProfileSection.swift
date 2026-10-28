@@ -134,8 +134,16 @@ struct ProfileSection: View {
         _ action: MappedAction
     ) {
         guard armedProfileID == profiles.selectedProfile?.id else { return }
+        // A capture armed to extend a command adds its key to the end of what the control already
+        // sends, instead of replacing it. Anything that is not a key cannot be a step, so it replaces
+        // the mapping rather than silently doing nothing.
+        var written = action
+        if capture.isAppendingStep, case .key(let combo) = action,
+           let current = profiles.selectedProfile?.profile.action(for: control) {
+            written = MappingRules.appending(step: combo, to: current)
+        }
         // The controller persists every change, so the edit survives a restart (S6).
-        profiles.setAction(action, for: control)
+        profiles.setAction(written, for: control)
     }
 
     /// Writes one assignment into the layer of the profile on screen.

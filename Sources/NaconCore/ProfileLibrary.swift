@@ -193,6 +193,22 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
         return profiles.firstIndex(where: { $0.id == selectedID })
     }
 
+    /// S2: one edit seam for the profile on screen.
+    ///
+    /// Every setter that targets the selected profile goes through here, so the "find the selected
+    /// profile, then mutate it" guard exists once instead of once per setting. The change works on a
+    /// copy and is written back only when it reports that it changed something, so a refused edit
+    /// leaves the library untouched.
+    /// - Returns: whether the library changed.
+    @discardableResult
+    private mutating func editSelectedProfile(_ change: (inout InputProfile) -> Bool) -> Bool {
+        guard let index = selectedIndex else { return false }
+        var profile = profiles[index].profile
+        guard change(&profile) else { return false }
+        profiles[index].profile = profile
+        return true
+    }
+
     /// S2: the vertical-axis setting of the profile being edited.
     ///
     /// The setting belongs to the profile, not to the running app, so a toggle that shows this value
@@ -205,10 +221,11 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
     /// - Returns: whether the library changed.
     @discardableResult
     public mutating func setInvertVerticalAxis(_ newValue: Bool) -> Bool {
-        guard let index = selectedIndex else { return false }
-        guard profiles[index].profile.cursor.invertVerticalAxis != newValue else { return false }
-        profiles[index].profile.cursor.invertVerticalAxis = newValue
-        return true
+        editSelectedProfile { profile in
+            guard profile.cursor.invertVerticalAxis != newValue else { return false }
+            profile.cursor.invertVerticalAxis = newValue
+            return true
+        }
     }
 
     // MARK: - S9: cursor sensitivity of the profile being edited
@@ -222,11 +239,7 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
     /// - Returns: whether the library changed.
     @discardableResult
     public mutating func setCursorSensitivity(_ sensitivity: CursorSensitivity, to raw: Double) -> Bool {
-        guard let index = selectedIndex else { return false }
-        var cursor = profiles[index].profile.cursor
-        guard sensitivity.apply(raw, to: &cursor) else { return false }
-        profiles[index].profile.cursor = cursor
-        return true
+        editSelectedProfile { sensitivity.apply(raw, to: &$0.cursor) }
     }
 
     /// Restores the standard sensitivity on the profile being edited, leaving every sibling alone.
@@ -235,20 +248,21 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
     /// user, so resetting the numbers must not silently flip the cursor back to the wrong direction.
     @discardableResult
     public mutating func resetCursorSensitivity() -> Bool {
-        guard let index = selectedIndex else { return false }
-        let standard = InputProfile.standard.cursor
-        let current = profiles[index].profile.cursor
-        let restored = CursorSettings(
-            deadzone: standard.deadzone,
-            fullSpeedFraction: standard.fullSpeedFraction,
-            maxSpeed: standard.maxSpeed,
-            curveExponent: standard.curveExponent,
-            scrollLinesPerSecond: standard.scrollLinesPerSecond,
-            invertVerticalAxis: current.invertVerticalAxis
-        )
-        guard restored != current else { return false }
-        profiles[index].profile.cursor = restored
-        return true
+        editSelectedProfile { profile in
+            let standard = InputProfile.standard.cursor
+            let current = profile.cursor
+            let restored = CursorSettings(
+                deadzone: standard.deadzone,
+                fullSpeedFraction: standard.fullSpeedFraction,
+                maxSpeed: standard.maxSpeed,
+                curveExponent: standard.curveExponent,
+                scrollLinesPerSecond: standard.scrollLinesPerSecond,
+                invertVerticalAxis: current.invertVerticalAxis
+            )
+            guard restored != current else { return false }
+            profile.cursor = restored
+            return true
+        }
     }
 
     // MARK: - MOD layer (S3, S4, S5, S6)
@@ -324,6 +338,18 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
     }
 
     // MARK: - Mapping write (S2, S4, S5)
+
+    /// S3: edits one mapping of the profile being edited, and only that one.
+    ///
+    /// The library is the unit that reaches disk, so the editor mutates through it and the caller
+    /// persists the result with the usual controller. The rule that refuses PS and the meaning of
+    /// `.none` stay in `InputProfile.setAction`, which is where a profile edits itself.
+    /// - Returns: whether the library changed.
+    @discardableResult
+    public mutating func setAction(_ action: MappedAction, for control: XInputControl) -> Bool {
+        guard MappingRules.isRemappable(control) else { return false }
+        return editSelectedProfile { $0.setAction(action, for: control) }
+    }
 
     /// S2: applies the write a finished capture resolved to, and nothing else.
     ///

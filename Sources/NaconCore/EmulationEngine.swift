@@ -30,9 +30,10 @@ public final class EmulationEngine {
 
     private var timer: DispatchSourceTimer?
     private var enabled = false
-    /// Clock reading of the previous timer callback. Movement integrates the time that really passed,
-    /// so a callback that arrives late makes the motion coarser, never slower.
-    private var lastTick: UInt64?
+    /// The clock. Injected so tests can simulate a throttled timer instead of sleeping.
+    private let uptime: () -> TimeInterval
+    /// Reading of that clock at the previous advance.
+    private var lastTick: TimeInterval?
     /// Largest step one callback may advance. A stalled thread must not fling the pointer across the
     /// screen when it wakes up.
     private let maxTickStep: TimeInterval = 0.1
@@ -47,9 +48,16 @@ public final class EmulationEngine {
     private var repeatElapsed: [XInputControl: Double] = [:]
     private var nextRepeatAt: [XInputControl: Double] = [:]
 
-    public init(emitter: InputEmitter, profile: InputProfile = .standard) {
+    public init(
+        emitter: InputEmitter,
+        profile: InputProfile = .standard,
+        uptime: @escaping () -> TimeInterval = {
+            TimeInterval(DispatchTime.now().uptimeNanoseconds) / 1_000_000_000
+        }
+    ) {
         self.emitter = emitter
         self.profile = profile
+        self.uptime = uptime
         queue.setSpecific(key: queueKey, value: ())
     }
 
@@ -64,16 +72,7 @@ public final class EmulationEngine {
             source.schedule(deadline: .now(), repeating: self.tickInterval)
             source.setEventHandler { [weak self] in
                 guard let self else { return }
-                let now = DispatchTime.now().uptimeNanoseconds
-                let elapsed = self.lastTick.map { Double(now &- $0) / 1_000_000_000 }
-                self.lastTick = now
-                self.tick(
-                    seconds: Self.tickStep(
-                        elapsed: elapsed,
-                        nominal: self.tickInterval,
-                        limit: self.maxTickStep
-                    )
-                )
+                self.advance(now: self.uptime())
             }
             source.resume()
             self.timer = source
@@ -231,6 +230,19 @@ public final class EmulationEngine {
                 self?.onEmergencyStop?()
             }
         }
+    }
+
+    /// Advances the engine to `now` on the injected clock.
+    ///
+    /// This is what the timer handler calls, and the only thing it does is decide how much time passed:
+    /// keeping it separate from the timer is what makes the throttled case testable without waiting for
+    /// macOS to throttle anything.
+    func advance(now: TimeInterval) {
+        let elapsed = lastTick.map { now - $0 }
+        lastTick = now
+        tick(
+            seconds: Self.tickStep(elapsed: elapsed, nominal: tickInterval, limit: maxTickStep)
+        )
     }
 
     /// How long one timer callback may advance the pointer.

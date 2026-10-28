@@ -258,34 +258,64 @@ final class EmulationEngineTests: XCTestCase {
 
     // MARK: - The timer is a hint, not a metronome
 
-    func testTheStepIsTheTimeThatReallyPassed() {
-        // macOS coalesces the timer and throttles the app when it is in the background, which is
-        // exactly when the emulation is used. A fixed step per callback made the cursor crawl there.
-        XCTAssertEqual(
-            EmulationEngine.tickStep(elapsed: 0.032, nominal: 1.0 / 60.0, limit: 0.1),
-            0.032,
-            accuracy: 1e-9
-        )
+    /// The seam that once made the cursor crawl: a fixed step per callback.
+    ///
+    /// Same stick, same wall-clock second, two cadences: 60 Hz and 10 Hz. The slow one is what macOS
+    /// does to the timer once the app is not in front, which is where this tool is used, and the
+    /// distance travelled must not notice.
+    func testTheSameStickForTheSameSecondMovesTheSameDistanceWhateverTheCadence() {
+        func travelled(cadence: Double) -> Double {
+            let recorder = RecordingEmitter()
+            var now: TimeInterval = 0
+            let clocked = EmulationEngine(emitter: recorder, uptime: { now })
+            // Prime the clock while stopped so the first real advance measures a step instead of the
+            // nominal fallback, which belongs to the first callback only.
+            clocked.advance(now: 0)
+            clocked.setEnabledNow(true)
+            clocked.handle(report(left: stick(normalizedX: 1)))
+            let step = 1.0 / cadence
+            for index in 1...Int(cadence) {
+                now = Double(index) * step
+                clocked.advance(now: now)
+            }
+            return recorder.events.reduce(0) { total, event in
+                if case .move(let deltaX, _) = event { return total + deltaX }
+                return total
+            }
+        }
+
+        let fast = travelled(cadence: 60)
+        let slow = travelled(cadence: 10)
+
+        XCTAssertGreaterThan(fast, 0, "the test must not pass on an engine that never moves")
+        XCTAssertEqual(slow, fast, accuracy: fast * 0.001)
     }
 
-    func testTheFirstCallbackUsesTheNominalStep() {
-        XCTAssertEqual(
-            EmulationEngine.tickStep(elapsed: nil, nominal: 1.0 / 60.0, limit: 0.1),
-            1.0 / 60.0,
-            accuracy: 1e-9
-        )
+    func testAStallAdvancesAtMostTheCap() {
+        // Waking after five seconds must not fling the pointer across the screen: the step is capped at
+        // 100 ms, so the engine moves as if a tenth of a second had passed.
+        engine.advance(now: 0)
+        engine.setEnabledNow(true)
+        engine.handle(report(left: stick(normalizedX: 1)))
+        emitter.reset()
+
+        engine.advance(now: 5)
+
+        let moves = emitter.events.compactMap { event -> Double? in
+            if case .move(let deltaX, _) = event { return deltaX }
+            return nil
+        }
+        let expected = StickMotion.cursorVelocity(
+            stick: stick(normalizedX: 1),
+            settings: InputProfile.standard.cursor
+        ).dx * 0.1
+        XCTAssertEqual(moves.count, 1)
+        XCTAssertEqual(moves.first ?? 0, expected, accuracy: abs(expected) * 0.001)
     }
 
-    func testAStallCannotFlingThePointerAcrossTheScreen() {
-        XCTAssertEqual(
-            EmulationEngine.tickStep(elapsed: 5, nominal: 1.0 / 60.0, limit: 0.1),
-            0.1,
-            accuracy: 1e-9
-        )
-    }
-
-    func testNonsenseElapsedFallsBackToTheNominalStep() {
-        for elapsed in [0, -1, Double.nan, Double.infinity] {
+    func testTheFirstCallbackAndNonsenseElapsedFallBackToTheNominalStep() {
+        // `nil` is the first callback: no previous reading, so the nominal step is the only sane one.
+        for elapsed in [nil, 0, -1, Double.nan, Double.infinity] as [TimeInterval?] {
             XCTAssertEqual(
                 EmulationEngine.tickStep(elapsed: elapsed, nominal: 1.0 / 60.0, limit: 0.1),
                 1.0 / 60.0,

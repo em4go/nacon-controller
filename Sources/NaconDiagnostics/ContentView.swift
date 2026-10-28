@@ -2,6 +2,27 @@ import AppKit
 import NaconCore
 import SwiftUI
 
+/// The panels fed by the pad: the button matrix, the sticks and the raw packet.
+private struct LiveReportSections: View {
+    @ObservedObject var feed: ReportFeed
+
+    var body: some View {
+        if let report = feed.latest.report {
+            ButtonMatrixSection(report: report)
+            AnalogSection(report: report)
+            PacketSection(
+                reportCount: feed.latest.count,
+                lastReportAt: feed.latest.receivedAt,
+                rawPacketHex: feed.latest.rawPacketHex
+            )
+        } else {
+            Text("Conectado, esperando el primer informe del mando…")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
 struct ContentView: View {
     @EnvironmentObject private var service: ControllerService
     @EnvironmentObject private var emulation: EmulationController
@@ -13,21 +34,13 @@ struct ContentView: View {
                 StatusBanner(state: service.state)
                 DeviceListSection(devices: service.devices)
                 // S1, S4, S5, S8: the profiles live above the emulation settings they feed.
-                ProfileSection(profiles: profiles)
+                ProfileSection(profiles: profiles, feed: service.feed)
                 SensitivitySection(profiles: profiles)
                 EmulationSection(emulation: emulation)
-                if service.state.isConnected, let report = service.report {
-                    ButtonMatrixSection(report: report)
-                    AnalogSection(report: report)
-                    PacketSection(
-                        reportCount: service.reportCount,
-                        lastReportAt: service.lastReportAt,
-                        rawPacketHex: service.rawPacketHex
-                    )
-                } else if service.state.isConnected {
-                    Text("Conectado, esperando el primer informe del mando…")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
+                if service.state.isConnected {
+                    // Their own view, so a report rebuilds only this subtree. The menus above it stay
+                    // put: an open menu rebuilt underneath itself flickers and closes its submenus.
+                    LiveReportSections(feed: service.feed)
                 }
                 LegendSection(devices: service.devices)
             }

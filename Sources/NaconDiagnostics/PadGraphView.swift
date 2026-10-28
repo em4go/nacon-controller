@@ -23,8 +23,9 @@ struct PadGraphView: View {
     /// Identifier of the profile on screen. A capture is armed for it, so a key press arriving after
     /// a profile switch cannot land on the profile the user has just selected.
     let profileID: UUID
-    /// Last report of the connected pad, or nil while there is no pad or no report yet.
-    let report: XInputReport?
+    /// The live values of the pad. Read inside the highlight layer only, so a report rebuilds the
+    /// tints and nothing else: the strip, its menu and this view stay put.
+    let feed: ReportFeed
     /// Whether emulation runs. A mapping cannot change then, so the interactive layer is dimmed and
     /// inert.
     let isEmulationEnabled: Bool
@@ -131,29 +132,14 @@ struct PadGraphView: View {
     }
 
     /// One tinted layer per highlighted control, masked by that control's own alpha.
-    ///
-    /// The masks are full-canvas, like the artwork, so each one is laid over the same frame and the
-    /// accent only shows through the strokes the drawing already paints for that button. A mask that
-    /// cannot be loaded simply leaves its control untinted; the drawing still works.
     private func highlights(in size: CGSize) -> some View {
-        ZStack(alignment: .topLeading) {
-            ForEach(XInputControl.allCases, id: \.self) { control in
-                if isHighlighted(control), let mask = Masks.image(for: control) {
-                    Rectangle()
-                        .fill(tint(for: control))
-                        .opacity(Self.highlightOpacity)
-                        .mask(
-                            Image(nsImage: mask)
-                                .resizable()
-                                .interpolation(.high)
-                        )
-                        .frame(width: size.width, height: size.height)
-                        // The highlight is paint, not a target: the hit areas below own the pointer.
-                        .allowsHitTesting(false)
-                }
-            }
-        }
-        .frame(width: size.width, height: size.height, alignment: .topLeading)
+        PadHighlights(
+            feed: feed,
+            hovered: hovered,
+            armed: XInputControl.allCases.first { capture.isCapturing($0) },
+            isEmulationEnabled: isEmulationEnabled,
+            size: size
+        )
     }
 
     /// The one hit area of the drawing: a transparent layer that turns a pointer position into the
@@ -239,33 +225,6 @@ struct PadGraphView: View {
     /// The d-pad directions carry their own: four similar petals inside one circle are hard to tell
     /// apart under a single accent. Everything else uses the accent, which follows the system setting
     /// instead of a colour written down in the model.
-    private func tint(for control: XInputControl) -> Color {
-        guard let tint = ControlTint.color(for: control) else { return .accentColor }
-        return Color(red: tint.red, green: tint.green, blue: tint.blue)
-    }
-
-    /// Whether this control is tinted right now: under the pointer, waiting for a key, or down.
-    ///
-    /// Picking a control does not tint by itself; it arms the capture, and the armed state is what
-    /// lights it. When that capture ends — a key lands, Escape cancels — the light goes with it.
-    private func isHighlighted(_ control: XInputControl) -> Bool {
-        isArmed(control) || isPressed(control) || hovered == control
-    }
-
-    /// Whether this control is the one waiting for a key press.
-    private func isArmed(_ control: XInputControl) -> Bool {
-        capture.isCapturing(control)
-    }
-
-    /// Whether the control is down in the report.
-    ///
-    /// Only while emulation is stopped: with emulation running the mappings are locked, and a moving
-    /// highlight would suggest a control can be picked.
-    private func isPressed(_ control: XInputControl) -> Bool {
-        guard !isEmulationEnabled, let report else { return false }
-        return control.isPressed(in: report)
-    }
-
     // MARK: - The strip under the drawing
 
     /// The control the strip talks about: the armed one while a capture waits for a key, and otherwise
@@ -281,16 +240,16 @@ struct PadGraphView: View {
     /// assigns something else to it.
     private var panel: some View {
         let control = describedControl
-        let isArmed = control.map(isArmed) ?? false
+        let isWaiting = control.map { capture.isCapturing($0) } ?? false
         return HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(control.map(MappingRules.controlLabel(for:)) ?? "Sin seleccionar")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
             Spacer(minLength: 8)
-            Text(isArmed ? "Pulsa una tecla…" : assignment(for: control))
+            Text(isWaiting ? "Pulsa una tecla…" : assignment(for: control))
                 .font(.callout.weight(.semibold))
-                .foregroundStyle(isArmed ? Color.accentColor : Color.primary)
+                .foregroundStyle(isWaiting ? Color.accentColor : Color.primary)
                 .lineLimit(1)
                 .truncationMode(.tail)
             if let control, MappingRules.isRemappable(control), !isEmulationEnabled {
@@ -479,5 +438,64 @@ private enum Masks {
         case .leftThumb: return "leftThumb"
         case .rightThumb: return "rightThumb"
         }
+    }
+}
+
+/// The tints of the drawing, and the only view that reads the live report.
+///
+/// It is a view of its own on purpose. Highlighting a pressed control needs the report, and the pad
+/// reports over a hundred times per second; if this lived in `PadGraphView` the strip below it — with
+/// the «Asignar…» menu — would be rebuilt at that rate, and an open menu rebuilt underneath itself
+/// flickers and closes its submenus.
+struct PadHighlights: View {
+    @ObservedObject var feed: ReportFeed
+    /// The control under the pointer, and the one waiting for a key. Both change with the hand, not
+    /// with the pad.
+    let hovered: XInputControl?
+    let armed: XInputControl?
+    let isEmulationEnabled: Bool
+    let size: CGSize
+
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            ForEach(XInputControl.allCases, id: \.self) { control in
+                if isHighlighted(control), let mask = Masks.image(for: control) {
+                    Rectangle()
+                        .fill(tint(for: control))
+                        .opacity(0.6)
+                        .mask(
+                            Image(nsImage: mask)
+                                .resizable()
+                                .interpolation(.high)
+                        )
+                        .frame(width: size.width, height: size.height)
+                        // The highlight is paint, not a target: the hit areas own the pointer.
+                        .allowsHitTesting(false)
+                }
+            }
+        }
+        .frame(width: size.width, height: size.height, alignment: .topLeading)
+    }
+
+    private func tint(for control: XInputControl) -> Color {
+        guard let tint = ControlTint.color(for: control) else { return .accentColor }
+        return Color(red: tint.red, green: tint.green, blue: tint.blue)
+    }
+
+    /// Whether this control is tinted right now: under the pointer, waiting for a key, or down.
+    ///
+    /// Picking a control does not tint by itself; it arms the capture, and the armed state is what
+    /// lights it. When that capture ends — a key lands, Escape cancels — the light goes with it.
+    private func isHighlighted(_ control: XInputControl) -> Bool {
+        control == armed || isPressed(control) || hovered == control
+    }
+
+    /// Whether the control is down in the report.
+    ///
+    /// Only while emulation is stopped: with emulation running the mappings are locked, and a moving
+    /// highlight would suggest a control can be picked.
+    private func isPressed(_ control: XInputControl) -> Bool {
+        guard !isEmulationEnabled, let report = feed.latest.report else { return false }
+        return control.isPressed(in: report)
     }
 }

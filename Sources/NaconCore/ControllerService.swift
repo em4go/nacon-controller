@@ -38,11 +38,13 @@ public final class ControllerService: ObservableObject {
     @Published public private(set) var devices: [NaconDevice] = []
     @Published public private(set) var state: ConnectionState = .searching
     @Published public private(set) var activeDevice: NaconDevice?
-    @Published public private(set) var report: XInputReport?
-    @Published public private(set) var reportCount = 0
-    @Published public private(set) var lastReportAt: Date?
+    /// The live values, coalesced. The window reads them here instead of off this object, so a report
+    /// does not rebuild every view that only cares about the connection.
+    public let feed = ReportFeed()
+    /// Total reports seen, for the command-line tools. Deliberately not published for the same reason:
+    /// a published counter would rebuild the window at report rate.
+    public private(set) var reportCount = 0
     @Published public private(set) var reconnectCount = 0
-    @Published public private(set) var rawPacketHex = ""
     @Published public private(set) var lastWriteStatus = "—"
 
     /// Called on the I/O queue for every decoded report, before the UI throttling.
@@ -456,10 +458,15 @@ extension ControllerService {
     private func publishReport(_ newReport: XInputReport?, count: Int, hex: String, at date: Date?) {
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            self.report = newReport
             self.reportCount = count
-            self.rawPacketHex = hex
-            self.lastReportAt = date
+            self.feed.submit(
+                ReportFeed.Snapshot(
+                    report: newReport,
+                    count: count,
+                    rawPacketHex: hex,
+                    receivedAt: date
+                )
+            )
         }
     }
 

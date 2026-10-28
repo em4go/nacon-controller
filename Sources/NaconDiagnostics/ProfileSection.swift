@@ -10,8 +10,10 @@ struct ProfileSection: View {
     @ObservedObject var profiles: ProfileLibraryController
     /// S3: the mapping editor has to be locked while emulation runs, so the section reads that state.
     @EnvironmentObject private var emulation: EmulationController
-    /// The graphical view shows the pressed controls, so the section reads the last report.
-    @EnvironmentObject private var service: ControllerService
+    /// The graphical view shows the pressed controls. It is handed the feed and reads it inside its
+    /// own highlight layer, so this section — and the assign menu it contains — never rebuilds for a
+    /// report.
+    let feed: ReportFeed
 
     /// Which of the two views the user last chose. Remembered between launches like the rest of the
     /// preferences, because the choice is about how the window is read, not about this profile.
@@ -41,7 +43,7 @@ struct ProfileSection: View {
                     PadGraphView(
                         profile: selected.profile,
                         profileID: selected.id,
-                        report: service.report,
+                        feed: feed,
                         isEmulationEnabled: emulation.isEnabled,
                         capture: capture,
                         onAssign: { control, action in

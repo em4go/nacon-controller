@@ -25,7 +25,9 @@ while Date() < deadline {
 }
 
 print("devices=\(service.devices.count) reports=\(service.reportCount) reconnects=\(service.reconnectCount)")
-print("lastPacket=\(service.rawPacketHex.isEmpty ? "none" : service.rawPacketHex)")
+RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+let lastPacket = service.feed.latest.rawPacketHex
+print("lastPacket=\(lastPacket.isEmpty ? "none" : lastPacket)")
 fflush(stdout)
 let receivedReports = service.reportCount
 service.stop()

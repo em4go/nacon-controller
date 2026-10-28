@@ -15,6 +15,12 @@ final class EmulationController: ObservableObject {
     /// Supplies the mapping to run. The app points it at the saved profiles, so a start uses the
     /// selected one (S1, S8); the standard mapping keeps the controller usable on its own.
     private var profileSource: @MainActor () -> InputProfile = { .standard }
+    /// What the summary shows. A separate source because it wants the profile's display name too,
+    /// which the engine does not carry.
+    private var summarySource: @MainActor () -> MappingSummaryWindow.Content = {
+        MappingSummaryWindow.Content(title: "Perfil estándar", profile: .standard)
+    }
+    private let summary = MappingSummaryWindow()
     private var cancellables: Set<AnyCancellable> = []
     private var permissionTimer: Timer?
     private var terminationObserver: NSObjectProtocol?
@@ -36,6 +42,18 @@ final class EmulationController: ObservableObject {
                 self?.startFromPad()
             }
         }
+        // MOD+PS: the floating summary. Same hop as the other callbacks: the pad reports arrive on
+        // the USB I/O queue, and the panel is main-thread only.
+        engine.onSummaryPress = { [weak self] in
+            DispatchQueue.main.async {
+                self?.toggleSummaryFromPad()
+            }
+        }
+    }
+
+    /// Also reachable through the `--show-summary` launch argument, for screenshot checks.
+    func toggleSummaryFromPad() {
+        summary.toggle(with: summarySource())
     }
 
     /// S12: Guide asked to start the emulation.
@@ -57,6 +75,25 @@ final class EmulationController: ObservableObject {
         // S1, S8: the engine reads the library every time emulation starts, so the profile selected
         // in the window — including the one restored from disk after a relaunch — is the one used.
         profileSource = { profiles.runtimeProfile }
+        summarySource = {
+            MappingSummaryWindow.Content(
+                title: profiles.selectedProfile?.name ?? "Perfil estándar",
+                profile: profiles.runtimeProfile
+            )
+        }
+
+        // S6: stopping the emulation — from the pad, the button or an unplugged pad — closes the
+        // summary along with everything else the run had open.
+        // dropFirst: the subscription delivers the current value as soon as it is installed, and at
+        // attach time the summary may be open from the `--show-summary` launch argument — closing it
+        // then would make the panel flicker away the instant the window appears.
+        $isEnabled.dropFirst()
+            .sink { [weak self] running in
+                if !running {
+                    self?.summary.hide()
+                }
+            }
+            .store(in: &cancellables)
 
         // Capture the engine, not self: this closure runs on the USB I/O queue.
         let engine = self.engine

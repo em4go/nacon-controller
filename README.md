@@ -224,6 +224,16 @@ Un perfil sin tecla MOD se comporta exactamente como antes, y los perfiles ya gu
 cambios: la capa empieza vacía. La captura de teclado escribe en la base; una asignación de la capa
 se elige del menú.
 
+### Resumen de mapeos
+
+Mantén la tecla MOD y pulsa PS: aparece un panel flotante con lo que envía cada control, en la base y
+—si el perfil tiene capa— con MOD. Al volver a pulsar MOD+PS se cierra, y también se cierra solo a los
+ocho segundos o al apagar la emulación.
+
+Es un panel que no roba el foco ni el ratón, así que puedes leerlo encima de la aplicación en la que
+estés trabajando, como Spotlight. PS sin MOD sigue haciendo lo suyo: encender y apagar la emulación.
+El resumen funciona con la emulación apagada: mirar el mapa no enciende nada.
+
 ### Firma estable (recomendado antes de la primera concesión)
 
 La firma ad-hoc ancla el permiso de Accesibilidad al hash del binario, así que **cada recompilación

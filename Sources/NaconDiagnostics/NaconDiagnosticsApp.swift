@@ -19,6 +19,15 @@ struct NaconDiagnosticsApp: App {
                 .onAppear {
                     appDelegate.service = service
                     service.start()
+                    // Dev aid: opens the mapping summary without a pad, so its layout can be
+                    // checked with a screenshot.
+                    if CommandLine.arguments.contains("--show-summary") {
+                        // A beat after appearing: the library loads its profiles in the same pass, and
+                        // the summary must show the selected one, not the fallback.
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            emulation.toggleSummaryFromPad()
+                        }
+                    }
                     // S1, S8: the engine runs the profile the library has selected.
                     emulation.attach(to: service, profiles: profiles)
                 }

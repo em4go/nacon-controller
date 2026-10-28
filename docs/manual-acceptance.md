@@ -27,6 +27,7 @@ El mando debe estar conectado y el permiso de Accesibilidad concedido.
 | 5 | Iniciar emulación y pulsar **A** con un editor de texto delante | Escribe `h` |
 | 6 | Con la emulación activa, mirar el editor | Está bloqueado, con su aviso, y el eje Y también |
 | 7 | Pulsar **PS** | Detiene la emulación al instante; pulsarlo de nuevo la activa |
+| 20 | Mantener la tecla MOD y pulsar PS; repetirlo; luego PS solo | El panel aparece y desaparece, **sin** cambiar la emulación; PS solo sigue encendiendo y apagando; apagar la emulación lo cierra |
 | 19 | Con una tecla MOD elegida: en la columna MOD de un control, capturar una tecla y añadirle un paso; comprobar que la base quedó intacta | Ambas columnas ofrecen captura, catálogo y pasos; la captura escribe solo donde se armó |
 | 18 | En un editor de texto, asignar ⌘A a un control y añadirle un paso ⌘C desde **Elegir… › Añadir paso al comando…**; pulsarlo con texto en el documento | Selecciona todo y copia; mantener el botón no lo repite; soltarlo enseguida no deja ninguna tecla pulsada |
 | 17 | Hacer clic con el mando en un enlace de un texto con formato (terminal, markdown o web) y en un control que antes no respondía | El enlace se abre con un clic normal, sin ⌘: lo que faltaba era la cuenta de clics del evento |

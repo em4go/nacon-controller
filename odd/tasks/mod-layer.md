@@ -25,7 +25,7 @@ La base y la capa MOD se editan a la vista, sin conmutador de modo.
 
 | ID | Spec | Ruta | Commit |
 | --- | --- | --- | --- |
-| T1 | S1, S2, S5, S6 | Modelo (`ProfileLayer`), codificación, motor y tests | — |
+| T1 | S1, S2, S5, S6 | Modelo (`ProfileLayer`), codificación, motor y tests | `0445e24` |
 | T2 | S3, S4 | Selector de tecla MOD compartido por las dos vistas | — |
 | T3 | S3, S5, S7 | Tabla: columna MOD por fila | — |
 | T4 | S4 | Dibujo: línea con las dos capas y menú por capa | — |
@@ -43,3 +43,11 @@ La base y la capa MOD se editan a la vista, sin conmutador de modo.
   en su flanco de subida, así que la capa no puede dejar una tecla pegada. La resolución pasa a ser
   `action(for:control:layerActive:)`. Las entradas «Mantener modificador» siguen siendo otra cosa: esas
   emiten ⌘ al sistema, la capa no emite nada.
+- **L4.** Rebanada 1 cerrada en `0445e24` (T1): 435 líneas, por encima del límite de revisión de
+  ~400. De aquí en adelante la entrega va partida en tres rebanadas con commits separados: 1) modelo,
+  motor y tests (hecha); 2) interfaz: selector de tecla MOD, columna MOD de la tabla y las dos capas
+  en el dibujo; 3) documentación y aceptación. Cada rebanada se revisa por separado.
+- **L5.** Límite conocido de la rebanada 2: la captura de teclado arma la capa base. Una asignación a
+  la capa MOD se elige del menú (ratón, desplazamiento, catálogo del sistema y modificadores
+  sostenidos), no se captura. Hacer la captura consciente de la capa toca `KeyCaptureSession` y sus
+  tests, y queda fuera de esta rebanada.

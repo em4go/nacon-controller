@@ -255,4 +255,43 @@ final class EmulationEngineTests: XCTestCase {
         engine.tick(seconds: 0.05)
         XCTAssertEqual(emitter.events, [.scroll(1)])
     }
+
+    // MARK: - The timer is a hint, not a metronome
+
+    func testTheStepIsTheTimeThatReallyPassed() {
+        // macOS coalesces the timer and throttles the app when it is in the background, which is
+        // exactly when the emulation is used. A fixed step per callback made the cursor crawl there.
+        XCTAssertEqual(
+            EmulationEngine.tickStep(elapsed: 0.032, nominal: 1.0 / 60.0, limit: 0.1),
+            0.032,
+            accuracy: 1e-9
+        )
+    }
+
+    func testTheFirstCallbackUsesTheNominalStep() {
+        XCTAssertEqual(
+            EmulationEngine.tickStep(elapsed: nil, nominal: 1.0 / 60.0, limit: 0.1),
+            1.0 / 60.0,
+            accuracy: 1e-9
+        )
+    }
+
+    func testAStallCannotFlingThePointerAcrossTheScreen() {
+        XCTAssertEqual(
+            EmulationEngine.tickStep(elapsed: 5, nominal: 1.0 / 60.0, limit: 0.1),
+            0.1,
+            accuracy: 1e-9
+        )
+    }
+
+    func testNonsenseElapsedFallsBackToTheNominalStep() {
+        for elapsed in [0, -1, Double.nan, Double.infinity] {
+            XCTAssertEqual(
+                EmulationEngine.tickStep(elapsed: elapsed, nominal: 1.0 / 60.0, limit: 0.1),
+                1.0 / 60.0,
+                accuracy: 1e-9,
+                "\(elapsed)"
+            )
+        }
+    }
 }

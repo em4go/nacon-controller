@@ -30,6 +30,15 @@ public final class EmulationEngine {
 
     private var timer: DispatchSourceTimer?
     private var enabled = false
+    /// Clock reading of the previous timer callback. Movement integrates the time that really passed,
+    /// so a callback that arrives late makes the motion coarser, never slower.
+    private var lastTick: UInt64?
+    /// Largest step one callback may advance. A stalled thread must not fling the pointer across the
+    /// screen when it wakes up.
+    private let maxTickStep: TimeInterval = 0.1
+    /// Held while emulation runs. Without it macOS coalesces the timer and throttles the app once it is
+    /// in the background, which is where the user actually is.
+    private var activity: NSObjectProtocol?
     private var previousReport: XInputReport?
     private var heldActions: [XInputControl: MappedAction] = [:]
     private var leftStick: XInputStick = .center
@@ -55,10 +64,20 @@ public final class EmulationEngine {
             source.schedule(deadline: .now(), repeating: self.tickInterval)
             source.setEventHandler { [weak self] in
                 guard let self else { return }
-                self.tick(seconds: self.tickInterval)
+                let now = DispatchTime.now().uptimeNanoseconds
+                let elapsed = self.lastTick.map { Double(now &- $0) / 1_000_000_000 }
+                self.lastTick = now
+                self.tick(
+                    seconds: Self.tickStep(
+                        elapsed: elapsed,
+                        nominal: self.tickInterval,
+                        limit: self.maxTickStep
+                    )
+                )
             }
             source.resume()
             self.timer = source
+            self.lastTick = nil
         }
     }
 
@@ -72,6 +91,7 @@ public final class EmulationEngine {
             self.disableOnQueue(notify: false)
             self.timer?.cancel()
             self.timer = nil
+            self.lastTick = nil
         }
         if DispatchQueue.getSpecific(key: queueKey) != nil {
             shutdown()
@@ -85,6 +105,7 @@ public final class EmulationEngine {
             guard let self else { return }
             if newValue {
                 self.enabled = true
+                self.beginActivity()
             } else {
                 self.disableOnQueue(notify: false)
             }
@@ -196,6 +217,7 @@ public final class EmulationEngine {
     private func disableOnQueue(notify: Bool) {
         guard enabled else { return }
         enabled = false
+        endActivity()
         scroll.reset()
         for action in heldActions.values {
             emitter.release(action)
@@ -209,5 +231,35 @@ public final class EmulationEngine {
                 self?.onEmergencyStop?()
             }
         }
+    }
+
+    /// How long one timer callback may advance the pointer.
+    ///
+    /// The timer is a hint, not a metronome: macOS coalesces it, and once the app sits in the
+    /// background it can run far less often. Advancing a fixed step per callback made the cursor crawl
+    /// exactly when the user was working in another application, which is the usual case for a tool
+    /// like this. The step is therefore the time that really passed, capped so a woken thread cannot
+    /// move the pointer across the screen in one go.
+    static func tickStep(elapsed: TimeInterval?, nominal: TimeInterval, limit: TimeInterval) -> Double {
+        guard let elapsed, elapsed.isFinite, elapsed > 0 else { return nominal }
+        return min(elapsed, limit)
+    }
+
+    /// Tells macOS this process is busy driving the pointer, so it stops throttling it.
+    ///
+    /// Without it the timer above keeps working but is coalesced, and the app is a candidate for App
+    /// Nap as soon as its window is not in front — exactly when the emulation is being used.
+    private func beginActivity() {
+        guard activity == nil else { return }
+        activity = ProcessInfo.processInfo.beginActivity(
+            options: [.userInitiated, .latencyCritical],
+            reason: "La emulación mueve el cursor y pulsa teclas"
+        )
+    }
+
+    private func endActivity() {
+        guard let activity else { return }
+        ProcessInfo.processInfo.endActivity(activity)
+        self.activity = nil
     }
 }

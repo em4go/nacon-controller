@@ -51,12 +51,10 @@ struct ProfileSection: View {
                         feed: feed,
                         isEmulationEnabled: emulation.isEnabled,
                         capture: capture,
-                        onAssign: { control, action in
-                            // Same guard as a capture: the write belongs to the profile on screen.
-                            applyCapturedAction(selected.id, control, action)
-                        },
-                        onAssignToLayer: { control, action in
-                            applyLayerAction(selected.id, control, action)
+                        onWrite: { control, column, action in
+                            // The row names the column; the write itself is one seam, so a menu pick
+                            // and a capture land the same way.
+                            write(action, to: column, for: control, profileID: selected.id)
                         }
                     )
                     // A capture belongs to the profile it was armed for, so the graph is rebuilt when
@@ -71,8 +69,9 @@ struct ProfileSection: View {
                         profile: selected.profile,
                         profileID: selected.id,
                         isEmulationEnabled: emulation.isEnabled,
-                        setAction: applyCapturedAction,
-                        setLayerAction: applyLayerAction,
+                        onWrite: { profileID, control, column, action in
+                            write(action, to: column, for: control, profileID: profileID)
+                        },
                         capture: capture
                     )
                     // Switching profiles rebuilds the editor, which ends any armed capture: a pending
@@ -97,20 +96,16 @@ struct ProfileSection: View {
             // per key press, into the profile the capture was armed for. Installing it here instead
             // of in one of the two views keeps that true whichever view is showing.
             capture.onFinish = { outcome in
-                guard case let .mapped(armedProfileID, control, action) = outcome else { return }
-                // The armed menu declared the destination: the MOD column or the base. Reading it
-                // here, from the same flags the arming set, is what lets both columns offer the
-                // capture and the steps without a second capture path.
-                if capture.isLayerCapture {
-                    var written = action
-                    if capture.isAppendingStep, case .key(let combo) = action,
-                       let current = profiles.selectedProfile?.profile.layer.action(for: control) {
-                        written = MappingRules.appending(step: combo, to: current)
-                    }
-                    applyLayerAction(armedProfileID, control, written)
-                } else {
-                    applyCapturedAction(armedProfileID, control, action)
-                }
+                // One rule decides everything else: the intent that came back with the press says
+                // which column and whether it extends, and the profile guard in `ProfileLibrary`
+                // drops a write aimed at a profile that is no longer selected.
+                profiles.apply(
+                    MappingWrite.resolve(
+                        outcome,
+                        editing: profiles.selectedProfile?.profile,
+                        selectedProfileID: profiles.selectedProfile?.id
+                    )
+                )
             }
         }
         .onChange(of: emulation.isEnabled) { isRunning in
@@ -135,40 +130,21 @@ struct ProfileSection: View {
         }
     }
 
-    /// Writes a mapping captured for a profile.
+    /// Writes one action into one column of one control, through the one write seam.
     ///
-    /// F5: a capture belongs to the profile it was armed for. `KeyCaptureSession` reports that
-    /// identifier with the mapping, so a selection that moved while a key was in flight drops the
-    /// write instead of landing on the profile the user has just selected.
-    private func applyCapturedAction(
-        _ armedProfileID: UUID,
-        _ control: XInputControl,
-        _ action: MappedAction
+    /// A menu choice, a shortened command and a capture the section resolved all come through here,
+    /// so the profile guard, the column decision and the save are the same for the table and for the
+    /// drawing. `ProfileLibrary` refuses a write aimed at a profile that is not selected, which is
+    /// what keeps F5 true whichever view armed the capture.
+    private func write(
+        _ action: MappedAction,
+        to column: MappingColumn,
+        for control: XInputControl,
+        profileID: UUID
     ) {
-        guard armedProfileID == profiles.selectedProfile?.id else { return }
-        // A capture armed to extend a command adds its key to the end of what the control already
-        // sends, instead of replacing it. Anything that is not a key cannot be a step, so it replaces
-        // the mapping rather than silently doing nothing.
-        var written = action
-        if capture.isAppendingStep, case .key(let combo) = action,
-           let current = profiles.selectedProfile?.profile.action(for: control) {
-            written = MappingRules.appending(step: combo, to: current)
-        }
-        // The controller persists every change, so the edit survives a restart (S6).
-        profiles.setAction(written, for: control)
-    }
-
-    /// Writes one assignment into the layer of the profile on screen.
-    ///
-    /// A layer choice comes from a menu, not from a capture, but it is guarded the same way: the
-    /// write only lands on the profile the user is looking at.
-    private func applyLayerAction(
-        _ profileID: UUID,
-        _ control: XInputControl,
-        _ action: MappedAction
-    ) {
-        guard profileID == profiles.selectedProfile?.id else { return }
-        profiles.setLayerAction(action, for: control)
+        profiles.apply(
+            .apply(profileID: profileID, control: control, column: column, action: action)
+        )
     }
 
     /// S5: the control that opens the layer, and the one way to remove the layer entirely.

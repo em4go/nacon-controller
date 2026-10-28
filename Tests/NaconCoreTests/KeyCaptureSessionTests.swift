@@ -73,6 +73,62 @@ final class KeyCaptureSessionTests: XCTestCase {
         XCTAssertFalse(session.isArmed)
     }
 
+    // MARK: - The arming intent (S2, S3)
+
+    func testArmingRemembersTheIntent() {
+        var session = KeyCaptureSession()
+
+        session.arm(.buttonA, for: profileA, intent: .modCommand, isEmulationRunning: false)
+
+        XCTAssertEqual(session.intent, .modCommand)
+    }
+
+    func testDefaultArmingIsTheBaseColumn() {
+        var session = KeyCaptureSession()
+
+        session.arm(.buttonA, for: profileA, isEmulationRunning: false)
+
+        XCTAssertEqual(session.intent, .base, "a capture that says nothing writes to the base")
+    }
+
+    func testTheCaptureButtonCancelsACommandCaptureWhateverItsMode() {
+        var session = KeyCaptureSession()
+        session.arm(.buttonA, for: profileA, intent: .baseCommand, isEmulationRunning: false)
+
+        // The button reads «Cancelar» as soon as the control is armed, so pressing it has to cancel.
+        let result = session.toggle(
+            .buttonA,
+            for: profileA,
+            intent: .base,
+            isEmulationRunning: false
+        )
+
+        XCTAssertEqual(result, .disarmed, "a button labelled «Cancelar» must always cancel")
+        XCTAssertFalse(session.isArmed)
+        XCTAssertNil(session.intent)
+    }
+
+    func testArmingWithADifferentIntentReplacesTheArmedCaptureWithoutCancelling() {
+        var session = KeyCaptureSession()
+        session.arm(.buttonA, for: profileA, intent: .baseCommand, isEmulationRunning: false)
+
+        // A menu pick names a destination; it is never a request to cancel.
+        let result = session.arm(.buttonA, for: profileA, intent: .mod, isEmulationRunning: false)
+
+        XCTAssertEqual(result, .armed)
+        XCTAssertTrue(session.isArmed(.buttonA))
+        XCTAssertEqual(session.intent, .mod)
+    }
+
+    func testDisarmClearsTheIntent() {
+        var session = KeyCaptureSession()
+        session.arm(.buttonA, for: profileA, intent: .modCommand, isEmulationRunning: false)
+
+        session.disarm()
+
+        XCTAssertNil(session.intent, "a finished capture must not leave a destination behind")
+    }
+
     // MARK: - Presses with nothing armed
 
     func testKeyPressWithoutArmingChangesNothing() {
@@ -129,7 +185,12 @@ final class KeyCaptureSessionTests: XCTestCase {
 
         XCTAssertEqual(
             outcome,
-            .mapped(profileID: profileA, control: .buttonA, action: .key(KeyCombo(keyCode: 53, modifiers: [.shift])))
+            .mapped(
+                profileID: profileA,
+                control: .buttonA,
+                action: .key(KeyCombo(keyCode: 53, modifiers: [.shift])),
+                intent: .base
+            )
         )
     }
 
@@ -143,15 +204,51 @@ final class KeyCaptureSessionTests: XCTestCase {
 
         XCTAssertEqual(
             outcome,
-            .mapped(profileID: profileA, control: .buttonA, action: .key(KeyCombo(keyCode: 12)))
+            .mapped(
+                profileID: profileA,
+                control: .buttonA,
+                action: .key(KeyCombo(keyCode: 12)),
+                intent: .base
+            )
         )
+    }
+
+    func testMappedOutcomeCarriesTheArmingIntent() {
+        var session = KeyCaptureSession()
+        session.arm(.buttonA, for: profileA, intent: .modCommand, isEmulationRunning: false)
+
+        let outcome = session.handleKey(keyCode: 12, modifiers: [])
+
+        XCTAssertEqual(
+            outcome,
+            .mapped(
+                profileID: profileA,
+                control: .buttonA,
+                action: .key(KeyCombo(keyCode: 12)),
+                intent: .modCommand
+            ),
+            "the press has to come back with the column and mode it was armed with"
+        )
+    }
+
+    func testTheIntentSurvivesTheDisarmThatEndsTheCapture() {
+        var session = KeyCaptureSession()
+        session.arm(.buttonA, for: profileA, intent: .mod, isEmulationRunning: false)
+
+        let outcome = session.handleKey(keyCode: 12, modifiers: [])
+
+        guard case let .mapped(_, _, _, intent) = outcome else {
+            return XCTFail("a key press has to become a mapping")
+        }
+        XCTAssertEqual(intent, .mod)
+        XCTAssertNil(session.intent, "the session let go of the intent; the outcome kept it")
     }
 
     func testModifiersSurviveIntoTheMappedAction() {
         var session = KeyCaptureSession()
         session.arm(.start, for: profileA, isEmulationRunning: false)
 
-        guard case let .mapped(_, control, action) = session.handleKey(
+        guard case let .mapped(_, control, action, _) = session.handleKey(
             keyCode: 12,
             modifiers: [.command, .option]
         ) else {
@@ -171,7 +268,7 @@ final class KeyCaptureSessionTests: XCTestCase {
 
         let outcome = session.handleKey(keyCode: 12, modifiers: [])
 
-        guard case let .mapped(armedProfileID, _, _) = outcome else {
+        guard case let .mapped(armedProfileID, _, _, _) = outcome else {
             return XCTFail("a key press has to become a mapping")
         }
         XCTAssertEqual(armedProfileID, profileA)
@@ -223,7 +320,7 @@ final class KeyCaptureSessionTests: XCTestCase {
         to profile: inout InputProfile,
         selected: UUID?
     ) {
-        guard case let .mapped(armedProfileID, control, action) = outcome else { return }
+        guard case let .mapped(armedProfileID, control, action, _) = outcome else { return }
         guard selected == nil || armedProfileID == selected else { return }
         profile.setAction(action, for: control)
     }

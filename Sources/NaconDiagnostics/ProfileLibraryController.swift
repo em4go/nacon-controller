@@ -100,6 +100,14 @@ final class ProfileLibraryController: ObservableObject {
         mutate { $0.setLayerAction(action, for: control, in: id) }
     }
 
+    /// S2: applies the write a finished capture resolved to and saves it straight away.
+    ///
+    /// The resolve itself, the profile guard and the column decision all live in `NaconCore`, so the
+    /// controller only sequences "change, then save" like every other edit.
+    func apply(_ write: MappingWrite) {
+        mutate { $0.apply(write) }
+    }
+
     /// Drops the key and every entry of the layer, returning the profile to having no layer at all.
     func clearLayer() {
         guard let id = library.selectedProfile?.id else { return }

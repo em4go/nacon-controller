@@ -31,12 +31,11 @@ struct PadGraphView: View {
     let isEmulationEnabled: Bool
     /// The one capture of the section. Armed by a tap here, by «Capturar» in the table, or by neither.
     @ObservedObject var capture: MappingCapture
-    /// Writes an assignment the capture cannot express: mouse buttons, scrolling, clearing and the
-    /// ready-made macOS shortcuts. The section applies the same profile guard it applies to a capture.
-    let onAssign: (XInputControl, MappedAction) -> Void
-    /// Writes one assignment into the layer of the profile on screen. The drawing offers the same two
-    /// layers as the table (S4), so it needs the same second destination.
-    let onAssignToLayer: (XInputControl, MappedAction) -> Void
+    /// Writes one assignment into one column of the profile on screen: a menu choice the capture cannot
+    /// express (mouse buttons, scrolling, clearing, the ready-made macOS shortcuts) or a shortened
+    /// command. The section turns it into a `MappingWrite` and applies the same profile guard a capture
+    /// goes through.
+    let onWrite: (XInputControl, MappingColumn, MappedAction) -> Void
 
     /// The control under the pointer, cleared when it leaves. Hovering only previews a control: it
     /// never arms anything, so moving the mouse across the drawing is safe.
@@ -208,19 +207,32 @@ struct PadGraphView: View {
         }
     }
 
-    /// Picks a control and, unless it is the reserved one, arms the capture for it.
+    /// Picks a control and, unless it is the reserved one, toggles the capture for it.
     ///
     /// Selection and arming are one gesture on purpose: a tap on the drawing is the same intent as
-    /// pressing «Capturar» in the table for that row. PS is the exception — it is the emulation switch,
-    /// so it can be inspected but never rebound.
-    private func select(_ control: XInputControl, appending: Bool = false) {
+    /// pressing «Capturar» in the table for that row, and a second tap on the armed control cancels it
+    /// because that is what the button it stands for would say. PS is the exception — it is the
+    /// emulation switch, so it can be inspected but never rebound.
+    private func select(_ control: XInputControl) {
         selected = control
         guard MappingRules.isRemappable(control) else { return }
         capture.toggle(
             control,
             for: profileID,
-            isEmulationRunning: isEmulationEnabled,
-            appending: appending
+            isEmulationRunning: isEmulationEnabled
+        )
+    }
+
+    /// Arms the capture for a control from a menu entry. A destination is not a request to cancel, so
+    /// a pick while a capture is armed re-arms it instead of ending it.
+    private func arm(_ control: XInputControl, intent: CaptureIntent) {
+        selected = control
+        guard MappingRules.isRemappable(control) else { return }
+        capture.arm(
+            control,
+            for: profileID,
+            intent: intent,
+            isEmulationRunning: isEmulationEnabled
         )
     }
 
@@ -263,13 +275,14 @@ struct PadGraphView: View {
                     // offers the same choices here as in the table whichever layer it writes to.
                     Menu("Asignar a la base") {
                         AssignMenuItems(
-                            onCapture: { select(control) },
-                            onChoose: { assign(control, $0) },
+                            onCapture: { arm(control, intent: .base) },
+                            onChoose: { write(control, .base, $0) },
                             current: profile.action(for: control),
-                            onAppendStep: { select(control, appending: true) },
+                            onAppendStep: { arm(control, intent: .baseCommand) },
                             onDropLastStep: {
-                                assign(
+                                write(
                                     control,
+                                    .base,
                                     MappingRules.droppingLastStep(from: profile.action(for: control))
                                 )
                             }
@@ -281,7 +294,7 @@ struct PadGraphView: View {
                         Menu("Asignar con MOD") {
                             AssignMenuItems(
                                 includesCapture: false,
-                                onChoose: { assignToLayer(control, $0) }
+                                onChoose: { write(control, .mod, $0) }
                             )
                         }
                     }
@@ -303,20 +316,12 @@ struct PadGraphView: View {
         .help(control.map { "\(MappingRules.controlLabel(for: $0)): \(assignment(for: $0))" } ?? "")
     }
 
-    /// Writes one assignment and returns the drawing to its normal state.
+    /// Writes one assignment into one column and returns the drawing to its normal state.
     ///
     /// The selection exists to arm one thing; once it is done, keeping the control tinted would say
     /// «still waiting» when nothing is waiting.
-    private func assign(_ control: XInputControl, _ action: MappedAction) {
-        onAssign(control, action)
-        selected = nil
-        hovered = nil
-    }
-
-    /// The same write, aimed at the layer, with the same tidy-up: the menu is not a capture, but the
-    /// pick is over either way.
-    private func assignToLayer(_ control: XInputControl, _ action: MappedAction) {
-        onAssignToLayer(control, action)
+    private func write(_ control: XInputControl, _ column: MappingColumn, _ action: MappedAction) {
+        onWrite(control, column, action)
         selected = nil
         hovered = nil
     }

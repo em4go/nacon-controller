@@ -25,12 +25,10 @@ struct MappingEditor: View {
     let profileID: UUID
     /// Whether emulation is running, which locks the editor.
     let isEmulationEnabled: Bool
-    /// Applies one base mapping to the profile the capture was armed for. Supplied by the section,
-    /// which drops the write when that profile is no longer the selected one.
-    let setAction: (UUID, XInputControl, MappedAction) -> Void
-    /// Applies one assignment to the layer of the profile on screen. A layer choice comes from a
-    /// menu, never from a capture, so it only needs the profile guard.
-    let setLayerAction: (UUID, XInputControl, MappedAction) -> Void
+    /// Applies one write to the profile on screen: a menu choice, a shortened command, or a capture
+    /// the section has already resolved. The section turns it into a `MappingWrite` and lets the
+    /// library apply it, so the profile guard is not duplicated here.
+    let onWrite: (UUID, XInputControl, MappingColumn, MappedAction) -> Void
     /// The one capture of the section, shared with the graphical view. The section owns it so a
     /// capture armed in either view is the same session, with the same monitor and the same rules.
     @ObservedObject var capture: MappingCapture
@@ -67,45 +65,12 @@ struct MappingEditor: View {
                         // the row would be showing what can never happen.
                         layerAction: showsLayer ? profile.layer.action(for: control) : nil,
                         showsLayer: showsLayer,
-                        // One armed control at a time, so the column that is not capturing shows its
-                        // normal label: two buttons reading "Cancelar" would say both are armed.
-                        isCapturing: capture.isCapturing(control) && !capture.isLayerCapture,
-                        isCapturingLayer: capture.isCapturing(control) && capture.isLayerCapture,
-                        onCapture: {
-                            capture.toggle(
-                                control,
-                                for: profileID,
-                                isEmulationRunning: isEmulationEnabled
-                            )
-                        },
-                        onAppendStep: {
-                            capture.toggle(
-                                control,
-                                for: profileID,
-                                isEmulationRunning: isEmulationEnabled,
-                                appending: true
-                            )
-                        },
-                        // A menu choice applies to the profile on screen, so it carries that id.
-                        onChoose: { setAction(profileID, control, $0) },
-                        onChooseLayer: { setLayerAction(profileID, control, $0) },
-                        onCaptureLayer: {
-                            capture.toggle(
-                                control,
-                                for: profileID,
-                                isEmulationRunning: isEmulationEnabled,
-                                layer: true
-                            )
-                        },
-                        onAppendStepLayer: {
-                            capture.toggle(
-                                control,
-                                for: profileID,
-                                isEmulationRunning: isEmulationEnabled,
-                                appending: true,
-                                layer: true
-                            )
-                        }
+                        // The row asks the capture itself which cell is waiting and keeps the two
+                        // verbs apart: its buttons cancel, its menu entries only arm.
+                        capture: capture,
+                        profileID: profileID,
+                        isEmulationRunning: isEmulationEnabled,
+                        onWrite: { column, action in onWrite(profileID, control, column, action) }
                     )
                 }
                 reservedRow
@@ -195,31 +160,45 @@ private struct MappingRow: View {
     let layerAction: MappedAction?
     /// Whether the MOD half of the row exists at all.
     let showsLayer: Bool
-    /// Whether this row is waiting for a key for the base column.
-    let isCapturing: Bool
-    /// Whether it is waiting for the layer column instead.
-    let isCapturingLayer: Bool
-    let onCapture: () -> Void
-    /// Arms a capture whose key becomes one more step of this control's command.
-    let onAppendStep: () -> Void
-    let onChoose: (MappedAction) -> Void
-    let onChooseLayer: (MappedAction) -> Void
-    /// Arms a capture that writes into the MOD column, and one that extends a command there.
-    let onCaptureLayer: () -> Void
-    let onAppendStepLayer: () -> Void
+    /// The one capture of the section. The row asks it which cell is waiting and arms or cancels it,
+    /// so it needs no flag of its own.
+    let capture: MappingCapture
+    /// Profile the row's controls belong to; a capture is armed for it, never for another.
+    let profileID: UUID
+    /// Whether emulation is running, which refuses the arming.
+    let isEmulationRunning: Bool
+    /// Writes one action into one column of this control.
+    let onWrite: (MappingColumn, MappedAction) -> Void
+
+    /// Whether the base cell is the one waiting for a key. Only one control and one column at a time
+    /// can be armed, so the other cell keeps its normal label: two buttons reading «Cancelar» would
+    /// say both are armed.
+    private var isWaitingInBase: Bool {
+        capture.isCapturing(control, in: .base)
+    }
+
+    /// Whether the MOD cell is the one waiting for a key.
+    private var isWaitingInMod: Bool {
+        capture.isCapturing(control, in: .mod)
+    }
 
     var body: some View {
         HStack(spacing: 10) {
             Text(MappingRules.controlLabel(for: control))
                 .font(.callout.weight(.medium))
                 .frame(width: 96, alignment: .leading)
-            Text(isCapturing ? "Pulsa una tecla…" : MappingRules.label(for: action))
+            Text(isWaitingInBase ? "Pulsa una tecla…" : MappingRules.label(for: action))
                 .font(.system(.callout, design: .monospaced))
-                .foregroundStyle(isCapturing ? Color.accentColor : Color.primary)
+                .foregroundStyle(isWaitingInBase ? Color.accentColor : Color.primary)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            Button(isCapturing ? "Cancelar" : "Capturar") {
-                onCapture()
+            Button(isWaitingInBase ? "Cancelar" : "Capturar") {
+                capture.toggle(
+                    control,
+                    for: profileID,
+                    intent: .base,
+                    isEmulationRunning: isEmulationRunning
+                )
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
@@ -240,7 +219,11 @@ private struct MappingRow: View {
         .padding(.horizontal, 8)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(isCapturing ? Color.accentColor.opacity(0.12) : Color.secondary.opacity(0.06))
+                .fill(
+                    isWaitingInBase || isWaitingInMod
+                        ? Color.accentColor.opacity(0.12)
+                        : Color.secondary.opacity(0.06)
+                )
         )
     }
 
@@ -250,17 +233,22 @@ private struct MappingRow: View {
     /// something with MOD held: it does what the base says (S2).
     private var layerCell: some View {
         HStack(spacing: 10) {
-            Text(isCapturingLayer ? "Pulsa una tecla…" : layerAction.map(MappingRules.label(for:)) ?? "—")
+            Text(isWaitingInMod ? "Pulsa una tecla…" : layerAction.map(MappingRules.label(for:)) ?? "—")
                 .font(.system(.callout, design: .monospaced))
-                .foregroundStyle(layerAction == nil || isCapturingLayer ? Color.secondary : Color.primary)
+                .foregroundStyle(layerAction == nil || isWaitingInMod ? Color.secondary : Color.primary)
                 .lineLimit(1)
                 .frame(width: 110, alignment: .leading)
                 .help(layerHelp)
             // The same button the base column has, because the columns are the same thing read twice.
             // Without it the only way into the layer was a menu entry, which is not how the base
             // column teaches the gesture.
-            Button(isCapturingLayer ? "Cancelar" : "Capturar") {
-                onCaptureLayer()
+            Button(isWaitingInMod ? "Cancelar" : "Capturar") {
+                capture.toggle(
+                    control,
+                    for: profileID,
+                    intent: .mod,
+                    isEmulationRunning: isEmulationRunning
+                )
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
@@ -268,14 +256,12 @@ private struct MappingRow: View {
             // layer because that is the intent the arming menu declares, not a property of capture.
             Menu {
                 AssignMenuItems(
-                    onCapture: onCaptureLayer,
-                    onChoose: onChooseLayer,
+                    onCapture: { arm(.mod) },
+                    onChoose: { onWrite(.mod, $0) },
                     current: layerAction ?? .none,
-                    onAppendStep: onAppendStepLayer,
+                    onAppendStep: { arm(.modCommand) },
                     onDropLastStep: {
-                        onChooseLayer(
-                            MappingRules.droppingLastStep(from: layerAction ?? .none)
-                        )
+                        onWrite(.mod, MappingRules.droppingLastStep(from: layerAction ?? .none))
                     }
                 )
             } label: {
@@ -301,13 +287,24 @@ private struct MappingRow: View {
     /// offer different destinations for the same control.
     private var alternatives: some View {
         AssignMenuItems(
-            onCapture: onCapture,
-            onChoose: onChoose,
+            onCapture: { arm(.base) },
+            onChoose: { onWrite(.base, $0) },
             current: action,
-            onAppendStep: onAppendStep,
+            onAppendStep: { arm(.baseCommand) },
             // Shortening a command is an ordinary write, so it goes through the same path a menu
             // choice takes and the profile is saved once, the same way.
-            onDropLastStep: { onChoose(MappingRules.droppingLastStep(from: action)) }
+            onDropLastStep: { onWrite(.base, MappingRules.droppingLastStep(from: action)) }
+        )
+    }
+
+    /// Arms a capture from a menu entry. The entries name a destination, never a cancel, so this goes
+    /// through `arm`: a pick while a capture is armed re-arms it instead of ending it.
+    private func arm(_ intent: CaptureIntent) {
+        capture.arm(
+            control,
+            for: profileID,
+            intent: intent,
+            isEmulationRunning: isEmulationRunning
         )
     }
 }
@@ -338,35 +335,64 @@ final class MappingCapture: ObservableObject {
 
     private var monitor: Any?
 
-    /// Whether the armed capture adds a step to the command instead of replacing it. Read by the write
-    /// that follows a capture, and cleared as the capture ends so the next one cannot inherit it.
-    @Published private(set) var isAppendingStep = false
-    /// Whether the armed capture writes into the MOD layer instead of the base. The capture session
-    /// itself only knows the control and the profile — the destination is an intent of the menu that
-    /// armed it, so it lives beside the append flag and is read by the same write.
-    @Published private(set) var isLayerCapture = false
-
     func isCapturing(_ candidate: XInputControl) -> Bool {
         session.isArmed(candidate)
     }
 
-    /// Arms a control for one profile, or disarms it when it is already the one being captured.
+    /// S2: whether the capture is waiting for a key in one particular column.
+    ///
+    /// The armed control and the intent both have to match, so arming the same control from the other
+    /// column lights the other cell and leaves this one reading its normal label.
+    func isCapturing(_ candidate: XInputControl, in column: MappingColumn) -> Bool {
+        guard session.isArmed(candidate) else { return false }
+        return (session.intent ?? .base).column == column
+    }
+
+    /// Arms a control for one profile with the destination the button declared, or disarms it when it
+    /// is already the one being captured. This is what the two capture buttons and the drawing tap do,
+    /// so cancelling stays reachable: the button says «Cancelar» as soon as its control is armed.
     /// The refusal while emulation runs is a result, so the caller never has to guess.
     func toggle(
         _ candidate: XInputControl,
         for profileID: UUID,
-        isEmulationRunning: Bool,
-        appending: Bool = false,
-        layer: Bool = false
+        intent: CaptureIntent = .base,
+        isEmulationRunning: Bool
     ) {
-        switch session.toggle(candidate, for: profileID, isEmulationRunning: isEmulationRunning) {
+        follow(
+            session.toggle(
+                candidate,
+                for: profileID,
+                intent: intent,
+                isEmulationRunning: isEmulationRunning
+            )
+        )
+    }
+
+    /// Arms a control with one destination and never cancels, which is what a menu entry does:
+    /// choosing a destination is not a request to cancel the capture in flight, so a pick while one is
+    /// armed re-arms it instead of ending it.
+    func arm(
+        _ candidate: XInputControl,
+        for profileID: UUID,
+        intent: CaptureIntent = .base,
+        isEmulationRunning: Bool
+    ) {
+        follow(
+            session.arm(
+                candidate,
+                for: profileID,
+                intent: intent,
+                isEmulationRunning: isEmulationRunning
+            )
+        )
+    }
+
+    /// Keeps the monitor alive exactly while a capture is armed, whichever call got there.
+    private func follow(_ result: KeyCaptureSession.ArmResult) {
+        switch result {
         case .armed:
-            isAppendingStep = appending
-            isLayerCapture = layer
             installMonitor()
         case .disarmed, .refusedWhileEmulating:
-            isAppendingStep = false
-            isLayerCapture = false
             removeMonitor()
         }
     }
@@ -374,8 +400,6 @@ final class MappingCapture: ObservableObject {
     /// Removes the monitor and forgets the armed control and profile. Safe to call at any time.
     func end() {
         session.disarm()
-        isAppendingStep = false
-        isLayerCapture = false
         removeMonitor()
     }
 
@@ -411,12 +435,10 @@ final class MappingCapture: ObservableObject {
     private func handle(keyCode: UInt16, modifiers: ModifierSet) -> Bool {
         let outcome = session.handleKey(keyCode: keyCode, modifiers: modifiers)
         guard outcome != .ignored else { return false }
-        // A finished capture always disarms, so the monitor goes away with it. The intent flags are
-        // read by the write inside `onFinish`, so they are cleared after that write, not before.
+        // A finished capture always disarms, so the monitor goes away with it. The destination has
+        // already travelled out inside the outcome, so nothing about it is left to clear here.
         removeMonitor()
         onFinish?(outcome)
-        isAppendingStep = false
-        isLayerCapture = false
         return true
     }
 }

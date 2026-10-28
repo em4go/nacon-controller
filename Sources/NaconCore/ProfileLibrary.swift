@@ -323,6 +323,30 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
         selectedProfile?.profile.layer.action(for: control)
     }
 
+    // MARK: - Mapping write (S2, S4, S5)
+
+    /// S2: applies the write a finished capture resolved to, and nothing else.
+    ///
+    /// A drop changes nothing, and a write aimed at a profile that is not the selected one is
+    /// dropped here too: the guard lives in the unit that reaches disk, so no view can bypass it
+    /// (F5). Where the action lands is the write's column, never a flag read at the call site.
+    /// - Returns: whether the library changed.
+    @discardableResult
+    public mutating func apply(_ write: MappingWrite) -> Bool {
+        switch write {
+        case .drop:
+            return false
+        case let .apply(profileID, control, column, action):
+            guard profileID == selectedProfile?.id else { return false }
+            switch column {
+            case .base:
+                return setAction(action, for: control)
+            case .mod:
+                return setLayerAction(action, for: control, in: profileID)
+            }
+        }
+    }
+
     private enum CodingKeys: String, CodingKey {
         case version
         case profiles

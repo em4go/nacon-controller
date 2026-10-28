@@ -140,7 +140,7 @@ struct PadGraphView: View {
             ForEach(XInputControl.allCases, id: \.self) { control in
                 if isHighlighted(control), let mask = Masks.image(for: control) {
                     Rectangle()
-                        .fill(Color.accentColor)
+                        .fill(tint(for: control))
                         .opacity(Self.highlightOpacity)
                         .mask(
                             Image(nsImage: mask)
@@ -232,6 +232,16 @@ struct PadGraphView: View {
             for: profileID,
             isEmulationRunning: isEmulationEnabled
         )
+    }
+
+    /// The colour one control is tinted with.
+    ///
+    /// The d-pad directions carry their own: four similar petals inside one circle are hard to tell
+    /// apart under a single accent. Everything else uses the accent, which follows the system setting
+    /// instead of a colour written down in the model.
+    private func tint(for control: XInputControl) -> Color {
+        guard let tint = ControlTint.color(for: control) else { return .accentColor }
+        return Color(red: tint.red, green: tint.green, blue: tint.blue)
     }
 
     /// Whether this control is tinted right now: under the pointer, waiting for a key, or down.

@@ -41,7 +41,17 @@ public final class EmulationEngine {
     /// in the background, which is where the user actually is.
     private var activity: NSObjectProtocol?
     private var previousReport: XInputReport?
+    /// A command still emitting: the steps left and the index of the next one.
+    private struct PendingSequence {
+        let steps: [KeyCombo]
+        var next: Int
+    }
+
     private var heldActions: [XInputControl: MappedAction] = [:]
+    /// Commands in progress, one per control. A press emits the first step at once and the rest at one
+    /// step per tick, which gives the target application a chance to act between them — ⌘A must take
+    /// effect before the ⌘C that follows.
+    private var pendingSequences: [XInputControl: PendingSequence] = [:]
     private var leftStick: XInputStick = .center
     private var rightStick: XInputStick = .center
     private var scroll = ScrollAccumulator()
@@ -158,6 +168,8 @@ public final class EmulationEngine {
         for control in transitions.released {
             repeatElapsed.removeValue(forKey: control)
             nextRepeatAt.removeValue(forKey: control)
+            // A run still in progress stops here: its remaining steps belong to a press that ended.
+            pendingSequences.removeValue(forKey: control)
             if let action = heldActions.removeValue(forKey: control) {
                 emitter.release(action)
             }
@@ -171,11 +183,40 @@ public final class EmulationEngine {
                 emitter.scroll(pixels: Scroll.pixels(forLines: lines))
                 continue
             }
+            if case .sequence(let steps) = action, !steps.isEmpty {
+                // A run, not a hold: nothing to release, and holding the control must not repeat it.
+                // The first step goes out now so the control answers the press without a tick of delay.
+                emitStep(steps[0])
+                if steps.count > 1 {
+                    pendingSequences[control] = PendingSequence(steps: steps, next: 1)
+                }
+                continue
+            }
             heldActions[control] = action
             emitter.press(action)
             if case .key(let combo) = action, !combo.isModifierHold {
                 repeatElapsed[control] = 0
                 nextRepeatAt[control] = profile.keyRepeat.initialDelay
+            }
+        }
+    }
+
+    /// One step of a command: a complete stroke, so a step can never leave a key or a modifier down.
+    private func emitStep(_ step: KeyCombo) {
+        emitter.press(.key(step))
+        emitter.release(.key(step))
+    }
+
+    /// Emits the next step of every command in progress, one step per tick.
+    private func advanceSequences() {
+        guard !pendingSequences.isEmpty else { return }
+        for (control, var run) in Array(pendingSequences) {
+            emitStep(run.steps[run.next])
+            run.next += 1
+            if run.next >= run.steps.count {
+                pendingSequences.removeValue(forKey: control)
+            } else {
+                pendingSequences[control] = run
             }
         }
     }
@@ -195,6 +236,7 @@ public final class EmulationEngine {
         if !velocity.isZero {
             emitter.moveCursor(deltaX: velocity.dx * seconds, deltaY: velocity.dy * seconds)
         }
+        advanceSequences()
         let rate = StickMotion.scrollLinesPerSecond(stick: rightStick, settings: settings)
         let pixels = scroll.consume(
             pixelsPerSecond: rate * Scroll.pixelsPerLine,
@@ -236,6 +278,9 @@ public final class EmulationEngine {
             emitter.release(action)
         }
         heldActions.removeAll()
+        // A command stops with the emulation: its remaining steps would fire into whatever is in front
+        // of the user after they asked it to stop.
+        pendingSequences.removeAll()
         emitter.releaseHeldModifiers()
         repeatElapsed.removeAll()
         nextRepeatAt.removeAll()

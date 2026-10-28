@@ -14,16 +14,13 @@ import SwiftUI
 struct AssignMenuItems: View {
     /// Whether the menu offers the key capture and the step entries at all.
     ///
-    /// The menu that arms decides where a capture writes, so both columns can offer the same list.
-    /// Only renderings that cannot write at all pass false.
-    var includesCapture: Bool = true
-    /// Arms the capture for the control the menu belongs to, for the same reason the capture button
-    /// exists: a key macOS swallows never reaches a local monitor, and a menu entry is then the only
-    /// way to express it. Only read when `includesCapture` is true.
-    var onCapture: () -> Void = {}
+    /// The menu that arms decides where a capture writes, so every column offers the same list.
+    ///
+    /// Arms the capture for the control the menu belongs to: a key macOS swallows never reaches a
+    /// local monitor, and a menu entry is then the only way to express it.
+    let onCapture: () -> Void
     let onChoose: (MappedAction) -> Void
-    /// What the control has now, so the menu can offer to extend a command or shorten one. Only
-    /// meaningful when `includesCapture` is true: without a capture there is nothing to append to.
+    /// What the control has now, so the menu can offer to extend a command or shorten one.
     var current: MappedAction = .none
     /// Arms a capture whose key becomes one more step of the command in `current`.
     var onAppendStep: (() -> Void)?
@@ -31,22 +28,20 @@ struct AssignMenuItems: View {
     var onDropLastStep: (() -> Void)?
 
     var body: some View {
-        if includesCapture {
-            Button("Capturar tecla…") {
-                onCapture()
-            }
-            if MappingRules.canAppendStep(to: current), let onAppendStep {
-                Button("Añadir paso al comando…") {
-                    onAppendStep()
-                }
-                if case .sequence = current, let onDropLastStep {
-                    Button("Quitar el último paso") {
-                        onDropLastStep()
-                    }
-                }
-            }
-            Divider()
+        Button("Capturar tecla…") {
+            onCapture()
         }
+        if MappingRules.canAppendStep(to: current), let onAppendStep {
+            Button("Añadir paso al comando…") {
+                onAppendStep()
+            }
+            if case .sequence = current, let onDropLastStep {
+                Button("Quitar el último paso") {
+                    onDropLastStep()
+                }
+            }
+        }
+        Divider()
         ForEach([MouseButton.left, .middle, .right], id: \.self) { button in
             Button(MappingRules.label(for: .mouseButton(button))) {
                 onChoose(.mouseButton(button))

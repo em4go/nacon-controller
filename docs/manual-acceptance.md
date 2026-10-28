@@ -4,8 +4,8 @@ Lo que ningún test automático puede comprobar en este proyecto: el mando real,
 sistema y el cableado de AppKit. Se ejecuta antes de dar por buena una entrega que toque esas zonas.
 
 Ejecutado por última vez el 2026-10-28, con resultado correcto en los diecisiete pasos. Repetir los
-pasos 2 y 3 siempre que cambie el código de captura de pulsaciones, y el 12 y el 13 siempre que cambie
-la capa MOD.
+pasos 2, 3 y 19 siempre que cambie el código de captura de pulsaciones, y el 12 y el 13 siempre que
+cambie la capa MOD.
 
 ## Preparación
 
@@ -28,7 +28,7 @@ El mando debe estar conectado y el permiso de Accesibilidad concedido.
 | 6 | Con la emulación activa, mirar el editor | Está bloqueado, con su aviso, y el eje Y también |
 | 7 | Pulsar **PS** | Detiene la emulación al instante; pulsarlo de nuevo la activa |
 | 20 | Mantener la tecla MOD y pulsar PS; cerrarlo con Esc; abrirlo otra vez y hacer clic fuera; abrirlo y pulsar PS solo | El panel aparece y desaparece **sin** cambiar la emulación; Esc y el clic fuera lo cierran; PS solo sigue encendiendo y apagando; apagar la emulación lo cierra |
-| 19 | Con una tecla MOD elegida: en la columna MOD de un control, capturar una tecla y añadirle un paso; comprobar que la base quedó intacta | Ambas columnas ofrecen captura, catálogo y pasos; la captura escribe solo donde se armó |
+| 19 | Con una tecla MOD elegida: en la columna MOD de un control, capturar una tecla y añadirle un paso; repetirlo desde el dibujo, con **Asignar con MOD › Capturar tecla…**; comprobar que la base quedó intacta | Las dos vistas ofrecen las mismas entradas; la captura escribe solo en la columna y la vista desde la que se armó, y «Cancelar» cancela también una captura de paso |
 | 18 | En un editor de texto, asignar ⌘A a un control y añadirle un paso ⌘C desde **Elegir… › Añadir paso al comando…**; pulsarlo con texto en el documento | Selecciona todo y copia; mantener el botón no lo repite; soltarlo enseguida no deja ninguna tecla pulsada |
 | 17 | Hacer clic con el mando en un enlace de un texto con formato (terminal, markdown o web) y en un control que antes no respondía | El enlace se abre con un clic normal, sin ⌘: lo que faltaba era la cuenta de clics del evento |
 | 16 | Asignar el atajo de captura de zona (Shottr, o ⇧⌘4), pulsarlo, hacer clic con el mando y arrastrar con el stick | La selección **crece mientras se arrastra** y al soltar se captura la zona elegida, no una vacía |

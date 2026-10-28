@@ -221,8 +221,9 @@ Cuatro reglas que conviene saber:
 - **La capa se congela al arrancar la emulación**, como el resto del perfil.
 
 Un perfil sin tecla MOD se comporta exactamente como antes, y los perfiles ya guardados se leen sin
-cambios: la capa empieza vacía. La captura de teclado escribe en la base; una asignación de la capa
-se elige del menú.
+cambios: la capa empieza vacía. La captura de teclado escribe en la columna desde la que se armó, y
+solo en ella: cada columna tiene su botón «Capturar» y su menú, en la tabla y en el dibujo. Escape
+cancela la captura y deja el mapeo como estaba.
 
 ### Resumen de mapeos
 

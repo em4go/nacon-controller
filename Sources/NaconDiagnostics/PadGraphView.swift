@@ -289,12 +289,24 @@ struct PadGraphView: View {
                         )
                     }
                     // Only offered when a key can open the layer: without one the submenu would write
-                    // to a layer nothing can reach.
+                    // to a layer nothing can reach. It offers the same entries as the base, capture
+                    // and steps included, because the two columns are one list read twice.
                     if profile.layer.isActive {
                         Menu("Asignar con MOD") {
                             AssignMenuItems(
-                                includesCapture: false,
-                                onChoose: { write(control, .mod, $0) }
+                                onCapture: { arm(control, intent: .mod) },
+                                onChoose: { write(control, .mod, $0) },
+                                current: profile.layer.action(for: control) ?? .none,
+                                onAppendStep: { arm(control, intent: .modCommand) },
+                                onDropLastStep: {
+                                    write(
+                                        control,
+                                        .mod,
+                                        MappingRules.droppingLastStep(
+                                            from: profile.layer.action(for: control) ?? .none
+                                        )
+                                    )
+                                }
                             )
                         }
                     }

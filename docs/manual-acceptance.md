@@ -26,6 +26,8 @@ El mando debe estar conectado y el permiso de Accesibilidad concedido.
 | 5 | Iniciar emulación y pulsar **A** con un editor de texto delante | Escribe `h` |
 | 6 | Con la emulación activa, mirar el editor | Está bloqueado, con su aviso, y el eje Y también |
 | 7 | Pulsar **PS** | Detiene la emulación al instante; pulsarlo de nuevo la activa |
+| 12 | Elegir «Tecla MOD: Share»; en la tabla, asignar ✕ en la base a ⌘ y ✕ en la columna MOD a ⌥; después mantener Share y pulsar ✕ | Con Share pulsado, ✕ envía ⌥; sin Share, ✕ envía ⌘; y Share solo, sin más botones, no envía nada |
+| 13 | Con Share pulsado y ✕ mantenido, soltar Share y después ✕; luego pulsar ○ con Share pulsado | ✕ sigue enviando ⌥ hasta que se suelta ✕, y al final no queda ninguna tecla pulsada; ○, que no tiene entrada en la capa, envía lo de la base |
 | 11 | En Hex, atajo ⌃⇧ y modo **Hold**; asignar un control del mando a «Mantener modificador → ⌃⇧» y mantenerlo pulsado | Dicta mientras se mantiene, transcribe al soltar, y al soltar **⌃ y ⇧ no quedan pulsados**: el teclado sigue escribiendo normal |
 | 10 | Empujar el stick derecho a media inclinación en un documento largo, y luego mover el control «Velocidad de desplazamiento» | El desplazamiento es continuo, sin saltos de línea, y la velocidad cambia con el control al reiniciar la emulación |
 | 9 | Asignar un control a **⌘⇥** desde el catálogo, pulsarlo y soltarlo; después escribir en un editor de texto | Cambia de aplicación una vez y **⌘ no queda pulsado**: lo que se escriba sale normal, sin atajos |

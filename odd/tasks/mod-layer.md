@@ -26,9 +26,9 @@ La base y la capa MOD se editan a la vista, sin conmutador de modo.
 | ID | Spec | Ruta | Commit |
 | --- | --- | --- | --- |
 | T1 | S1, S2, S5, S6 | Modelo (`ProfileLayer`), codificación, motor y tests | `0445e24` |
-| T2 | S3, S4 | Selector de tecla MOD compartido por las dos vistas | — |
-| T3 | S3, S5, S7 | Tabla: columna MOD por fila | — |
-| T4 | S4 | Dibujo: línea con las dos capas y menú por capa | — |
+| T2 | S3, S4 | Selector de tecla MOD compartido por las dos vistas | `72ae154` |
+| T3 | S3, S5, S7 | Tabla: columna MOD por fila | `500cefd` |
+| T4 | S4 | Dibujo: línea con las dos capas y menú por capa | `9ec00bd` |
 | T5 | todas | README, aceptación manual | — |
 
 ## Log
@@ -51,3 +51,10 @@ La base y la capa MOD se editan a la vista, sin conmutador de modo.
   la capa MOD se elige del menú (ratón, desplazamiento, catálogo del sistema y modificadores
   sostenidos), no se captura. Hacer la captura consciente de la capa toca `KeyCaptureSession` y sus
   tests, y queda fuera de esta rebanada.
+- **L6.** Rebanada 2 entregada en tres commits en vez de uno de 529 líneas, porque la revisión va
+  por unidad: `72ae154` (biblioteca y selector), `500cefd` (columnas de la tabla), `9ec00bd` (franja y
+  menú del dibujo). Verificado por el padre con `swift test` (264 tests) y con la app compilada y
+  arrancada; la disposición de dos columnas no se vio con una tecla MOD puesta, porque eso exige
+  escribir en el perfil del usuario.
+- **L7.** Decisión anotada del contrato de «Ninguna»: cerrar la capa conserva sus entradas —quedan
+  inertes y vuelven si se elige otra tecla— y «Quitar capa» es la vía destructiva.

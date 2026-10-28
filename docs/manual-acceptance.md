@@ -27,6 +27,7 @@ El mando debe estar conectado y el permiso de Accesibilidad concedido.
 | 5 | Iniciar emulación y pulsar **A** con un editor de texto delante | Escribe `h` |
 | 6 | Con la emulación activa, mirar el editor | Está bloqueado, con su aviso, y el eje Y también |
 | 7 | Pulsar **PS** | Detiene la emulación al instante; pulsarlo de nuevo la activa |
+| 18 | En un editor de texto, asignar ⌘A a un control y añadirle un paso ⌘C desde **Elegir… › Añadir paso al comando…**; pulsarlo con texto en el documento | Selecciona todo y copia; mantener el botón no lo repite; soltarlo enseguida no deja ninguna tecla pulsada |
 | 17 | Hacer clic con el mando en un enlace de un texto con formato (terminal, markdown o web) y en un control que antes no respondía | El enlace se abre con un clic normal, sin ⌘: lo que faltaba era la cuenta de clics del evento |
 | 16 | Asignar el atajo de captura de zona (Shottr, o ⇧⌘4), pulsarlo, hacer clic con el mando y arrastrar con el stick | La selección **crece mientras se arrastra** y al soltar se captura la zona elegida, no una vacía |
 | 15 | Asignar un botón a «Mantener modificador → ⌃⇧», pulsarlo y soltarlo; después usar ⌘⇥ | ⌘⇥ cambia de aplicación una vez, sin comportarse como ⇧⌘⇥, y ⇧ no queda pulsado: escribir sale normal |

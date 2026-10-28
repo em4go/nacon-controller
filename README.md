@@ -140,9 +140,33 @@ y está dicha también junto a los controles.
 ### Atajos del sistema listos
 
 El menú **Elegir…** de cada control ofrece, además de las teclas que captures, un catálogo de acciones
-de macOS con nombre: Mission Control, mostrar las ventanas de la app, escritorio a la izquierda y a la
-derecha, cerrar la ventana, cambiar de aplicación, ventana siguiente de la misma app, cerrar la
-aplicación, forzar la salida, Spotlight y las capturas de pantalla.
+con nombre. Hay dos grupos.
+
+**Editar y documentos** reúne lo que cualquier app de macOS con texto entiende: copiar (⌘C), pegar (⌘V),
+pegar sin formato (⌥⇧⌘V), cortar, deshacer, rehacer, seleccionar todo, guardar, buscar, imprimir, nueva
+pestaña, borrar la palabra anterior (⌥⌫) e ir al principio o al final de la línea (⌘←, ⌘→).
+
+**Sistema** reúne los atajos de macOS: Mission Control, mostrar las ventanas de la app, escritorio a la
+izquierda y a la derecha, cerrar la ventana, cambiar de aplicación, ventana siguiente de la misma app,
+cerrar la aplicación, forzar la salida, Spotlight y las capturas de pantalla.
+
+## Comandos de varios pasos
+
+Un control puede encadenar varias pulsaciones: ⌘A y después ⌘C, por ejemplo, para seleccionar todo y
+copiar con un solo botón.
+
+Se construye desde el menú **Elegir…** del propio control:
+
+1. Captura la primera tecla del comando, como cualquier otra asignación.
+2. En **Elegir…**, elige **Añadir paso al comando…** y pulsa la siguiente tecla. Repite por cada paso.
+3. **Quitar el último paso** acorta el comando, y la etiqueta del control muestra el resultado:
+   «⌘A luego ⌘C».
+
+Cómo se ejecuta: el primer paso sale al pulsar y los demás a un paso por tick, para que la app de
+destino tenga tiempo de actuar entre ellos —⌘A tiene que surtir efecto antes del ⌘C—. Un comando es
+una ejecución, no una tecla mantenida: mantener el botón no lo repite. Si sueltas el botón antes de que
+termine, se descartan los pasos que faltaban, y cada paso es una pulsación completa, así que nunca queda
+ni una tecla ni un modificador pulsado.
 
 Son combinaciones de teclas normales, así que el mando envía exactamente lo mismo que el teclado: no
 hacen falta permisos nuevos ni APIs privadas. El límite es el mismo que el del teclado:

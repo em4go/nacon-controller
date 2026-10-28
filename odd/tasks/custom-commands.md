@@ -22,10 +22,10 @@ S7. Las acciones que ya existen no cambian: un `.key` sigue siendo un `.key`, y 
 
 | ID | Specs | Ruta | Commit |
 | --- | --- | --- | --- |
-| T1 | S2, S5 | modelo `MappedAction.sequence` y su codificación | — |
-| T2 | S3, S4 | motor: ejecución por ticks y cancelación al soltar | — |
-| T3 | S1, S7 | catálogo con nombres de edición | — |
-| T4 | S6 | interfaz: menú, editor de pasos, etiqueta | — |
+| T1 | S2, S5 | modelo `MappedAction.sequence` y su codificación | `9b35426` |
+| T2 | S3, S4 | motor: ejecución por ticks y cancelación al soltar | `5968e45` |
+| T3 | S1, S7 | catálogo con nombres de edición | `e101c28` |
+| T4 | S6 | interfaz: menú, pasos, etiqueta | `9ea12c7` |
 
 ## Log
 
@@ -34,3 +34,12 @@ L1. «ahora quiero que se puedan añadir comandos personalizados complejos, como
 
 L2. Decisión del usuario sobre el alcance: «Las dos cosas» — el catálogo con nombres y además poder
     encadenar varios pasos en un mismo comando.
+
+L3. Decisión técnica: un comando se define **donde se asigna** (una secuencia dentro de la acción), no
+    como una lista con nombre reutilizable en el perfil. Un registro con nombre añadiría lista propia,
+    renombrar y migración; el modelo de secuencia es el mismo y el registro puede envolverlo después
+    sin tocar el motor.
+
+L4. Defecto encontrado al escribir el catálogo: había **dos tablas de teclas**. La del catálogo solo
+    conocía una docena de códigos, así que una entrada de menú se imprimía «⌘tecla 8» mientras la misma
+    tecla, en la fila del control, se imprimía «⌘C». Queda una sola tabla (`KeyCatalog.glyph`).

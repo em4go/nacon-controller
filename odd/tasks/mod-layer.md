@@ -29,7 +29,7 @@ La base y la capa MOD se editan a la vista, sin conmutador de modo.
 | T2 | S3, S4 | Selector de tecla MOD compartido por las dos vistas | `72ae154` |
 | T3 | S3, S5, S7 | Tabla: columna MOD por fila | `500cefd` |
 | T4 | S4 | Dibujo: línea con las dos capas y menú por capa | `9ec00bd` |
-| T5 | todas | README, aceptación manual | — |
+| T5 | todas | README, aceptación manual | `0093b09` |
 
 ## Log
 
@@ -63,3 +63,7 @@ La base y la capa MOD se editan a la vista, sin conmutador de modo.
   la pulsación entera. La hipótesis de que el enlace necesitaba ⌘ era falsa: lo que lo arregló fue la
   cuenta. Límite anotado: cada clic se declara el primero, así que un doble clic del mando no se puede
   expresar todavía.
+- **L9.** Aceptación manual completa el 2026-10-28: los pasos 8 a 17 de `docs/manual-acceptance.md`
+  dan resultado correcto en hardware, incluidos el conmutador que ahora se cierra al soltar, la capa
+  MOD con su caso de seguridad, la captura de zona con arrastre y el clic que las vistas daban por no
+  ser un clic. La capa MOD queda cerrada; falta solo la decisión de fusionar la rama.

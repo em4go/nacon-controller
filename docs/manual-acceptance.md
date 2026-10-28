@@ -3,8 +3,9 @@
 Lo que ningún test automático puede comprobar en este proyecto: el mando real, los permisos del
 sistema y el cableado de AppKit. Se ejecuta antes de dar por buena una entrega que toque esas zonas.
 
-Ejecutado por última vez el 2026-10-27, con resultado correcto en los siete primeros pasos. Repetir los
-pasos 2 y 3 siempre que cambie el código de captura de pulsaciones.
+Ejecutado por última vez el 2026-10-28, con resultado correcto en los diecisiete pasos. Repetir los
+pasos 2 y 3 siempre que cambie el código de captura de pulsaciones, y el 12 y el 13 siempre que cambie
+la capa MOD.
 
 ## Preparación
 

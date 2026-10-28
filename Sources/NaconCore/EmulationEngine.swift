@@ -14,6 +14,9 @@ public final class EmulationEngine {
     /// stop, and reporting it as well would toggle twice on a single press. The observer hops to the
     /// main thread, because this fires on the USB queue.
     public var onGuidePress: (() -> Void)?
+    /// MOD held while PS was pressed: show the mapping summary instead of toggling. Reading the map
+    /// must never stop the pad, so this path bypasses the toggle entirely.
+    public var onSummaryPress: (() -> Void)?
 
     /// Whether the current physical Guide press has already been acted on.
     ///
@@ -143,12 +146,22 @@ public final class EmulationEngine {
         let transitions = ControlEdges.transitions(from: previousReport, to: report)
         previousReport = report
 
+        // The layer is read from the report that presses the control, and the MOD key itself emits
+        // nothing: it is a selector, not a "hold modifier". What a control already sent lives in
+        // `heldActions`, so releasing the MOD key later never swaps the action under a button that is
+        // still down — the release is always the release of what was pressed. It is computed before
+        // the Guide branch because MOD+PS means "show the summary", even while stopped.
+        let layerKey = profile.layer.key
+        let layerHeld = layerKey.map { $0.isPressed(in: report) } ?? false
+
         // S12: Guide toggles the emulation, so it is decided from the button itself and not from the
         // edge. One press means one toggle, whichever direction it went.
         if XInputControl.guide.isPressed(in: report) {
             guard !guideActed else { return }
             guideActed = true
-            if enabled {
+            if layerHeld {
+                onSummaryPress?()
+            } else if enabled {
                 disableOnQueue(notify: true)
             } else {
                 onGuidePress?()
@@ -156,14 +169,9 @@ public final class EmulationEngine {
             return
         }
         guideActed = false
+        let layerActive = layerHeld
 
         guard enabled else { return }
-        // The layer is read from the report that presses the control, and the MOD key itself emits
-        // nothing: it is a selector, not a "hold modifier". What a control already sent lives in
-        // `heldActions`, so releasing the MOD key later never swaps the action under a button that is
-        // still down — the release is always the release of what was pressed.
-        let layerKey = profile.layer.key
-        let layerActive = layerKey.map { $0.isPressed(in: report) } ?? false
         // Release first so a control that swaps action can never leave the old one held.
         for control in transitions.released {
             repeatElapsed.removeValue(forKey: control)

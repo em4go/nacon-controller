@@ -8,6 +8,7 @@ private final class RecordingEmitter: InputEmitter {
         case release(MappedAction)
         case move(deltaX: Double, deltaY: Double)
         case scroll(Int)
+        case repeatKey(MappedAction)
     }
 
     private(set) var events: [Event] = []
@@ -26,6 +27,10 @@ private final class RecordingEmitter: InputEmitter {
 
     func scroll(lines: Int) {
         events.append(.scroll(lines))
+    }
+
+    func repeatKey(_ action: MappedAction) {
+        events.append(.repeatKey(action))
     }
 
     func reset() {
@@ -186,7 +191,11 @@ final class EmulationEngineTests: XCTestCase {
         XCTAssertEqual(localEmitter.events.count, 1, "must not repeat before the initial delay")
 
         localEngine.tick(seconds: 0.15)
-        XCTAssertEqual(localEmitter.events.count, 2, "must repeat once the delay has passed")
+        XCTAssertEqual(
+            localEmitter.events,
+            [.press(.key(KeyCombo(.upArrow))), .repeatKey(.key(KeyCombo(.upArrow)))],
+            "the repeat must not press the modifiers again"
+        )
     }
 
     func testReleaseStopsTheRepeats() {

@@ -178,6 +178,15 @@ private struct MappingRow: View {
             }
         }
         Divider()
+        // Cycling the application switcher needs the modifier held while Tab is tapped, which one
+        // button cannot do. These map a single control to the modifier so two controls can.
+        Menu("Mantener modificador") {
+            ForEach(KeyStrokePlan.holdCombos, id: \.keyCode) { combo in
+                Button(KeyCatalog.name(for: combo.keyCode)) {
+                    onChoose(.key(combo))
+                }
+            }
+        }
         Button(MappingRules.label(for: .none)) {
             onChoose(.none)
         }

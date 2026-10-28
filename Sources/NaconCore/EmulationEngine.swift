@@ -206,7 +206,7 @@ public final class EmulationEngine {
             // At most one repeat per tick: catching up on missed repeats would burst several
             // key-downs at once after a stall, which would type faster than the user held it.
             if elapsed >= due {
-                emitter.press(action)
+                emitter.repeatKey(action)
                 due = elapsed + interval
             }
             nextRepeatAt[control] = due

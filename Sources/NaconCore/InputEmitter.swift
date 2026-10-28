@@ -8,8 +8,19 @@ import Foundation
 public protocol InputEmitter: AnyObject {
     func press(_ action: MappedAction)
     func release(_ action: MappedAction)
+    /// Auto-repeat of a key that is being held down.
+    func repeatKey(_ action: MappedAction)
     func moveCursor(deltaX: Double, deltaY: Double)
     func scroll(lines: Int)
+}
+
+public extension InputEmitter {
+    /// Auto-repeat of a held key. Repeating the whole action is what a recorder or a test wants; the
+    /// real emitter posts the key alone, because a keyboard does not press the modifiers again on
+    /// every repeat and doing so would stack presses no release ever balances.
+    func repeatKey(_ action: MappedAction) {
+        press(action)
+    }
 }
 
 /// Whether this process may synthesize input events.
@@ -54,6 +65,11 @@ public final class CGEventEmitter: InputEmitter {
         }
     }
 
+    public func repeatKey(_ action: MappedAction) {
+        guard case .key(let combo) = action else { return }
+        post(KeyStrokePlan.repeatStroke(for: combo))
+    }
+
     public func moveCursor(deltaX: Double, deltaY: Double) {
         guard deltaX != 0 || deltaY != 0 else { return }
         let displays = ScreenGeometry.activeDisplayBounds()
@@ -85,14 +101,20 @@ public final class CGEventEmitter: InputEmitter {
     }
 
     private func postKey(_ combo: KeyCombo, isDown: Bool) {
+        for stroke in KeyStrokePlan.strokes(for: combo, isDown: isDown) {
+            post(stroke)
+        }
+    }
+
+    private func post(_ stroke: KeyStroke) {
         guard let event = CGEvent(
             keyboardEventSource: source,
-            virtualKey: CGKeyCode(combo.keyCode),
-            keyDown: isDown
+            virtualKey: CGKeyCode(stroke.keyCode),
+            keyDown: stroke.isDown
         ) else { return }
         // Assign, never OR: an inherited NumericPad flag makes many applications drop the event,
         // which looks like the controller disconnecting after a few arrow presses.
-        event.flags = Self.flags(for: combo.modifiers)
+        event.flags = Self.flags(for: stroke.modifiers)
         event.post(tap: .cghidEventTap)
     }
 

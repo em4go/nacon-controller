@@ -140,8 +140,8 @@ private struct MappingSummaryView: View {
             let mod = profile.layer.action(for: control)
             return Row(
                 control: control,
-                base: MappingRules.label(for: base),
-                mod: mod.map(MappingRules.label(for:))
+                base: base.displayName,
+                mod: mod.map(\.displayName)
             )
         }
     }

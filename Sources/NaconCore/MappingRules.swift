@@ -156,20 +156,3 @@ extension InputProfile {
         return true
     }
 }
-
-extension ProfileLibrary {
-    /// S3: edits one mapping of the profile being edited, and only that one.
-    ///
-    /// The library is the unit that reaches disk, so the editor mutates through it and the caller
-    /// persists the result with the usual controller.
-    /// - Returns: whether the library changed.
-    @discardableResult
-    public mutating func setAction(_ action: MappedAction, for control: XInputControl) -> Bool {
-        guard MappingRules.isRemappable(control) else { return false }
-        guard let selectedID = selectedProfile?.id,
-              let index = profiles.firstIndex(where: { $0.id == selectedID })
-        else { return false }
-        guard profiles[index].profile.setAction(action, for: control) else { return false }
-        return true
-    }
-}

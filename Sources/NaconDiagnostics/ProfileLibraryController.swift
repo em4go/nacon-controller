@@ -67,14 +67,6 @@ final class ProfileLibraryController: ObservableObject {
         mutate { library in library.renameProfile(id: id, to: name) }
     }
 
-    /// S3: applies one mapping to the profile being edited and saves it straight away.
-    ///
-    /// The rule that refuses Guide and the meaning of `.none` live in `ProfileLibrary.setAction`,
-    /// so the controller only sequences "change, then save".
-    func setAction(_ action: MappedAction, for control: XInputControl) {
-        mutate { $0.setAction(action, for: control) }
-    }
-
     /// S2: the vertical-axis setting belongs to the profile, so flipping the toggle edits the
     /// selected profile and saves it straight away like any other change.
     func setInvertVerticalAxis(_ newValue: Bool) {
@@ -91,13 +83,6 @@ final class ProfileLibraryController: ObservableObject {
     func setLayerKey(_ control: XInputControl?) {
         guard let id = library.selectedProfile?.id else { return }
         mutate { $0.setLayerKey(control, for: id) }
-    }
-
-    /// S3: writes one assignment into the layer and saves it straight away. `.none` clears the entry,
-    /// which is the same as never having made it.
-    func setLayerAction(_ action: MappedAction, for control: XInputControl) {
-        guard let id = library.selectedProfile?.id else { return }
-        mutate { $0.setLayerAction(action, for: control, in: id) }
     }
 
     /// S2: applies the write a finished capture resolved to and saves it straight away.
@@ -134,10 +119,6 @@ final class ProfileLibraryController: ObservableObject {
     /// S9: restores the standard numbers on the selected profile only.
     func resetCursorSensitivity() {
         mutate { $0.resetCursorSensitivity() }
-    }
-
-    func rename(_ id: UUID, to name: String) {
-        mutate { library in library.renameProfile(id: id, to: name) }
     }
 
     // MARK: - Saving

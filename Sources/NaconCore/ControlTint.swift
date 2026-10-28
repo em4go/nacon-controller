@@ -2,9 +2,9 @@ import Foundation
 
 /// The colour a control is tinted with while it is lit.
 ///
-/// Everything uses the app's accent except the four d-pad directions, which get a colour each: on the
-/// drawing they are four similar petals inside one circle, and a single colour made it impossible to
-/// tell which one the pointer was on.
+/// The controls that have a colour of their own keep it: the four d-pad directions, because four
+/// similar petals inside one circle are hard to tell apart, and the four face buttons, because
+/// PlayStation gives them one — triangle green, circle red, cross blue, square pink.
 ///
 /// The accent is deliberately absent from this type. It follows the system setting, and a hard-coded
 /// copy here would quietly stop matching it, so `color(for:)` answers `nil` for every control that
@@ -37,6 +37,14 @@ public struct ControlTint: Equatable, Sendable {
             return ControlTint(red: 0.145, green: 0.780, blue: 0.851)      // cian
         case .dpadRight:
             return ControlTint(red: 0.961, green: 0.651, blue: 0.137)      // ámbar
+        case .buttonA:                                                 // ✕
+            return ControlTint(red: 0.239, green: 0.435, blue: 0.878)      // azul
+        case .buttonB:                                                 // ○
+            return ControlTint(red: 0.886, green: 0.231, blue: 0.231)      // rojo
+        case .buttonX:                                                 // □
+            return ControlTint(red: 0.878, green: 0.439, blue: 0.722)      // rosa
+        case .buttonY:                                                 // △
+            return ControlTint(red: 0.043, green: 0.478, blue: 0.220)      // verde oscuro
         default:
             return nil
         }

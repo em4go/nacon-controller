@@ -254,34 +254,12 @@ struct PadGraphView: View {
                 .truncationMode(.tail)
             if let control, MappingRules.isRemappable(control), !isEmulationEnabled {
                 Menu {
-                    Button("Capturar tecla…") { select(control) }
-                    Divider()
-                    ForEach([MouseButton.left, .middle, .right], id: \.self) { button in
-                        Button(MappingRules.label(for: .mouseButton(button))) {
-                            assign(control, .mouseButton(button))
-                        }
-                    }
-                    Divider()
-                    Button(MappingRules.label(for: MappingRules.scrollUpAction)) {
-                        assign(control, MappingRules.scrollUpAction)
-                    }
-                    Button(MappingRules.label(for: MappingRules.scrollDownAction)) {
-                        assign(control, MappingRules.scrollDownAction)
-                    }
-                    Divider()
-                    // The catalog from the table, so a system combination that macOS would swallow
-                    // before any local monitor sees it can still be assigned here.
-                    ForEach(SystemShortcut.Category.allCases, id: \.self) { category in
-                        Menu(category.title) {
-                            ForEach(SystemShortcut.inCategory(category)) { shortcut in
-                                Button("\(shortcut.name) — \(shortcut.combo.glyph)") {
-                                    assign(control, shortcut.action)
-                                }
-                            }
-                        }
-                    }
-                    Divider()
-                    Button(MappingRules.label(for: .none)) { assign(control, .none) }
+                    // The same list as the table row: one definition, so a control offers the same
+                    // destinations whichever view the user is in.
+                    AssignMenuItems(
+                        onCapture: { select(control) },
+                        onChoose: { assign(control, $0) }
+                    )
                 } label: {
                     Label("Asignar…", systemImage: "ellipsis.circle")
                         .labelStyle(.titleAndIcon)

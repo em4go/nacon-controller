@@ -147,49 +147,11 @@ private struct MappingRow: View {
         )
     }
 
-    /// What the capture button cannot express: mouse buttons, scroll and clearing the mapping.
-    @ViewBuilder private var alternatives: some View {
-        Button("Capturar pulsación…") {
-            onCapture()
-        }
-        Divider()
-        ForEach([MouseButton.left, .middle, .right], id: \.self) { button in
-            Button(MappingRules.label(for: .mouseButton(button))) {
-                onChoose(.mouseButton(button))
-            }
-        }
-        Divider()
-        Button(MappingRules.label(for: MappingRules.scrollUpAction)) {
-            onChoose(MappingRules.scrollUpAction)
-        }
-        Button(MappingRules.label(for: MappingRules.scrollDownAction)) {
-            onChoose(MappingRules.scrollDownAction)
-        }
-        Divider()
-        // S11: macOS actions that are really keystrokes. Offering them here saves memorising a
-        // combination, and the submenu says which ones depend on a setting in System Settings.
-        ForEach(SystemShortcut.Category.allCases, id: \.self) { category in
-            Menu(category.title) {
-                ForEach(SystemShortcut.inCategory(category)) { shortcut in
-                    Button("\(shortcut.name) — \(shortcut.combo.glyph)") {
-                        onChoose(shortcut.action)
-                    }
-                }
-            }
-        }
-        Divider()
-        // Cycling the application switcher needs the modifier held while Tab is tapped, which one
-        // button cannot do. These map a single control to the modifier so two controls can.
-        Menu("Mantener modificador") {
-            ForEach(KeyStrokePlan.holdCombos, id: \.keyCode) { combo in
-                Button(KeyCatalog.name(for: combo.keyCode)) {
-                    onChoose(.key(combo))
-                }
-            }
-        }
-        Button(MappingRules.label(for: .none)) {
-            onChoose(.none)
-        }
+    /// What the capture button cannot express: mouse buttons, scrolling, the system catalog, the
+    /// modifier holds and clearing the mapping. Shared with the drawing, so the two views cannot
+    /// offer different destinations for the same control.
+    private var alternatives: some View {
+        AssignMenuItems(onCapture: onCapture, onChoose: onChoose)
     }
 }
 

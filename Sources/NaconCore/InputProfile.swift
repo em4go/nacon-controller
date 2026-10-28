@@ -58,6 +58,20 @@ public enum MappedAction: Hashable, Sendable {
     case key(KeyCombo)
     case mouseButton(MouseButton)
     case scrollLines(Int)
+    /// Several strokes in order: a custom command, such as ⌘A and then ⌘C. The engine runs one step
+    /// per tick and a press runs the whole list once.
+    case sequence([KeyCombo])
+
+    /// A sequence only exists when there is something to chain: one stroke is a key and none is
+    /// nothing. The editor and the decoder both come through here, so a degenerate sequence cannot
+    /// reach a profile.
+    public static func chained(_ steps: [KeyCombo]) -> MappedAction {
+        switch steps.count {
+        case 0: return .none
+        case 1: return .key(steps[0])
+        default: return .sequence(steps)
+        }
+    }
 }
 
 /// Parameters of the stick-to-cursor curve.

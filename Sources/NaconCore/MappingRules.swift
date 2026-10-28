@@ -78,6 +78,8 @@ public enum MappingRules {
             return "Clic central"
         case .scrollLines(0):
             return "Sin desplazamiento"
+        case .sequence(let steps):
+            return steps.map(\.displayName).joined(separator: " luego ")
         case .scrollLines(let lines):
             let amount = abs(lines)
             let unit = amount == 1 ? "línea" : "líneas"

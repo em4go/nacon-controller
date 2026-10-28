@@ -59,6 +59,7 @@ extension MappedAction: Codable {
         case key
         case button
         case lines
+        case steps
     }
 
     private enum Kind: String {
@@ -66,6 +67,7 @@ extension MappedAction: Codable {
         case key
         case mouseButton
         case scrollLines
+        case sequence
     }
 
     public init(from decoder: Decoder) throws {
@@ -92,6 +94,11 @@ extension MappedAction: Codable {
             self = .mouseButton(button)
         case .scrollLines:
             self = .scrollLines(try container.decode(Int.self, forKey: .lines))
+        case .sequence:
+            // Unreadable steps leave the action empty instead of failing the whole profile: one bad
+            // entry must not cost the user every other assignment in the file.
+            let steps = (try? container.decodeIfPresent([KeyCombo].self, forKey: .steps)) ?? nil ?? []
+            self = MappedAction.chained(steps)
         }
     }
 
@@ -109,6 +116,9 @@ extension MappedAction: Codable {
         case .scrollLines(let lines):
             try container.encode(Kind.scrollLines.rawValue, forKey: .kind)
             try container.encode(lines, forKey: .lines)
+        case .sequence(let steps):
+            try container.encode(Kind.sequence.rawValue, forKey: .kind)
+            try container.encode(steps, forKey: .steps)
         }
     }
 }

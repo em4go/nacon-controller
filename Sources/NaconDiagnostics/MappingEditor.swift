@@ -13,6 +13,10 @@ import SwiftUI
 /// - PS has no editor row at all, because it is the emulation switch and must stay reachable.
 /// - The whole editor is disabled while emulation runs: swapping a mapping with a button held can
 ///   leave a key stuck down.
+///
+/// Each row carries the base and the MOD layer side by side (S3): the two layers are the same
+/// controls read twice, so they belong on the same line instead of behind a mode switcher that would
+/// hide half of what a control does.
 struct MappingEditor: View {
     /// The mapping of the selected profile.
     let profile: InputProfile
@@ -21,12 +25,23 @@ struct MappingEditor: View {
     let profileID: UUID
     /// Whether emulation is running, which locks the editor.
     let isEmulationEnabled: Bool
-    /// Applies one mapping to the profile the capture was armed for. Supplied by the section, which
-    /// drops the write when that profile is no longer the selected one.
+    /// Applies one base mapping to the profile the capture was armed for. Supplied by the section,
+    /// which drops the write when that profile is no longer the selected one.
     let setAction: (UUID, XInputControl, MappedAction) -> Void
+    /// Applies one assignment to the layer of the profile on screen. A layer choice comes from a
+    /// menu, never from a capture, so it only needs the profile guard.
+    let setLayerAction: (UUID, XInputControl, MappedAction) -> Void
     /// The one capture of the section, shared with the graphical view. The section owns it so a
     /// capture armed in either view is the same session, with the same monitor and the same rules.
     @ObservedObject var capture: MappingCapture
+
+    /// S3: the MOD column only exists when a key can open it.
+    ///
+    /// Without a key the layer can never apply, so a column of assignments the user could set and
+    /// never reach would be a trap. The note below the table says how to get the column instead.
+    private var showsLayer: Bool {
+        profile.layer.isActive
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -41,10 +56,17 @@ struct MappingEditor: View {
                 lockedCaption
             }
             VStack(alignment: .leading, spacing: 6) {
+                if showsLayer {
+                    columnHeader
+                }
                 ForEach(MappingRules.remappableControls, id: \.self) { control in
                     MappingRow(
                         control: control,
                         action: profile.action(for: control),
+                        // Only asked when the column exists: an entry of a closed layer is inert, and
+                        // the row would be showing what can never happen.
+                        layerAction: showsLayer ? profile.layer.action(for: control) : nil,
+                        showsLayer: showsLayer,
                         isCapturing: capture.isCapturing(control),
                         onCapture: {
                             capture.toggle(
@@ -54,12 +76,22 @@ struct MappingEditor: View {
                             )
                         },
                         // A menu choice applies to the profile on screen, so it carries that id.
-                        onChoose: { setAction(profileID, control, $0) }
+                        onChoose: { setAction(profileID, control, $0) },
+                        onChooseLayer: { setLayerAction(profileID, control, $0) }
                     )
                 }
                 reservedRow
             }
             .disabled(isEmulationEnabled)
+            if !showsLayer {
+                Text(
+                    "Para tener una segunda capa, elige una tecla MOD arriba, en «Tecla MOD:». Con ella "
+                        + "pulsada, cada botón envía lo que diga la columna MOD y, si no has cambiado "
+                        + "nada, lo mismo que en la base."
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
             Text(
                 "El botón PS no se puede reasignar: es el interruptor que activa y desactiva la "
                 + "emulación sin tocar el ratón ni el teclado, así que debe seguir siempre a mano."
@@ -73,6 +105,22 @@ struct MappingEditor: View {
             // capture must never land on a control the user is no longer looking at.
             capture.end()
         }
+    }
+
+    /// S3: one header line for the whole table, naming the two columns once instead of on every row.
+    ///
+    /// «Base» starts exactly where the base value starts, because both lines begin with the same empty
+    /// control-name column. «MOD» sits at the trailing end, above the MOD column it names.
+    private var columnHeader: some View {
+        HStack(spacing: 10) {
+            Color.clear.frame(width: 96, height: 1)
+            Text("Base")
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Text("MOD")
+        }
+        .font(.caption.weight(.semibold))
+        .foregroundStyle(.secondary)
+        .padding(.horizontal, 8)
     }
 
     private var lockedCaption: some View {
@@ -106,13 +154,23 @@ struct MappingEditor: View {
     }
 }
 
-/// One remappable control: its current mapping, the capture button and the fixed alternatives.
+/// One remappable control: its two readings, the capture button and the fixed alternatives.
+///
+/// The base half is the editor it has always been; the MOD half only appears when the profile has a
+/// key that opens the layer (S3), and it mirrors the base so the same control is read left to right
+/// instead of in two places.
 private struct MappingRow: View {
     let control: XInputControl
     let action: MappedAction
+    /// The layer's own assignment, or `nil` when the layer has no entry for this control — which is
+    /// not the same as an entry that sends nothing (S2).
+    let layerAction: MappedAction?
+    /// Whether the MOD half of the row exists at all.
+    let showsLayer: Bool
     let isCapturing: Bool
     let onCapture: () -> Void
     let onChoose: (MappedAction) -> Void
+    let onChooseLayer: (MappedAction) -> Void
 
     var body: some View {
         HStack(spacing: 10) {
@@ -138,6 +196,9 @@ private struct MappingRow: View {
             .menuStyle(.borderlessButton)
             .controlSize(.small)
             .fixedSize()
+            if showsLayer {
+                layerCell
+            }
         }
         .padding(.vertical, 3)
         .padding(.horizontal, 8)
@@ -145,6 +206,40 @@ private struct MappingRow: View {
             RoundedRectangle(cornerRadius: 8)
                 .fill(isCapturing ? Color.accentColor.opacity(0.12) : Color.secondary.opacity(0.06))
         )
+    }
+
+    /// The MOD reading of the control: the layer's assignment, or a dash that says «the base wins».
+    ///
+    /// The dash is secondary, not empty, because a control with no entry in the layer still does
+    /// something with MOD held: it does what the base says (S2).
+    private var layerCell: some View {
+        HStack(spacing: 10) {
+            Text(layerAction.map(MappingRules.label(for:)) ?? "—")
+                .font(.system(.callout, design: .monospaced))
+                .foregroundStyle(layerAction == nil ? Color.secondary : Color.primary)
+                .lineLimit(1)
+                .frame(width: 110, alignment: .leading)
+                .help(layerHelp)
+            // No capture here: a capture arms the base, so the layer is chosen from the same list
+            // without an entry that would write to the other column.
+            Menu {
+                AssignMenuItems(includesCapture: false, onChoose: onChooseLayer)
+            } label: {
+                Label("Elegir…", systemImage: "chevron.up.chevron.down")
+                    .labelStyle(.titleAndIcon)
+            }
+            .menuStyle(.borderlessButton)
+            .controlSize(.small)
+            .fixedSize()
+            .help("Elige qué envía este control con la tecla MOD pulsada")
+        }
+    }
+
+    private var layerHelp: String {
+        guard let layerAction else {
+            return "Con la tecla MOD usa la acción de la base"
+        }
+        return "Con la tecla MOD pulsada envía «\(MappingRules.label(for: layerAction))»"
     }
 
     /// What the capture button cannot express: mouse buttons, scrolling, the system catalog, the

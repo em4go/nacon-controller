@@ -115,9 +115,7 @@ public final class CGEventEmitter: InputEmitter {
             virtualKey: CGKeyCode(stroke.keyCode),
             keyDown: stroke.isDown
         ) else { return }
-        // Assign, never OR: an inherited NumericPad flag makes many applications drop the event,
-        // which looks like the controller disconnecting after a few arrow presses.
-        event.flags = Self.flags(for: stroke.modifiers)
+        event.flags = Self.strokeFlags(for: stroke, ambient: Self.heldModifiers())
         event.post(tap: .cghidEventTap)
     }
 
@@ -147,6 +145,36 @@ public final class CGEventEmitter: InputEmitter {
 
     private static func cursorLocation() -> CGPoint {
         CGEvent(source: nil)?.location ?? .zero
+    }
+
+    /// The flags one stroke must carry: its own modifiers plus the ones already held.
+    ///
+    /// A mapping of a plain ⇥ has to arrive as ⌘⇥ when ⌘ is held on another control of the pad, and as
+    /// ⇧⇥ when the keyboard holds shift. Each event carries its own flags and the receiving side reads
+    /// those, not the state behind them: an event that claims "no modifiers" is a plain Tab, which is
+    /// why combining a modifier hold with a key did nothing at all.
+    ///
+    /// Still assigned, never inherited: the flags come from the modifiers this app knows about, so an
+    /// inherited NumericPad or CapsLock flag can never reach the event — those made many applications
+    /// drop it, which looked like the controller disconnecting after a few arrow presses.
+    static func strokeFlags(for stroke: KeyStroke, ambient: ModifierSet) -> CGEventFlags {
+        flags(for: stroke.modifiers.union(ambient))
+    }
+
+    /// The modifiers the system currently has down, as far as this app is concerned.
+    static func heldModifiers() -> ModifierSet {
+        modifiers(from: CGEventSource.flagsState(.hidSystemState))
+    }
+
+    /// Reads the modifier flags a `CGEvent` can carry into the model's own set.
+    static func modifiers(from flags: CGEventFlags) -> ModifierSet {
+        var modifiers: ModifierSet = []
+        if flags.contains(.maskCommand) { modifiers.insert(.command) }
+        if flags.contains(.maskAlternate) { modifiers.insert(.option) }
+        if flags.contains(.maskControl) { modifiers.insert(.control) }
+        if flags.contains(.maskShift) { modifiers.insert(.shift) }
+        if flags.contains(.maskSecondaryFn) { modifiers.insert(.function) }
+        return modifiers
     }
 
     static func flags(for modifiers: ModifierSet) -> CGEventFlags {

@@ -169,7 +169,7 @@ private struct MappingSummaryView: View {
 
                 ForEach(rows) { row in
                     GridRow {
-                        Text(MappingRules.controlLabel(for: row.control))
+                        Text(ControlFacts.of(row.control).label)
                             .font(.body.weight(.medium))
                         Text(row.base)
                             .font(.system(.title3, design: .monospaced))

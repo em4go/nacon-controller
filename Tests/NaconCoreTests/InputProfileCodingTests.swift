@@ -132,4 +132,23 @@ final class InputProfileCodingTests: XCTestCase {
 
         XCTAssertEqual(profile.action(for: .buttonA), .none)
     }
+
+    /// S3: the stored control names are the persisted format.
+    ///
+    /// The keys are spelled out instead of being taken from `ControlFacts`, so renaming one — however
+    /// the tables are refactored — fails here before it can rewrite every `profiles.json` on disk. The
+    /// standard profile maps all seventeen controls, so the set is the whole vocabulary of the format.
+    func testStandardProfileWritesExactlyTheKnownControlKeys() throws {
+        let data = try JSONEncoder().encode(InputProfile.standard)
+
+        let root = try XCTUnwrap(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let mappings = try XCTUnwrap(root["mappings"] as? [String: Any])
+
+        XCTAssertEqual(Set(mappings.keys), [
+            "dpadUp", "dpadDown", "dpadLeft", "dpadRight",
+            "buttonA", "buttonB", "buttonX", "buttonY",
+            "leftBumper", "rightBumper", "leftTrigger", "rightTrigger",
+            "back", "start", "guide", "leftThumb", "rightThumb",
+        ])
+    }
 }

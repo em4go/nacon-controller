@@ -132,7 +132,7 @@ struct MappingEditor: View {
 
     private var reservedRow: some View {
         HStack(spacing: 10) {
-            Text(MappingRules.controlLabel(for: MappingRules.reservedControl))
+            Text(ControlFacts.of(MappingRules.reservedControl).label)
                 .font(.callout.weight(.medium))
                 .frame(width: 96, alignment: .leading)
             Label("Reservado: activa y desactiva la emulación al instante", systemImage: "power")
@@ -184,7 +184,7 @@ private struct MappingRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            Text(MappingRules.controlLabel(for: control))
+            Text(ControlFacts.of(control).label)
                 .font(.callout.weight(.medium))
                 .frame(width: 96, alignment: .leading)
             Text(isWaitingInBase ? "Pulsa una tecla…" : MappingRules.label(for: action))

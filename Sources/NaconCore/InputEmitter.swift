@@ -48,6 +48,8 @@ public final class CGEventEmitter: InputEmitter {
     private let source = CGEventSource(stateID: .hidSystemState)
     /// The modifiers this emitter is holding down right now, from the strokes it posted.
     private var heldByUs: ModifierSet = []
+    /// The mouse buttons this emitter has pressed and not released yet.
+    private var pressedButtons: Set<MouseButton> = []
 
     public init() {}
 
@@ -95,12 +97,34 @@ public final class CGEventEmitter: InputEmitter {
         let target = ScreenGeometry.clamped(requested, to: displays)
         guard let event = CGEvent(
             mouseEventSource: source,
-            mouseType: .mouseMoved,
+            mouseType: Self.movementType(pressed: pressedButtons),
             mouseCursorPosition: target,
-            mouseButton: .left
+            mouseButton: Self.cgButton(for: pressedButtons)
         ) else { return }
         event.flags = []
         event.post(tap: .cghidEventTap)
+    }
+
+    /// The type of a movement event: a drag while a button is held, a plain move otherwise.
+    ///
+    /// A real mouse reports a drag, not a move, when it travels with a button down. Views that compute
+    /// a selection inside their own mouse-down loop only react to dragged events, so posting `.mouseMoved`
+    /// made the movement invisible to them: the screenshot area tool opened and the selection stayed
+    /// empty because it never learned the pointer had travelled.
+    static func movementType(pressed buttons: Set<MouseButton>) -> CGEventType {
+        if buttons.contains(.left) { return .leftMouseDragged }
+        if buttons.contains(.right) { return .rightMouseDragged }
+        if buttons.contains(.middle) { return .otherMouseDragged }
+        return .mouseMoved
+    }
+
+    /// The button a movement event names. It has to match the pressed button, or the drag is
+    /// delivered as belonging to another one.
+    static func cgButton(for pressed: Set<MouseButton>) -> CGMouseButton {
+        if pressed.contains(.left) { return .left }
+        if pressed.contains(.right) { return .right }
+        if pressed.contains(.middle) { return .center }
+        return .left
     }
 
     public func scroll(pixels: Int) {
@@ -167,6 +191,12 @@ public final class CGEventEmitter: InputEmitter {
         ) else { return }
         event.flags = []
         event.post(tap: .cghidEventTap)
+        // Tracked so that movement while this button is down is published as a drag.
+        if isDown {
+            pressedButtons.insert(button)
+        } else {
+            pressedButtons.remove(button)
+        }
     }
 
     private static func cursorLocation() -> CGPoint {

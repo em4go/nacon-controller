@@ -26,6 +26,7 @@ El mando debe estar conectado y el permiso de Accesibilidad concedido.
 | 5 | Iniciar emulación y pulsar **A** con un editor de texto delante | Escribe `h` |
 | 6 | Con la emulación activa, mirar el editor | Está bloqueado, con su aviso, y el eje Y también |
 | 7 | Pulsar **PS** | Detiene la emulación al instante; pulsarlo de nuevo la activa |
+| 16 | Asignar el atajo de captura de zona (Shottr, o ⇧⌘4), pulsarlo, hacer clic con el mando y arrastrar con el stick | La selección **crece mientras se arrastra** y al soltar se captura la zona elegida, no una vacía |
 | 15 | Asignar un botón a «Mantener modificador → ⌃⇧», pulsarlo y soltarlo; después usar ⌘⇥ | ⌘⇥ cambia de aplicación una vez, sin comportarse como ⇧⌘⇥, y ⇧ no queda pulsado: escribir sale normal |
 | 14 | Con □ asignado a «Mantener modificador → ⌘» y L1 a ⇥, mantener □, pulsar L1 y soltar los dos | El conmutador de aplicaciones aparece y **desaparece al soltar**: no se queda en pantalla, y ⌘ no queda pulsado |
 | 12 | Elegir «Tecla MOD: Share»; en la tabla, asignar ✕ en la base a ⌘ y ✕ en la columna MOD a ⌥; después mantener Share y pulsar ✕ | Con Share pulsado, ✕ envía ⌥; sin Share, ✕ envía ⌘; y Share solo, sin más botones, no envía nada |

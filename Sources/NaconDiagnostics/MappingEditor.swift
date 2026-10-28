@@ -67,7 +67,10 @@ struct MappingEditor: View {
                         // the row would be showing what can never happen.
                         layerAction: showsLayer ? profile.layer.action(for: control) : nil,
                         showsLayer: showsLayer,
-                        isCapturing: capture.isCapturing(control),
+                        // One armed control at a time, so the column that is not capturing shows its
+                        // normal label: two buttons reading "Cancelar" would say both are armed.
+                        isCapturing: capture.isCapturing(control) && !capture.isLayerCapture,
+                        isCapturingLayer: capture.isCapturing(control) && capture.isLayerCapture,
                         onCapture: {
                             capture.toggle(
                                 control,
@@ -192,7 +195,10 @@ private struct MappingRow: View {
     let layerAction: MappedAction?
     /// Whether the MOD half of the row exists at all.
     let showsLayer: Bool
+    /// Whether this row is waiting for a key for the base column.
     let isCapturing: Bool
+    /// Whether it is waiting for the layer column instead.
+    let isCapturingLayer: Bool
     let onCapture: () -> Void
     /// Arms a capture whose key becomes one more step of this control's command.
     let onAppendStep: () -> Void
@@ -244,12 +250,20 @@ private struct MappingRow: View {
     /// something with MOD held: it does what the base says (S2).
     private var layerCell: some View {
         HStack(spacing: 10) {
-            Text(layerAction.map(MappingRules.label(for:)) ?? "—")
+            Text(isCapturingLayer ? "Pulsa una tecla…" : layerAction.map(MappingRules.label(for:)) ?? "—")
                 .font(.system(.callout, design: .monospaced))
-                .foregroundStyle(layerAction == nil ? Color.secondary : Color.primary)
+                .foregroundStyle(layerAction == nil || isCapturingLayer ? Color.secondary : Color.primary)
                 .lineLimit(1)
                 .frame(width: 110, alignment: .leading)
                 .help(layerHelp)
+            // The same button the base column has, because the columns are the same thing read twice.
+            // Without it the only way into the layer was a menu entry, which is not how the base
+            // column teaches the gesture.
+            Button(isCapturingLayer ? "Cancelar" : "Capturar") {
+                onCaptureLayer()
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
             // The same list as the base, aimed at the column: a capture armed here writes into the
             // layer because that is the intent the arming menu declares, not a property of capture.
             Menu {
@@ -326,11 +340,11 @@ final class MappingCapture: ObservableObject {
 
     /// Whether the armed capture adds a step to the command instead of replacing it. Read by the write
     /// that follows a capture, and cleared as the capture ends so the next one cannot inherit it.
-    private(set) var isAppendingStep = false
+    @Published private(set) var isAppendingStep = false
     /// Whether the armed capture writes into the MOD layer instead of the base. The capture session
     /// itself only knows the control and the profile — the destination is an intent of the menu that
     /// armed it, so it lives beside the append flag and is read by the same write.
-    private(set) var isLayerCapture = false
+    @Published private(set) var isLayerCapture = false
 
     func isCapturing(_ candidate: XInputControl) -> Bool {
         session.isArmed(candidate)

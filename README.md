@@ -159,8 +159,8 @@ Se construye desde el menú **Elegir…** del propio control:
 
 1. Captura la primera tecla del comando, como cualquier otra asignación.
 2. En **Elegir…**, elige **Añadir paso al comando…** y pulsa la siguiente tecla. Repite por cada paso.
-   Funciona igual en la columna Base y en la columna MOD: la captura escribe en la columna
-   cuyo menú la armó, y lo que capturaste en la otra no se toca.
+   Funciona igual en la columna Base y en la columna MOD: **cada columna tiene su propio botón
+   «Capturar»** y su propio menú, y lo que capturas en una no toca la otra.
 3. **Quitar el último paso** acorta el comando, y la etiqueta del control muestra el resultado:
    «⌘A luego ⌘C».
 

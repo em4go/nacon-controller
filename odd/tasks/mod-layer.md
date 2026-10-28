@@ -70,3 +70,9 @@ La base y la capa MOD se editan a la vista, sin conmutador de modo.
 - **L10.** El límite del punto L5 queda cerrado: la captura escribe ahora en la columna que armó el
     menú (`MappingCapture.isLayerCapture`), así que las columnas Base y MOD ofrecen lo mismo —captura,
     catálogo, pasos de comando— y ninguna de las dos es de segunda clase.
+- **L11.** La columna MOD no tenía botón «Capturar»: solo el menú, así que el botón de la fila
+    escribía en la base y la capa parecía no aceptar teclas. Ahora cada columna tiene el suyo y la fila
+    distingue cuál está armada. Detrás había un segundo fallo: los banderines de intención de la captura
+    no eran `@Published`, así que la fila podía no enterarse de en qué columna se capturaba; ahora lo son.
+    Verificado de punta a punta con un clic sintético en el botón MOD y ⌘A: la capa quedó con ⌘A y la
+    base intacta, comprobado además en el archivo de perfiles.

@@ -161,6 +161,10 @@ El mismo menú tiene **Mantener modificador**: ⌃, ⌥, ⇧, ⌘ y fn por separ
 ellos. Un control asignado a una de esas entradas se comporta como la tecla física —baja mientras lo
 mantienes y sube al soltarlo—, y las teclas se envían de verdad, no como banderas sobre otra tecla.
 
+Los modificadores que envía son siempre **los de la izquierda** —⌃ ⌥ ⇧ ⌘ fn—, que es lo que necesita
+una aplicación que distingue lados, como las de dictado que preguntan «Left / Either / Right»: el lado
+viaja en el código de la tecla, no en la bandera.
+
 Sirve para dos cosas. La primera, recorrer el conmutador de aplicaciones: ⌘ en un control y ⇥ en otro,
 mantienes el primero y tocas el segundo. La segunda, **dictar**: una app que escuche una combinación
 de solo modificadores —⌃⇧ es lo habitual— se puede gobernar con un botón del mando si mantienes el

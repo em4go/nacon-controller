@@ -185,4 +185,24 @@ final class KeyStrokePlanTests: XCTestCase {
         XCTAssertNil(KeyStrokePlan.repeatStroke(for: KeyCombo(keyCode: 59, modifiers: [.shift])))
         XCTAssertNil(KeyStrokePlan.repeatStroke(for: KeyCombo(keyCode: 55)))
     }
+
+    func testEveryModifierIsTheLeftHandKey() {
+        // An application that lets you choose between the left and the right modifier reads the key
+        // code of the event, not the flag — the flag does not carry a side. These are the left-hand
+        // codes, and the right-hand ones (⌘ 54, ⇧ 60, ⌥ 61, ⌃ 62) are never emitted.
+        let left: Set<UInt16> = [55, 56, 58, 59, 63]
+        let right: Set<UInt16> = [54, 60, 61, 62]
+
+        var emitted: Set<UInt16> = []
+        for hold in KeyStrokePlan.holdCombos {
+            for stroke in KeyStrokePlan.strokes(for: hold, isDown: true)
+                + KeyStrokePlan.strokes(for: hold, isDown: false) {
+                emitted.insert(stroke.keyCode)
+            }
+        }
+
+        XCTAssertTrue(emitted.isSubset(of: left), "unexpected key code in \(emitted.sorted())")
+        XCTAssertTrue(emitted.isDisjoint(with: right), "a right-hand modifier was emitted")
+        XCTAssertTrue(emitted.contains(55), "Command must be the left one")
+    }
 }

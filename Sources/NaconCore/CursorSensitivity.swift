@@ -21,7 +21,7 @@ public enum CursorSensitivity: String, CaseIterable, Equatable, Sendable {
         switch self {
         case .maxSpeed: return 200...3_000
         case .deadzone: return 0.05...0.6
-        case .scrollSpeed: return 2...40
+        case .scrollSpeed: return 2...80
         case .curve: return 1...4
         }
     }

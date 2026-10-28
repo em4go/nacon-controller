@@ -100,9 +100,9 @@ final class StickMotionTests: XCTestCase {
 
     func testScrollAccumulatorKeepsRemainderBetweenTicks() {
         var accumulator = ScrollAccumulator()
-        XCTAssertEqual(accumulator.consume(linesPerSecond: 10, seconds: 0.05), 0)
-        XCTAssertEqual(accumulator.consume(linesPerSecond: 10, seconds: 0.06), 1)
+        XCTAssertEqual(accumulator.consume(pixelsPerSecond: 10, seconds: 0.05), 0)
+        XCTAssertEqual(accumulator.consume(pixelsPerSecond: 10, seconds: 0.06), 1)
         accumulator.reset()
-        XCTAssertEqual(accumulator.consume(linesPerSecond: 10, seconds: 0.05), 0)
+        XCTAssertEqual(accumulator.consume(pixelsPerSecond: 10, seconds: 0.05), 0)
     }
 }

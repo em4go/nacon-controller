@@ -159,7 +159,11 @@ public final class EmulationEngine {
         for control in transitions.pressed {
             let action = profile.action(for: control)
             guard action != .none else { continue }
-            if case .scrollLines = action { continue }
+            if case .scrollLines(let lines) = action {
+                // A press is one step, so there is nothing to hold and nothing to release.
+                emitter.scroll(pixels: Scroll.pixels(forLines: lines))
+                continue
+            }
             heldActions[control] = action
             emitter.press(action)
             if case .key = action {
@@ -185,9 +189,12 @@ public final class EmulationEngine {
             emitter.moveCursor(deltaX: velocity.dx * seconds, deltaY: velocity.dy * seconds)
         }
         let rate = StickMotion.scrollLinesPerSecond(stick: rightStick, settings: settings)
-        let lines = scroll.consume(linesPerSecond: rate, seconds: seconds)
-        if lines != 0 {
-            emitter.scroll(lines: lines)
+        let pixels = scroll.consume(
+            pixelsPerSecond: rate * Scroll.pixelsPerLine,
+            seconds: seconds
+        )
+        if pixels != 0 {
+            emitter.scroll(pixels: pixels)
         }
         advanceKeyRepeats(seconds: seconds)
     }

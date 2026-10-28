@@ -26,6 +26,7 @@ El mando debe estar conectado y el permiso de Accesibilidad concedido.
 | 5 | Iniciar emulación y pulsar **A** con un editor de texto delante | Escribe `h` |
 | 6 | Con la emulación activa, mirar el editor | Está bloqueado, con su aviso, y el eje Y también |
 | 7 | Pulsar **PS** | Detiene la emulación al instante; pulsarlo de nuevo la activa |
+| 10 | Empujar el stick derecho a media inclinación en un documento largo, y luego mover el control «Velocidad de desplazamiento» | El desplazamiento es continuo, sin saltos de línea, y la velocidad cambia con el control al reiniciar la emulación |
 | 9 | Asignar un control a **⌘⇥** desde el catálogo, pulsarlo y soltarlo; después escribir en un editor de texto | Cambia de aplicación una vez y **⌘ no queda pulsado**: lo que se escriba sale normal, sin atajos |
 | 8 | Con la emulación activa, activarla desde el mando con **PS** y pasar a otra aplicación; mover el stick | El cursor va igual de rápido que con la ventana de la app delante |
 

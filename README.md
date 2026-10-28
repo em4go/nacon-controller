@@ -113,6 +113,11 @@ logo PS. Las máscaras de resaltado —una por control, con el canal alfa de ese
 ### Sensibilidad por perfil
 
 Cada perfil guarda su propia velocidad máxima, zona muerta, curva y velocidad de desplazamiento, así
+como su tope, con un rango que llega a 80 líneas/s. El desplazamiento se emite en píxeles y no en
+líneas: un evento de línea solo puede llevar líneas enteras, así que a poca velocidad la vista
+saltaba una línea cada varios ciclos. En píxeles la fracción se arrastra de un ciclo al siguiente y el
+movimiento es continuo. `Scroll.pixelsPerLine` (16) es el puente entre la unidad que ves y la que
+recibe el sistema, y es una estimación: macOS no fija cuántos píxeles mide una línea.
 que un perfil de diseño y uno de juego pueden moverse distinto sin reajustar nada a mano. Los controles
 están en **Sensibilidad del cursor**, se aplican al arrancar la emulación y se bloquean mientras corre
 por la misma razón que el editor de mapeos. **Restablecer** devuelve los valores estándar sin tocar la

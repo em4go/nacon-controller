@@ -59,8 +59,10 @@ public struct ScrollAccumulator: Sendable {
 
     public init() {}
 
-    public mutating func consume(linesPerSecond: Double, seconds: Double) -> Int {
-        remainder += linesPerSecond * seconds
+    /// Whole pixels for this step, carrying the fraction into the next one so a slow scroll still
+    /// moves instead of being rounded away every tick.
+    public mutating func consume(pixelsPerSecond: Double, seconds: Double) -> Int {
+        remainder += pixelsPerSecond * seconds
         let whole = remainder.rounded(.towardZero)
         remainder -= whole
         return Int(whole)

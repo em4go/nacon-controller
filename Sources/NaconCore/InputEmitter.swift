@@ -11,7 +11,7 @@ public protocol InputEmitter: AnyObject {
     /// Auto-repeat of a key that is being held down.
     func repeatKey(_ action: MappedAction)
     func moveCursor(deltaX: Double, deltaY: Double)
-    func scroll(lines: Int)
+    func scroll(pixels: Int)
 }
 
 public extension InputEmitter {
@@ -86,13 +86,15 @@ public final class CGEventEmitter: InputEmitter {
         event.post(tap: .cghidEventTap)
     }
 
-    public func scroll(lines: Int) {
-        guard lines != 0 else { return }
+    public func scroll(pixels: Int) {
+        guard pixels != 0 else { return }
+        // Pixels, not lines: a line event carries a whole line and cannot express the fraction the
+        // stick is asking for, which is what made slow scrolling move in visible steps.
         guard let event = CGEvent(
             scrollWheelEvent2Source: source,
-            units: .line,
+            units: .pixel,
             wheelCount: 1,
-            wheel1: Int32(lines),
+            wheel1: Int32(pixels),
             wheel2: 0,
             wheel3: 0
         ) else { return }

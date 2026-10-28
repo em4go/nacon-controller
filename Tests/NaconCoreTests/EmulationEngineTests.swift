@@ -2,42 +2,6 @@ import XCTest
 
 @testable import NaconCore
 
-private final class RecordingEmitter: InputEmitter {
-    enum Event: Equatable {
-        case press(MappedAction)
-        case release(MappedAction)
-        case move(deltaX: Double, deltaY: Double)
-        case scroll(Int)
-        case repeatKey(MappedAction)
-    }
-
-    private(set) var events: [Event] = []
-
-    func press(_ action: MappedAction) {
-        events.append(.press(action))
-    }
-
-    func release(_ action: MappedAction) {
-        events.append(.release(action))
-    }
-
-    func moveCursor(deltaX: Double, deltaY: Double) {
-        events.append(.move(deltaX: deltaX, deltaY: deltaY))
-    }
-
-    func scroll(lines: Int) {
-        events.append(.scroll(lines))
-    }
-
-    func repeatKey(_ action: MappedAction) {
-        events.append(.repeatKey(action))
-    }
-
-    func reset() {
-        events.removeAll()
-    }
-}
-
 final class EmulationEngineTests: XCTestCase {
     private var emitter: RecordingEmitter!
     private var engine: EmulationEngine!
@@ -256,13 +220,28 @@ final class EmulationEngineTests: XCTestCase {
         XCTAssertTrue(emitter.events.isEmpty)
     }
 
-    func testScrollEmitsWholeLinesOnly() {
+    func testSlowScrollingCarriesTheFractionInsteadOfCrawlingInWholeLines() {
+        // 14 lines/s at full deflection is 224 px/s, so 0.05 s is 11.2 px: a whole 11 now and the
+        // 0.2 px carried into the next tick. Dropping the fraction is what made slow scrolling step
+        // a whole line every few ticks, which is the jerking the user sees.
         engine.setEnabledNow(true)
         engine.handle(report(right: stick(normalizedX: 0, normalizedY: 1)))
         engine.tick(seconds: 0.05)
-        XCTAssertTrue(emitter.events.isEmpty, "half a line must not be emitted")
+        XCTAssertEqual(emitter.events, [.scroll(11)])
         engine.tick(seconds: 0.05)
-        XCTAssertEqual(emitter.events, [.scroll(1)])
+        XCTAssertEqual(emitter.events, [.scroll(11), .scroll(11)])
+    }
+
+    func testAMappedScrollActionScrollsOnPress() {
+        // These mappings were offered in the menu and then dropped by the engine, so they did nothing.
+        let profile = InputProfile(mappings: [.dpadUp: .scrollLines(1), .dpadDown: .scrollLines(-2)])
+        let (localEngine, localEmitter) = makeEngine(profile: profile)
+        localEngine.handle(report())
+        localEngine.handle(report(buttons: [.dpadUp]))
+        localEngine.handle(report())
+        localEngine.handle(report(buttons: [.dpadDown]))
+
+        XCTAssertEqual(localEmitter.events, [.scroll(16), .scroll(-32)])
     }
 
     // MARK: - The timer is a hint, not a metronome

@@ -251,6 +251,78 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
         return true
     }
 
+    // MARK: - MOD layer (S3, S4, S5, S6)
+
+    /// The MOD layer of the profile being edited, or the empty layer when there is nothing to edit.
+    ///
+    /// The UI reads the key and the entries from here, so a profile without a layer looks the same to
+    /// it as one that has never had one.
+    public var selectedLayer: ProfileLayer {
+        selectedProfile?.profile.layer ?? .empty
+    }
+
+    /// S5: chooses the control that opens the layer of one profile.
+    ///
+    /// `nil` is «Ninguna»: the layer closes but keeps its entries, so a slip of the menu cannot delete
+    /// a whole set of assignments — `clearLayer` is the deliberate way to throw them away.
+    /// - Returns: whether the library changed. A control that may not select the layer (PS) is
+    ///   refused without touching anything.
+    @discardableResult
+    public mutating func setLayerKey(_ control: XInputControl?, for profileID: UUID) -> Bool {
+        guard let index = profiles.firstIndex(where: { $0.id == profileID }) else { return false }
+        if let control, !MappingRules.isLayerKeyEligible(control) {
+            return false
+        }
+        guard profiles[index].profile.layer.key != control else { return false }
+        profiles[index].profile.layer.key = control
+        return true
+    }
+
+    /// S3: writes one assignment into the layer of one profile, leaving the base alone.
+    ///
+    /// `.none` removes the entry instead of storing it, exactly like the base: a control the layer
+    /// does not redefine falls back to the base (S2), and an empty entry would mean something else.
+    /// - Returns: whether the library changed.
+    @discardableResult
+    public mutating func setLayerAction(
+        _ action: MappedAction,
+        for control: XInputControl,
+        in profileID: UUID
+    ) -> Bool {
+        // The same invariant the base holds: PS is never stored as an assignment.
+        guard MappingRules.isRemappable(control) else { return false }
+        guard let index = profiles.firstIndex(where: { $0.id == profileID }) else { return false }
+        var layer = profiles[index].profile.layer
+        if case .none = action {
+            guard layer.mappings[control] != nil else { return false }
+            layer.mappings.removeValue(forKey: control)
+        } else {
+            guard layer.mappings[control] != action else { return false }
+            layer.mappings[control] = action
+        }
+        profiles[index].profile.layer = layer
+        return true
+    }
+
+    /// Drops the key and every entry of one profile's layer: the profile goes back to having no layer
+    /// at all, which is what a profile saved before the layer existed looks like (S6).
+    /// - Returns: whether the library changed.
+    @discardableResult
+    public mutating func clearLayer(for profileID: UUID) -> Bool {
+        guard let index = profiles.firstIndex(where: { $0.id == profileID }) else { return false }
+        guard !profiles[index].profile.layer.isEmpty else { return false }
+        profiles[index].profile.layer = .empty
+        return true
+    }
+
+    /// The layer's own assignment for one control of the profile being edited.
+    ///
+    /// `nil` means the control has no entry and uses its base action (S2); it is not the same as
+    /// `.none`, which is an entry that deliberately sends nothing.
+    public func layerValue(for control: XInputControl) -> MappedAction? {
+        selectedProfile?.profile.layer.action(for: control)
+    }
+
     private enum CodingKeys: String, CodingKey {
         case version
         case profiles

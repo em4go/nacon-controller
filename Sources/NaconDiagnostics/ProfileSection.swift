@@ -36,6 +36,11 @@ struct ProfileSection: View {
             // S3: the view for the profile being edited, right below the picker that selects it.
             if let selected = profiles.selectedProfile {
                 Divider()
+                // S5: the key that opens the layer is chosen once, above whichever view is on screen.
+                // Both views read the same layer, so two selectors would sooner or later offer two
+                // different lists and the layer would depend on which view the user happened to open.
+                modKeyRow
+                Divider()
                 switch viewMode {
                 case .graph:
                     // The graphical view only renders and forwards the tap: the profile comes in, and
@@ -49,6 +54,9 @@ struct ProfileSection: View {
                         onAssign: { control, action in
                             // Same guard as a capture: the write belongs to the profile on screen.
                             applyCapturedAction(selected.id, control, action)
+                        },
+                        onAssignToLayer: { control, action in
+                            applyLayerAction(selected.id, control, action)
                         }
                     )
                     // A capture belongs to the profile it was armed for, so the graph is rebuilt when
@@ -64,6 +72,7 @@ struct ProfileSection: View {
                         profileID: selected.id,
                         isEmulationEnabled: emulation.isEnabled,
                         setAction: applyCapturedAction,
+                        setLayerAction: applyLayerAction,
                         capture: capture
                     )
                     // Switching profiles rebuilds the editor, which ends any armed capture: a pending
@@ -127,6 +136,82 @@ struct ProfileSection: View {
         guard armedProfileID == profiles.selectedProfile?.id else { return }
         // The controller persists every change, so the edit survives a restart (S6).
         profiles.setAction(action, for: control)
+    }
+
+    /// Writes one assignment into the layer of the profile on screen.
+    ///
+    /// A layer choice comes from a menu, not from a capture, but it is guarded the same way: the
+    /// write only lands on the profile the user is looking at.
+    private func applyLayerAction(
+        _ profileID: UUID,
+        _ control: XInputControl,
+        _ action: MappedAction
+    ) {
+        guard profileID == profiles.selectedProfile?.id else { return }
+        profiles.setLayerAction(action, for: control)
+    }
+
+    /// S5: the control that opens the layer, and the one way to remove the layer entirely.
+    ///
+    /// The entries are not listed here: they belong to the rows of the view below, in the MOD column,
+    /// so the layer is edited where the controls are instead of in two places at once.
+    private var modKeyRow: some View {
+        let layer = profiles.selectedLayer
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                Text("Tecla MOD:")
+                    .font(.callout)
+                Text(layer.key.map(MappingRules.controlLabel(for:)) ?? "Ninguna")
+                    .font(.system(.callout, design: .monospaced))
+                    .foregroundStyle(layer.isActive ? Color.primary : Color.secondary)
+                    .lineLimit(1)
+                Menu {
+                    // «Ninguna» closes the layer but keeps its entries; «Quitar capa» is the one that
+                    // throws them away, so a slip of this menu cannot undo a whole set of assignments.
+                    Button("Ninguna") {
+                        profiles.setLayerKey(nil)
+                    }
+                    Divider()
+                    // S5: PS is not in this list. It is the emergency stop, and as a selector it would
+                    // be spent choosing a layer instead of stopping the emulation.
+                    ForEach(
+                        XInputControl.allCases.filter { MappingRules.isLayerKeyEligible($0) },
+                        id: \.self
+                    ) { control in
+                        Button(MappingRules.controlLabel(for: control)) {
+                            profiles.setLayerKey(control)
+                        }
+                    }
+                } label: {
+                    Label("Elegir…", systemImage: "chevron.up.chevron.down")
+                        .labelStyle(.titleAndIcon)
+                }
+                .menuStyle(.borderlessButton)
+                .controlSize(.small)
+                .fixedSize()
+                Button("Quitar capa") {
+                    profiles.clearLayer()
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .disabled(layer.isEmpty)
+                .help(
+                    "Elimina la tecla MOD y todas sus asignaciones. La base no cambia."
+                )
+                Spacer(minLength: 0)
+            }
+            // S7: the layer is frozen with the rest of the profile once emulation starts, so the
+            // selector goes with the editor it belongs to instead of staying clickable.
+            .disabled(emulation.isEnabled)
+            if layer.isActive {
+                Text(
+                    "Mientras mantengas pulsada la tecla MOD, los botones envían lo que dice la "
+                        + "columna MOD; la propia tecla MOD no envía nada."
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+        }
     }
 
     private var profilePicker: some View {

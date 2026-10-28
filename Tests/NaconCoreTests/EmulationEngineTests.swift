@@ -179,6 +179,21 @@ final class EmulationEngineTests: XCTestCase {
         XCTAssertEqual(localEmitter.events.last, .release(.key(KeyCombo(.upArrow))))
     }
 
+    func testAHeldModifierDoesNotRepeat() {
+        // Holding the pad control holds the modifier. Repeating it would send modifier presses the
+        // application never asked for while the user is holding a button and nothing else happens.
+        let profile = InputProfile(
+            mappings: [.dpadUp: .key(KeyCombo(keyCode: 59, modifiers: [.shift]))],
+            keyRepeat: KeyRepeatSettings(initialDelay: 0.2, interval: 0.05)
+        )
+        let (localEngine, localEmitter) = makeEngine(profile: profile)
+        localEngine.handle(report())
+        localEngine.handle(report(buttons: [.dpadUp]))
+        localEngine.tick(seconds: 2.0)
+
+        XCTAssertEqual(localEmitter.events, [.press(.key(KeyCombo(keyCode: 59, modifiers: [.shift])))])
+    }
+
     func testHeldMouseButtonDoesNotRepeat() {
         let (localEngine, localEmitter) = makeEngine(profile: .standard)
         localEngine.handle(report())

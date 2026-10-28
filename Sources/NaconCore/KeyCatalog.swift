@@ -40,20 +40,26 @@ public enum KeyCatalog {
 
 extension KeyCombo {
     /// Human-readable form of the combo, modifiers first, e.g. "⌃⌥⇧⌘Q".
+    ///
+    /// A hold has no key to name, so it prints only its modifiers, in the same order. Printing the
+    /// key last would render ⌃⇧ as "⇧⌃", which reads like a shortcut somebody built the wrong way.
     public var displayName: String {
+        // A hold's key is one of its modifiers, so the set to print is the key plus its companions.
+        let shown = isModifierHold ? KeyStrokePlan.heldModifiers(for: self) : modifiers
         var result = ""
-        if modifiers.contains(.control) {
+        if shown.contains(.control) {
             result += "⌃"
         }
-        if modifiers.contains(.option) {
+        if shown.contains(.option) {
             result += "⌥"
         }
-        if modifiers.contains(.shift) {
+        if shown.contains(.shift) {
             result += "⇧"
         }
-        if modifiers.contains(.command) {
+        if shown.contains(.command) {
             result += "⌘"
         }
+        guard !isModifierHold else { return result }
         return result + KeyCatalog.name(for: keyCode)
     }
 }

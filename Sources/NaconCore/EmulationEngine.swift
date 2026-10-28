@@ -166,7 +166,7 @@ public final class EmulationEngine {
             }
             heldActions[control] = action
             emitter.press(action)
-            if case .key = action {
+            if case .key(let combo) = action, !combo.isModifierHold {
                 repeatElapsed[control] = 0
                 nextRepeatAt[control] = profile.keyRepeat.initialDelay
             }

@@ -66,8 +66,9 @@ public final class CGEventEmitter: InputEmitter {
     }
 
     public func repeatKey(_ action: MappedAction) {
-        guard case .key(let combo) = action else { return }
-        post(KeyStrokePlan.repeatStroke(for: combo))
+        guard case .key(let combo) = action, let stroke = KeyStrokePlan.repeatStroke(for: combo)
+        else { return }
+        post(stroke)
     }
 
     public func moveCursor(deltaX: Double, deltaY: Double) {

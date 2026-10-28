@@ -155,6 +155,20 @@ hacen falta permisos nuevos ni APIs privadas. El límite es el mismo que el del 
 - Un atajo con ⌘+Q cierra la aplicación que esté delante, no una en concreto: el catálogo no elige por
   ti, y no necesita el permiso de Automatización.
 
+### Un control que mantiene modificadores
+
+El mismo menú tiene **Mantener modificador**: ⌃, ⌥, ⇧ y ⌘ por separado, y las seis parejas entre
+ellos. Un control asignado a una de esas entradas se comporta como la tecla física —baja mientras lo
+mantienes y sube al soltarlo—, y las teclas se envían de verdad, no como banderas sobre otra tecla.
+
+Sirve para dos cosas. La primera, recorrer el conmutador de aplicaciones: ⌘ en un control y ⇥ en otro,
+mantienes el primero y tocas el segundo. La segunda, **dictar**: una app que escuche una combinación
+de solo modificadores —⌃⇧ es lo habitual— se puede gobernar con un botón del mando si mantienes el
+control mientras hablas y lo sueltas al terminar.
+
+La captura del teclado no puede grabar una pulsación de solo modificadores, porque escucha teclas y no
+cambios de modificador; esas entradas se eligen del menú.
+
 ### Firma estable (recomendado antes de la primera concesión)
 
 La firma ad-hoc ancla el permiso de Accesibilidad al hash del binario, así que **cada recompilación

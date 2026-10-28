@@ -110,11 +110,58 @@ final class KeyStrokePlanTests: XCTestCase {
         )
     }
 
-    func testTheHoldCombosAreTheFourModifiers() {
-        XCTAssertEqual(KeyStrokePlan.holdCombos.map(\.keyCode), [59, 58, 56, 55])
-        for combo in KeyStrokePlan.holdCombos {
-            XCTAssertTrue(combo.modifiers.isEmpty, "a hold is the key, not a shortcut")
-            XCTAssertEqual(KeyStrokePlan.strokes(for: combo, isDown: true).count, 1)
+    func testTheHoldCombosAreTheSinglesAndThePairs() {
+        let holds = KeyStrokePlan.holdCombos
+        XCTAssertEqual(holds.count, 10, "four modifiers alone and the six pairs between them")
+        XCTAssertEqual(Set(holds).count, holds.count, "no hold is offered twice")
+        for combo in holds {
+            XCTAssertTrue(combo.isModifierHold, "\(combo.keyCode) is not a modifier")
         }
+        XCTAssertEqual(holds.prefix(4).map(\.keyCode), [59, 58, 56, 55], "singles first")
+    }
+
+    func testAHoldCanHoldTwoModifiersAtOnce() {
+        // The dictation case: an application that listens for ⌃⇧ and nothing else.
+        let hold = KeyCombo(keyCode: 59, modifiers: [.shift])
+
+        XCTAssertEqual(
+            KeyStrokePlan.strokes(for: hold, isDown: true),
+            [
+                KeyStroke(keyCode: 59, isDown: true, modifiers: [.control]),
+                KeyStroke(keyCode: 56, isDown: true, modifiers: [.control, .shift]),
+            ],
+            "both modifiers must be pressed as real keys, not as flags on one of them"
+        )
+        XCTAssertEqual(
+            KeyStrokePlan.strokes(for: hold, isDown: false),
+            [
+                KeyStroke(keyCode: 56, isDown: false, modifiers: [.control]),
+                KeyStroke(keyCode: 59, isDown: false, modifiers: []),
+            ]
+        )
+    }
+
+    func testEveryHoldPressesAndReleasesEachOfItsModifiers() {
+        for hold in KeyStrokePlan.holdCombos {
+            let pressed = KeyStrokePlan.strokes(for: hold, isDown: true)
+            let released = KeyStrokePlan.strokes(for: hold, isDown: false)
+            let expected = KeyStrokePlan.heldModifiers(for: hold)
+
+            XCTAssertEqual(pressed.count, expected.rawValue.nonzeroBitCount, "\(hold.displayName)")
+            XCTAssertEqual(released.map(\.keyCode), pressed.map(\.keyCode).reversed(), "\(hold.displayName)")
+            XCTAssertEqual(released.last?.modifiers, [], "\(hold.displayName) ends with a held flag")
+        }
+    }
+
+    func testAHoldPrintsItsModifiersInAppleOrder() {
+        XCTAssertEqual(KeyCombo(keyCode: 59, modifiers: [.shift]).displayName, "⌃⇧")
+        XCTAssertEqual(KeyCombo(keyCode: 55).displayName, "⌘")
+        XCTAssertEqual(KeyCombo(.tab, modifiers: [.command]).displayName, "⌘⇥")
+    }
+
+    func testAHoldHasNoRepeat() {
+        // A modifier does not autorepeat, and a repeat would post the key without its partner.
+        XCTAssertNil(KeyStrokePlan.repeatStroke(for: KeyCombo(keyCode: 59, modifiers: [.shift])))
+        XCTAssertNil(KeyStrokePlan.repeatStroke(for: KeyCombo(keyCode: 55)))
     }
 }

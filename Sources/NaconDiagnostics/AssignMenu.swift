@@ -62,7 +62,9 @@ struct AssignMenuItems: View {
         // tool that listens for a combination of modifiers with no key — a dictation app on ⌃⇧ — needs
         // exactly this.
         Menu("Mantener modificador") {
-            ForEach(KeyStrokePlan.holdCombos, id: \.keyCode) { combo in
+            // Identity is the combo, not its key code: ⌃, ⌃⌥, ⌃⇧, ⌃⌘ and ⌃fn share code 59, and a
+            // ForEach keyed on that renders five rows for the same identifier with the labels mixed.
+            ForEach(KeyStrokePlan.holdCombos, id: \.self) { combo in
                 // The full name, not the key alone: ⌃ and ⌃⇧ share a key code and would print twice as
                 // "⌃", two entries the user cannot tell apart.
                 Button(combo.displayName) {

@@ -29,8 +29,8 @@ import Foundation
 /// | --- | --- |
 /// | `dpadUp/Down/Left/Right` | The four rounded squares of the d-pad cross, one component each |
 /// | `buttonA/B/X/Y` | The four empty face-button circles, one component each (drawn empty on purpose) |
-/// | `leftBumper` / `rightBumper` | The cap arc above each shoulder. Its pixels belong to the body component, so the centroid was taken over a window: x 230...430 (mirrored 1022...1222) |
-/// | `leftTrigger` / `rightTrigger` | The second arc of each shoulder: the thin ellipse the cap sits on, a component of its own |
+/// | `leftBumper` / `rightBumper` | The ellipse in front of each shoulder. L1 is the front button, the one nearest the player, so it is the ellipse and not the dome behind it |
+/// | `leftTrigger` / `rightTrigger` | The dome behind the ellipse: that is the trigger, L2 |
 /// | `back` / `start` | The two vertical pills beside the touchpad, left (Share) and right (Options) |
 /// | `guide` | The PS logo the labelled artwork prints between the two sticks. The earlier drawing printed no such button, so this row was the only one that moved when the artwork was replaced |
 /// | `leftThumb` / `rightThumb` | The innermost ring inside each stick well: the stick cup, not the well itself |
@@ -47,10 +47,10 @@ import Foundation
 /// | `buttonB` (○) | 0.8484 | 0.4299 | 1231.9, 404.1 |
 /// | `buttonX` (□) | 0.7196 | 0.4296 | 1044.8, 403.8 |
 /// | `buttonY` (△) | 0.7838 | 0.3373 | 1138.0, 317.1 |
-/// | `leftBumper` (L1) | 0.2305 | 0.1187 | 334.7, 111.6 |
-/// | `rightBumper` (R1) | 0.7730 | 0.1189 | 1122.4, 111.8 |
-/// | `leftTrigger` (L2) | 0.2253 | 0.1692 | 327.2, 159.0 |
-/// | `rightTrigger` (R2) | 0.7787 | 0.1693 | 1130.7, 159.2 |
+/// | `leftBumper` (L1) | 0.2253 | 0.1692 | 327.2, 159.0 |
+/// | `rightBumper` (R1) | 0.7787 | 0.1693 | 1130.7, 159.2 |
+/// | `leftTrigger` (L2) | 0.2305 | 0.1187 | 334.7, 111.6 |
+/// | `rightTrigger` (R2) | 0.7730 | 0.1189 | 1122.4, 111.8 |
 /// | `back` (Share) | 0.3172 | 0.2941 | 460.6, 276.5 |
 /// | `start` (Options) | 0.6857 | 0.2941 | 995.6, 276.5 |
 /// | `guide` (PS) | 0.5022 | 0.6072 | 729.2, 571.0 |
@@ -122,10 +122,11 @@ public struct PadLayout: Equatable, Sendable {
         .buttonB: Point(horizontal: 0.8484, vertical: 0.4299),
         .buttonX: Point(horizontal: 0.7196, vertical: 0.4296),
         .buttonY: Point(horizontal: 0.7838, vertical: 0.3373),
-        .leftBumper: Point(horizontal: 0.2305, vertical: 0.1187),
-        .rightBumper: Point(horizontal: 0.7730, vertical: 0.1189),
-        .leftTrigger: Point(horizontal: 0.2253, vertical: 0.1692),
-        .rightTrigger: Point(horizontal: 0.7787, vertical: 0.1693),
+        // L1 is the front button, the ellipse; L2 is the dome behind it.
+        .leftBumper: Point(horizontal: 0.2253, vertical: 0.1692),
+        .rightBumper: Point(horizontal: 0.7787, vertical: 0.1693),
+        .leftTrigger: Point(horizontal: 0.2305, vertical: 0.1187),
+        .rightTrigger: Point(horizontal: 0.7730, vertical: 0.1189),
         .back: Point(horizontal: 0.3172, vertical: 0.2941),
         .start: Point(horizontal: 0.6857, vertical: 0.2941),
         .guide: Point(horizontal: 0.5022, vertical: 0.6072),

@@ -164,13 +164,13 @@ final class PadLayoutTests: XCTestCase {
         // be a deliberate, re-measured edit: these four pin the corners and the centre of the pad.
         assert(point(.dpadLeft), expectedX: 0.1740, expectedY: 0.4297)
         assert(point(.buttonB), expectedX: 0.8484, expectedY: 0.4299)
-        assert(point(.leftTrigger), expectedX: 0.2253, expectedY: 0.1692)
+        assert(point(.leftTrigger), expectedX: 0.2305, expectedY: 0.1187)
         // The labelled artwork prints the PS logo, which the drawing before it did not, so this is the
         // one row that had to move when the file was replaced.
         assert(point(.guide), expectedX: 0.5022, expectedY: 0.6072)
 
         // Two more, so the vertical extent of the drawing is covered as well.
-        assert(point(.leftBumper), expectedX: 0.2305, expectedY: 0.1187)
+        assert(point(.leftBumper), expectedX: 0.2253, expectedY: 0.1692)
         assert(point(.leftThumb), expectedX: 0.3594, expectedY: 0.6259)
     }
 

@@ -27,8 +27,13 @@ public final class EmulationEngine {
 
     private let queue = DispatchQueue(label: "dev.nacon.emulation")
     private let queueKey = DispatchSpecificKey<Void>()
+    /// The mapping being performed. Owned by `performance`, so the mapping the engine reads and the one
+    /// the performance plays are the same value instead of two copies to keep in sync.
+    private var profile: InputProfile {
+        get { performance.profile }
+        set { performance.profile = newValue }
+    }
     private let emitter: InputEmitter
-    private var profile: InputProfile
     private let tickInterval: TimeInterval = 1.0 / 60.0
 
     private var timer: DispatchSourceTimer?
@@ -44,22 +49,13 @@ public final class EmulationEngine {
     /// in the background, which is where the user actually is.
     private var activity: NSObjectProtocol?
     private var previousReport: XInputReport?
-    /// A command still emitting: the steps left and the index of the next one.
-    private struct PendingSequence {
-        let steps: [KeyCombo]
-        var next: Int
-    }
-
-    private var heldActions: [XInputControl: MappedAction] = [:]
-    /// Commands in progress, one per control. A press emits the first step at once and the rest at one
-    /// step per tick, which gives the target application a chance to act between them — ⌘A must take
-    /// effect before the ⌘C that follows.
-    private var pendingSequences: [XInputControl: PendingSequence] = [:]
+    /// S2, S3: what a press does over time — hold, repeat, command steps, scroll, cursor. It takes the
+    /// seconds as an argument and answers with effects, so nothing here waits for a clock.
+    private var performance = PadPerformance()
+    /// The sticks of the last report. They belong to the engine, which is what reads the report; the
+    /// performance only receives them when time advances.
     private var leftStick: XInputStick = .center
     private var rightStick: XInputStick = .center
-    private var scroll = ScrollAccumulator()
-    private var repeatElapsed: [XInputControl: Double] = [:]
-    private var nextRepeatAt: [XInputControl: Double] = [:]
 
     public init(
         emitter: InputEmitter,
@@ -69,7 +65,7 @@ public final class EmulationEngine {
         }
     ) {
         self.emitter = emitter
-        self.profile = profile
+        self.performance = PadPerformance(profile: profile)
         self.uptime = uptime
         queue.setSpecific(key: queueKey, value: ())
     }
@@ -148,7 +144,7 @@ public final class EmulationEngine {
 
         // The layer is read from the report that presses the control, and the MOD key itself emits
         // nothing: it is a selector, not a "hold modifier". What a control already sent lives in
-        // `heldActions`, so releasing the MOD key later never swaps the action under a button that is
+        // `performance`, so releasing the MOD key later never swaps the action under a button that is
         // still down — the release is always the release of what was pressed. It is computed before
         // the Guide branch because MOD+PS means "show the summary", even while stopped.
         let layerKey = profile.layer.key
@@ -173,60 +169,17 @@ public final class EmulationEngine {
 
         guard enabled else { return }
         // Release first so a control that swaps action can never leave the old one held.
+        var effects: [PerformanceEffect] = []
         for control in transitions.released {
-            repeatElapsed.removeValue(forKey: control)
-            nextRepeatAt.removeValue(forKey: control)
-            // A run still in progress stops here: its remaining steps belong to a press that ended.
-            pendingSequences.removeValue(forKey: control)
-            if let action = heldActions.removeValue(forKey: control) {
-                emitter.release(action)
-            }
+            effects.append(contentsOf: performance.release(control))
         }
         for control in transitions.pressed {
             guard control != layerKey else { continue }
             let action = profile.action(for: control, layerActive: layerActive)
             guard action != .none else { continue }
-            if case .scrollLines(let lines) = action {
-                // A press is one step, so there is nothing to hold and nothing to release.
-                emitter.scroll(pixels: Scroll.pixels(forLines: lines))
-                continue
-            }
-            if case .sequence(let steps) = action, !steps.isEmpty {
-                // A run, not a hold: nothing to release, and holding the control must not repeat it.
-                // The first step goes out now so the control answers the press without a tick of delay.
-                emitStep(steps[0])
-                if steps.count > 1 {
-                    pendingSequences[control] = PendingSequence(steps: steps, next: 1)
-                }
-                continue
-            }
-            heldActions[control] = action
-            emitter.press(action)
-            if case .key(let combo) = action, !combo.isModifierHold {
-                repeatElapsed[control] = 0
-                nextRepeatAt[control] = profile.keyRepeat.initialDelay
-            }
+            effects.append(contentsOf: performance.press(control, action: action))
         }
-    }
-
-    /// One step of a command: a complete stroke, so a step can never leave a key or a modifier down.
-    private func emitStep(_ step: KeyCombo) {
-        emitter.press(.key(step))
-        emitter.release(.key(step))
-    }
-
-    /// Emits the next step of every command in progress, one step per tick.
-    private func advanceSequences() {
-        guard !pendingSequences.isEmpty else { return }
-        for (control, var run) in Array(pendingSequences) {
-            emitStep(run.steps[run.next])
-            run.next += 1
-            if run.next >= run.steps.count {
-                pendingSequences.removeValue(forKey: control)
-            } else {
-                pendingSequences[control] = run
-            }
-        }
+        emit(effects)
     }
 
     func setEnabledNow(_ newValue: Bool) {
@@ -238,42 +191,28 @@ public final class EmulationEngine {
     }
 
     func tick(seconds: Double) {
-        guard enabled, seconds > 0 else { return }
-        let settings = profile.cursor
-        let velocity = StickMotion.cursorVelocity(stick: leftStick, settings: settings)
-        if !velocity.isZero {
-            emitter.moveCursor(deltaX: velocity.dx * seconds, deltaY: velocity.dy * seconds)
-        }
-        advanceSequences()
-        let rate = StickMotion.scrollLinesPerSecond(stick: rightStick, settings: settings)
-        let pixels = scroll.consume(
-            pixelsPerSecond: rate * Scroll.pixelsPerLine,
-            seconds: seconds
-        )
-        if pixels != 0 {
-            emitter.scroll(pixels: pixels)
-        }
-        advanceKeyRepeats(seconds: seconds)
+        guard enabled else { return }
+        emit(performance.advance(seconds: seconds, leftStick: leftStick, rightStick: rightStick))
     }
 
-    /// A synthesized key-down does not trigger the system keyboard repeat, so a held d-pad
-    /// direction would move exactly once. This mirrors the system behaviour: one initial event,
-    /// then repeats after a delay.
-    private func advanceKeyRepeats(seconds: Double) {
-        guard !repeatElapsed.isEmpty else { return }
-        let interval = max(profile.keyRepeat.interval, 0.005)
-        for (control, action) in heldActions {
-            guard case .key = action else { continue }
-            guard var elapsed = repeatElapsed[control], var due = nextRepeatAt[control] else { continue }
-            elapsed += seconds
-            repeatElapsed[control] = elapsed
-            // At most one repeat per tick: catching up on missed repeats would burst several
-            // key-downs at once after a stall, which would type faster than the user held it.
-            if elapsed >= due {
+    /// One place that turns effects into emitter calls.
+    ///
+    /// `releaseHeldModifiers` is deliberately not an effect: it is the engine's safety net for the
+    /// modifiers it is holding outside any mapping, so it stays a call the engine makes itself.
+    private func emit(_ effects: [PerformanceEffect]) {
+        for effect in effects {
+            switch effect {
+            case .press(let action):
+                emitter.press(action)
+            case .release(let action):
+                emitter.release(action)
+            case .repeatKey(let action):
                 emitter.repeatKey(action)
-                due = elapsed + interval
+            case .moveCursor(let deltaX, let deltaY):
+                emitter.moveCursor(deltaX: deltaX, deltaY: deltaY)
+            case .scroll(let pixels):
+                emitter.scroll(pixels: pixels)
             }
-            nextRepeatAt[control] = due
         }
     }
 
@@ -281,17 +220,10 @@ public final class EmulationEngine {
         guard enabled else { return }
         enabled = false
         endActivity()
-        scroll.reset()
-        for action in heldActions.values {
-            emitter.release(action)
-        }
-        heldActions.removeAll()
-        // A command stops with the emulation: its remaining steps would fire into whatever is in front
-        // of the user after they asked it to stop.
-        pendingSequences.removeAll()
+        // Everything held is released and every run stops: a key or a button must never stay stuck down
+        // after the user asked for the emulation to stop.
+        emit(performance.reset())
         emitter.releaseHeldModifiers()
-        repeatElapsed.removeAll()
-        nextRepeatAt.removeAll()
         previousReport = nil
         if notify {
             DispatchQueue.main.async { [weak self] in

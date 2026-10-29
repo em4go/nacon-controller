@@ -7,7 +7,7 @@ holding display copy and every surface that prints a mapping reads one property.
 
 - **S1.** Request (verbatim): «good. continue with the proposed tasks in order» — C5 of the review,
   *Let an action name itself, and derive one reading*. Only the first half is built; the second half
-  is dropped on purpose (see L2).
+  is dropped on purpose (see L3).
 - **S2.** Card, Solution (verbatim, first half): «Give `MappedAction` a `displayName` beside
   `KeyCombo.displayName` […]».
 - **S3.** The visible text does not change: every label is byte-identical to what
@@ -36,12 +36,12 @@ split: deleting the rules label and pointing eleven call sites at the property h
   site in `Tests/NaconCoreTests/SequenceActionTests.swift`, outside the surfaces the brief allowed.
   Authorized, and the sequence label test moves into `MappedActionTests` rather than staying behind
   with a one-line redirect, so one file keeps every label assertion (S5) instead of two.
-- **L3.** Evidence: `swift test` → 328 tests, 0 failures, run by the parent; the moved switch was read
-  against the old body (same case order, same singular/plural branch, same strings); no string literal
-  is left in `MappingRules.swift`.
-- **L2.** The second half of the card — one `ControlReading` printed by table, strip and summary — is
+- **L3.** The second half of the card — one `ControlReading` printed by table, strip and summary — is
   dropped. The three surfaces compose a row differently *by design*: the summary omits unassigned
   controls, the strip appends «· MOD …» only when the layer redefines the control, and the table
   prints «—» for a control the layer leaves to the base. A shared reading would need a flag for each
   of those differences, i.e. an interface as wide as its three call sites; the part that is genuinely
   shared is the text of one cell, which is exactly this `displayName`.
+- **L4.** Evidence: `swift test` → 328 tests, 0 failures, run by the parent; the moved switch was read
+  against the old body (same case order, same singular/plural branch, same strings); no string literal
+  is left in `MappingRules.swift`.

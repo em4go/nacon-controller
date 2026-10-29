@@ -108,6 +108,24 @@ final class KeyCaptureSessionTests: XCTestCase {
         XCTAssertNil(session.intent)
     }
 
+    func testTheOtherColumnsButtonArmsInsteadOfEndingTheCapture() {
+        var session = KeyCaptureSession()
+        session.arm(.buttonA, for: profileA, intent: .mod, isEmulationRunning: false)
+
+        // The base cell of that row still reads «Capturar», so its press arms the base column: a
+        // button that does not say «Cancelar» must never end what the MOD column started.
+        let result = session.toggle(
+            .buttonA,
+            for: profileA,
+            intent: .base,
+            isEmulationRunning: false
+        )
+
+        XCTAssertEqual(result, .armed, "a button labelled «Capturar» must not cancel")
+        XCTAssertTrue(session.isArmed(.buttonA))
+        XCTAssertEqual(session.intent, .base, "the capture ends up in the column that was pressed")
+    }
+
     func testArmingWithADifferentIntentReplacesTheArmedCaptureWithoutCancelling() {
         var session = KeyCaptureSession()
         session.arm(.buttonA, for: profileA, intent: .baseCommand, isEmulationRunning: false)
@@ -164,17 +182,18 @@ final class KeyCaptureSessionTests: XCTestCase {
     }
 
     func testCancellingLeavesThePreviousMappingUntouched() {
-        var profile = InputProfile.standard
+        var library = makeLibrary(selected: profileA)
+        let before = library
         var session = KeyCaptureSession()
         session.arm(.buttonA, for: profileA, isEmulationRunning: false)
 
         let outcome = session.handleKey(keyCode: VirtualKey.escape.rawValue, modifiers: [])
 
-        guard case .cancelled = outcome else {
-            return XCTFail("plain Escape has to cancel the capture")
-        }
-        apply(outcome, to: &profile, selected: profileA)
-        XCTAssertEqual(profile, .standard, "a cancelled capture must not write anything")
+        XCTAssertEqual(outcome, .cancelled(.buttonA))
+        let write = MappingWrite.resolve(outcome, editing: library.selectedProfile)
+        XCTAssertEqual(write, .drop, "a cancelled capture must not write anything")
+        XCTAssertFalse(library.apply(write))
+        XCTAssertEqual(library, before, "the previous mapping is what it was")
     }
 
     func testEscapeWithAModifierIsMappable() {
@@ -280,22 +299,31 @@ final class KeyCaptureSessionTests: XCTestCase {
     }
 
     func testAStaleCaptureCannotWriteToTheNewlySelectedProfile() {
-        var armedProfile = InputProfile.standard
-        var newlySelected = InputProfile.standard
+        var library = makeLibrary(selected: profileA)
         var session = KeyCaptureSession()
         session.arm(.buttonA, for: profileA, isEmulationRunning: false)
         let outcome = session.handleKey(keyCode: 12, modifiers: [])
 
         // The selection moved to profile B before the press landed: the write is dropped.
-        apply(outcome, to: &newlySelected, selected: profileB)
-        // The same outcome does write to the profile it was armed for, so the guard is what saved B.
-        apply(outcome, to: &armedProfile, selected: profileA)
+        library.selectProfile(id: profileB)
+        let before = library
+        let stale = MappingWrite.resolve(outcome, editing: library.selectedProfile)
+        XCTAssertEqual(stale, .drop, "the press was armed for another profile")
+        XCTAssertFalse(library.apply(stale))
+        XCTAssertEqual(library, before, "the profile the user had just picked is untouched")
 
-        XCTAssertEqual(newlySelected, .standard, "the press was armed for another profile")
+        // The same outcome does write to the profile it was armed for, so the guard is what saved B.
+        library.selectProfile(id: profileA)
+        XCTAssertTrue(library.apply(MappingWrite.resolve(outcome, editing: library.selectedProfile)))
         XCTAssertEqual(
-            armedProfile.action(for: .buttonA),
+            library.profiles.first { $0.id == profileA }?.profile.action(for: .buttonA),
             .key(KeyCombo(keyCode: 12)),
             "the outcome has to be applicable to the profile it was armed for"
+        )
+        XCTAssertEqual(
+            library.profiles.first { $0.id == profileB }?.profile,
+            .standard,
+            "the other profile never changes"
         )
     }
 
@@ -312,16 +340,16 @@ final class KeyCaptureSessionTests: XCTestCase {
         XCTAssertEqual(session.handleKey(keyCode: 13, modifiers: []), .ignored)
     }
 
-    // MARK: - Helpers
+    // MARK: - Fixture
 
-    /// The write the editor performs: only a mapping armed for the profile still on screen lands.
-    private func apply(
-        _ outcome: KeyCaptureSession.Outcome,
-        to profile: inout InputProfile,
-        selected: UUID?
-    ) {
-        guard case let .mapped(armedProfileID, control, action, _) = outcome else { return }
-        guard selected == nil || armedProfileID == selected else { return }
-        profile.setAction(action, for: control)
+    /// Two standard profiles, so a write that lands in one is visible as the other one staying put.
+    private func makeLibrary(selected: UUID) -> ProfileLibrary {
+        ProfileLibrary(
+            profiles: [
+                StoredProfile(id: profileA, name: "A", profile: .standard),
+                StoredProfile(id: profileB, name: "B", profile: .standard),
+            ],
+            selectedProfileID: selected
+        )
     }
 }

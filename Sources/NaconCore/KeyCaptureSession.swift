@@ -23,7 +23,7 @@ public struct KeyCaptureSession: Equatable, Sendable {
     public enum ArmResult: Equatable, Sendable {
         /// The control now waits for one key press.
         case armed
-        /// The control was already armed and the capture ended instead.
+        /// The control was already armed in the same column and the capture ended instead.
         case disarmed
         /// Refused because emulation is running.
         case refusedWhileEmulating
@@ -86,13 +86,16 @@ public struct KeyCaptureSession: Equatable, Sendable {
         return .armed
     }
 
-    /// Arms a control, or ends its capture when it is already the armed one.
+    /// Arms a control, or ends its capture when this column of this profile is already waiting.
     ///
     /// This is what the «Capturar» / «Cancelar» button does, so the button never has to reason about
-    /// the state itself. The button is labelled «Cancelar» as soon as the control is armed, and a
-    /// button that says «Cancelar» must cancel: the control and the profile decide, and the intent is
-    /// never a reason to stay armed. A destination that is *not* a press of that button — a menu
-    /// pick — goes through `arm` instead, which only ever arms.
+    /// the state itself. A button of one column reads «Cancelar» only while *that* column waits for
+    /// the key, which is the same column comparison made here, so a button that says «Cancelar»
+    /// always cancels and a button that still says «Capturar» never ends what the other column
+    /// started: it arms its own column instead. The mode is not part of the match — a step and a
+    /// replacement wait in the same cell, so the cell is what the button is about. A destination
+    /// that is *not* a press of that button — a menu pick — goes through `arm` instead, which only
+    /// ever arms.
     @discardableResult
     public mutating func toggle(
         _ control: XInputControl,
@@ -100,7 +103,8 @@ public struct KeyCaptureSession: Equatable, Sendable {
         intent: CaptureIntent = .base,
         isEmulationRunning: Bool
     ) -> ArmResult {
-        if armedControl == control, armedProfileID == profileID {
+        if armedControl == control, armedProfileID == profileID,
+            self.intent?.column == intent.column {
             disarm()
             return .disarmed
         }

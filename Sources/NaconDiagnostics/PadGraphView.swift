@@ -104,6 +104,14 @@ struct PadGraphView: View {
                 selected = nil
             }
         }
+        .onChange(of: profileID) { _ in
+            // A capture belongs to the profile it was armed for. The table ends a pending capture
+            // when its editor is rebuilt for the new profile; the drawing is rebuilt too, but the
+            // capture outlives the rebuild because the section owns it, so the drawing ends it here
+            // as well: one left armed keeps swallowing key presses for a profile that is no longer
+            // on screen.
+            capture.end()
+        }
     }
 
     /// The artwork with its highlights and its hit areas on top, keeping its proportions at whatever
@@ -210,9 +218,11 @@ struct PadGraphView: View {
     /// Picks a control and, unless it is the reserved one, toggles the capture for it.
     ///
     /// Selection and arming are one gesture on purpose: a tap on the drawing is the same intent as
-    /// pressing «Capturar» in the table for that row, and a second tap on the armed control cancels it
-    /// because that is what the button it stands for would say. PS is the exception — it is the
-    /// emulation switch, so it can be inspected but never rebound.
+    /// pressing «Capturar» in the table for that row, so it arms the Base column, and a second tap on
+    /// the same control in that column cancels it because that is what the button it stands for would
+    /// say. A capture waiting in the MOD column is not touched: this tap arms the Base one, which is
+    /// what a button still reading «Capturar» does. PS is the exception — it is the emulation switch,
+    /// so it can be inspected but never rebound.
     private func select(_ control: XInputControl) {
         selected = control
         guard MappingRules.isRemappable(control) else { return }

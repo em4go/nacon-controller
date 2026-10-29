@@ -1,17 +1,647 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "Mapping summary" : {
-      "comment" : "Título del panel que resume los mapeos, se abre con MOD + PS.",
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Resumen de mapeos"
+  "sourceLanguage": "en",
+  "strings": {
+    "%@   ·   serial %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@   ·   serial %@"
+          }
+        }
+      }
+    },
+    "%@ s ago": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hace %@ s"
+          }
+        }
+      }
+    },
+    "A short burst confirms that the pad rumbles. With the feedback on, the same burst is felt when emulation starts and stops. The app sends the stop command when it finishes, but a forced quit can leave the motors spinning: set the intensity to zero before you force it closed.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una ráfaga corta confirma que el mando vibra. Con el aviso activado, la misma ráfaga se siente al arrancar y al detener la emulación. La app envía la orden de parada al terminar, pero un cierre forzado puede dejar los motores girando: pon la intensidad a cero antes de cerrarla a la fuerza."
+          }
+        }
+      }
+    },
+    "Accessibility permission granted": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permiso de Accesibilidad concedido"
+          }
+        }
+      }
+    },
+    "Accessibility permission missing": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Falta el permiso de Accesibilidad"
+          }
+        }
+      }
+    },
+    "Active profile": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perfil activo"
+          }
+        }
+      }
+    },
+    "Applied when emulation starts: stop it to change the setting.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se aplica al arrancar la emulación: deténla para cambiarlo."
+          }
+        }
+      }
+    },
+    "Buttons": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Botones"
+          }
+        }
+      }
+    },
+    "Cancel": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar"
+          }
+        }
+      }
+    },
+    "Changes are saved as you make them; there is no save button. A new profile starts from the standard profile, and the active profile is remembered the next time you open the app.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los cambios se guardan solos, sin botón de guardar. Un perfil nuevo parte del perfil estándar, y el perfil activo se recuerda la próxima vez que abras la app."
+          }
+        }
+      }
+    },
+    "Check again": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprobar de nuevo"
+          }
+        }
+      }
+    },
+    "Choose…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elegir…"
+          }
+        }
+      }
+    },
+    "Connect the NACON over USB. If it is already connected, unplug it and plug it back in without pressing any buttons.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conecta el NACON por USB. Si ya está conectado, desconéctalo y vuelve a conectarlo sin pulsar botones."
+          }
+        }
+      }
+    },
+    "Connected, waiting for the first report from the controller…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectado, esperando el primer informe del mando…"
+          }
+        }
+      }
+    },
+    "Cursor sensitivity": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sensibilidad del cursor"
+          }
+        }
+      }
+    },
+    "Delete": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar"
+          }
+        }
+      }
+    },
+    "Detected controllers": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mandos detectados"
+          }
+        }
+      }
+    },
+    "Duplicate": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicar"
+          }
+        }
+      }
+    },
+    "Emulation active": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emulación activa"
+          }
+        }
+      }
+    },
+    "Emulation started from the pad.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emulación activada desde el mando."
+          }
+        }
+      }
+    },
+    "Emulation stopped from the pad.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emulación detenida desde el mando."
+          }
+        }
+      }
+    },
+    "Graph": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gráfica"
+          }
+        }
+      }
+    },
+    "If the app already appears as enabled in that list and the indicator is still orange, the entry is stale: select it, remove it with the − button and add it again, or run tccutil reset Accessibility dev.nacon.diagnostics and request the permission again.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si la app ya aparece activada en esa lista y el indicador sigue en naranja, la entrada es antigua: selecciónala, quítala con el botón − y vuelve a añadirla, o ejecuta tccutil reset Accessibility dev.nacon.diagnostics y solicita el permiso otra vez."
+          }
+        }
+      }
+    },
+    "Invert vertical axis": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invertir eje vertical"
+          }
+        }
+      }
+    },
+    "Last report": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Último informe"
+          }
+        }
+      }
+    },
+    "Left stick": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stick izquierdo"
+          }
+        }
+      }
+    },
+    "Light as emulation indicator": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luz como indicador de emulación"
+          }
+        }
+      }
+    },
+    "Light on": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luz encendida"
+          }
+        }
+      }
+    },
+    "Link diagnostics": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnóstico del enlace"
+          }
+        }
+      }
+    },
+    "MOD key:": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tecla MOD:"
+          }
+        }
+      }
+    },
+    "Mapping summary": {
+      "comment": "Título del panel que resume los mapeos, se abre con MOD + PS.",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resumen de mapeos"
+          }
+        }
+      }
+    },
+    "Mouse and keyboard emulation": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emulación de ratón y teclado"
+          }
+        }
+      }
+    },
+    "NO CONTROLLER DETECTED": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NO SE HA DETECTADO NINGÚN MANDO"
+          }
+        }
+      }
+    },
+    "New profile": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuevo perfil"
+          }
+        }
+      }
+    },
+    "None": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ninguna"
+          }
+        }
+      }
+    },
+    "Not reachable this way: touchpad, audio jack, the controller light and rumble in this mode. Nothing can be read in PS4 (HID) mode or in bootloader mode either.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No accesibles por esta vía: touchpad, jack de audio, luz del mando y vibración en este modo. Tampoco hay lectura posible en modo PS4 (HID) ni en modo bootloader."
+          }
+        }
+      }
+    },
+    "Off": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagada"
+          }
+        }
+      }
+    },
+    "Profile name": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre del perfil"
+          }
+        }
+      }
+    },
+    "Profiles": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perfiles"
+          }
+        }
+      }
+    },
+    "Remove layer": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitar capa"
+          }
+        }
+      }
+    },
+    "Removes the MOD key and all its assignments. The base does not change.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina la tecla MOD y todas sus asignaciones. La base no cambia."
+          }
+        }
+      }
+    },
+    "Rename profile": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renombrar perfil"
+          }
+        }
+      }
+    },
+    "Rename…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renombrar…"
+          }
+        }
+      }
+    },
+    "Reports": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Informes"
+          }
+        }
+      }
+    },
+    "Request permission": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitar permiso"
+          }
+        }
+      }
+    },
+    "Reset": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restablecer"
+          }
+        }
+      }
+    },
+    "Right stick": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stick derecho"
+          }
+        }
+      }
+    },
+    "Rumble when emulation starts and stops": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vibrar al iniciar y detener la emulación"
+          }
+        }
+      }
+    },
+    "Save": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar"
+          }
+        }
+      }
+    },
+    "Settings for the “%@” profile. Each profile keeps its own, so one for design and one for games can move differently.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes del perfil «%@». Cada perfil guarda los suyos, así que uno de diseño y uno de juego pueden moverse distinto."
+          }
+        }
+      }
+    },
+    "Sticks and triggers": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sticks y gatillos"
+          }
+        }
+      }
+    },
+    "Table": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabla"
+          }
+        }
+      }
+    },
+    "Test": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probar"
+          }
+        }
+      }
+    },
+    "The controller is in firmware update mode. Unplug it and plug it back in without pressing any buttons.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El mando está en modo actualizador de firmware. Desconéctalo y vuelve a conectarlo sin pulsar botones."
+          }
+        }
+      }
+    },
+    "The left stick moves the cursor and the right stick scrolls. ✕/○/□ are the mouse buttons and the D-pad sends arrow keys. The PS button turns emulation on and off instantly.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El stick izquierdo mueve el cursor y el derecho desplaza. ✕/○/□ son los botones del ratón, la cruceta envía flechas. El botón PS activa y desactiva la emulación al instante."
+          }
+        }
+      }
+    },
+    "The name cannot be empty.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El nombre no puede quedar vacío."
+          }
+        }
+      }
+    },
+    "This controller is not an HID device, so GameController and CoreHID cannot see it. It is read with IOUSBHost speaking the XInput protocol: buttons, sticks and triggers.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este mando no es un dispositivo HID, así que GameController y CoreHID no pueden verlo. Se lee con IOUSBHost hablando el protocolo XInput: botones, sticks y gatillos."
+          }
+        }
+      }
+    },
+    "Turn it on if pushing the stick up moves the cursor down. It affects the cursor and scrolling, not the on-screen stick indicator. It is saved in the active profile and applied when emulation starts: stop it to change the setting.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actívalo si al empujar el stick hacia arriba el cursor baja. Afecta al cursor y al desplazamiento, no al indicador del stick en pantalla. Se guarda en el perfil activo y se aplica cuando arranca la emulación: deténla para cambiarlo."
+          }
+        }
+      }
+    },
+    "View": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vista"
+          }
+        }
+      }
+    },
+    "What can be read": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qué se puede leer"
+          }
+        }
+      }
+    },
+    "While you hold the MOD key down, the buttons send what the MOD column says; the MOD key itself sends nothing.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mientras mantengas pulsada la tecla MOD, los botones envían lo que dice la columna MOD; la propia tecla MOD no envía nada."
+          }
+        }
+      }
+    },
+    "With the indicator on, the small light under the PS button comes on while emulation is active and goes off when you stop it. Turn it off to switch the light on and off by hand.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Con el indicador activado, la luz pequeña bajo el botón PS se enciende mientras la emulación está activa y se apaga al detenerla. Desactívalo para encender y apagar la luz a mano."
+          }
+        }
+      }
+    },
+    "macOS drops the events without this permission. Grant it in System Settings › Privacy & Security › Accessibility, then return to this window.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS descarta los eventos sin este permiso. Concéderlo en Ajustes del Sistema › Privacidad y seguridad › Accesibilidad, y volver a esta ventana."
+          }
+        }
+      }
+    },
+    "not available": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "no disponible"
           }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

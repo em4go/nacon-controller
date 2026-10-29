@@ -21,6 +21,16 @@
         }
       }
     },
+    "1 is linear; higher values give more precision near the centre and more speed at the edge.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 es lineal; los valores altos dan más precisión cerca del centro y más velocidad en el borde."
+          }
+        }
+      }
+    },
     "Applications": {
       "localizations": {
         "es": {
@@ -127,6 +137,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cruceta ↓"
+          }
+        }
+      }
+    },
+    "Dead zone": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zona muerta"
           }
         }
       }
@@ -281,6 +301,26 @@
         }
       }
     },
+    "Lines per second with the right stick pushed all the way.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Líneas por segundo al empujar el stick derecho a fondo."
+          }
+        }
+      }
+    },
+    "Maximum speed": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velocidad máxima"
+          }
+        }
+      }
+    },
     "Middle click": {
       "localizations": {
         "es": {
@@ -411,6 +451,16 @@
         }
       }
     },
+    "Points per second with the stick pushed all the way. Higher values make the cursor cross the screen sooner.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puntos por segundo con el stick a fondo. Más alto, el cursor cruza la pantalla antes."
+          }
+        }
+      }
+    },
     "Print": {
       "localizations": {
         "es": {
@@ -471,6 +521,16 @@
         }
       }
     },
+    "Response curve": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Curva de respuesta"
+          }
+        }
+      }
+    },
     "Right click": {
       "localizations": {
         "es": {
@@ -527,6 +587,16 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "Scroll speed": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velocidad de desplazamiento"
           }
         }
       }
@@ -617,6 +687,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Espacio"
+          }
+        }
+      }
+    },
+    "Stick travel that is ignored, so the hand can rest without moving the cursor.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorrido del stick que se ignora, para que la mano pueda descansar sin mover el cursor."
           }
         }
       }

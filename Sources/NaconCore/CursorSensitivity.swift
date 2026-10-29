@@ -29,10 +29,10 @@ public enum CursorSensitivity: String, CaseIterable, Equatable, Sendable {
     /// Spanish label shown above the slider.
     public var label: String {
         switch self {
-        case .maxSpeed: return "Velocidad máxima"
-        case .deadzone: return "Zona muerta"
-        case .scrollSpeed: return "Velocidad de desplazamiento"
-        case .curve: return "Curva de respuesta"
+        case .maxSpeed: return Localization.resolve("Maximum speed")
+        case .deadzone: return Localization.resolve("Dead zone")
+        case .scrollSpeed: return Localization.resolve("Scroll speed")
+        case .curve: return Localization.resolve("Response curve")
         }
     }
 
@@ -40,16 +40,23 @@ public enum CursorSensitivity: String, CaseIterable, Equatable, Sendable {
     public var detail: String {
         switch self {
         case .maxSpeed:
-            return "Puntos por segundo con el stick a fondo. Más alto, el cursor cruza la pantalla "
-                + "antes."
+            return Localization.resolve(
+                "Points per second with the stick pushed all the way. Higher values make the cursor "
+                + "cross the screen sooner."
+            )
         case .deadzone:
-            return "Recorrido del stick que se ignora, para que la mano pueda descansar sin mover el "
-                + "cursor."
+            return Localization.resolve(
+                "Stick travel that is ignored, so the hand can rest without moving the cursor."
+            )
         case .scrollSpeed:
-            return "Líneas por segundo al empujar el stick derecho a fondo."
+            return Localization.resolve(
+                "Lines per second with the right stick pushed all the way."
+            )
         case .curve:
-            return "1 es lineal; los valores altos dan más precisión cerca del centro y más velocidad "
-                + "en el borde."
+            return Localization.resolve(
+                "1 is linear; higher values give more precision near the centre and more speed at "
+                + "the edge."
+            )
         }
     }
 

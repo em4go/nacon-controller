@@ -14,10 +14,13 @@ struct SensitivitySection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionTitle("Sensibilidad del cursor")
+            SectionTitle(AppText.resolve("Cursor sensitivity"))
             Text(
-                "Ajustes del perfil «\(profiles.selectedProfile?.name ?? "—")». Cada perfil guarda "
-                + "los suyos, así que uno de diseño y uno de juego pueden moverse distinto."
+                AppText.format(
+                    "Settings for the “%@” profile. Each profile keeps its own, so one for design and "
+                    + "one for games can move differently.",
+                    profiles.selectedProfile?.name ?? "—"
+                )
             )
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -26,13 +29,15 @@ struct SensitivitySection: View {
                 slider(for: sensitivity)
             }
 
-            Button("Restablecer") {
+            Button(AppText.resolve("Reset")) {
                 profiles.resetCursorSensitivity()
             }
             .disabled(emulation.isEnabled || profiles.selectedProfile == nil)
 
             Text(
-                "Se aplica al arrancar la emulación: deténla para cambiarlo."
+                AppText.resolve(
+                    "Applied when emulation starts: stop it to change the setting."
+                )
             )
             .font(.caption)
             .foregroundStyle(.secondary)

@@ -29,7 +29,7 @@ struct ProfileSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionTitle("Perfiles")
+            SectionTitle(AppText.resolve("Profiles"))
             profilePicker
             actions
             viewPicker
@@ -81,8 +81,9 @@ struct ProfileSection: View {
                 }
             }
             Text(
-                "Los cambios se guardan solos, sin botón de guardar. Un perfil nuevo parte del perfil "
-                + "estándar, y el perfil activo se recuerda la próxima vez que abras la app."
+                AppText.resolve(
+                    "Changes are saved as you make them; there is no save button. A new profile starts from the standard profile, and the active profile is remembered the next time you open the app."
+                )
             )
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -112,18 +113,18 @@ struct ProfileSection: View {
                 capture.end()
             }
         }
-        .alert("Renombrar perfil", isPresented: $isRenaming) {
-            TextField("Nombre del perfil", text: $draftName)
-            Button("Cancelar", role: .cancel) {
+        .alert(AppText.resolve("Rename profile"), isPresented: $isRenaming) {
+            TextField(AppText.resolve("Profile name"), text: $draftName)
+            Button(AppText.resolve("Cancel"), role: .cancel) {
                 draftName = ""
             }
-            Button("Guardar") {
+            Button(AppText.resolve("Save")) {
                 // A blank name is refused by the library, so the profile keeps its old name.
                 profiles.renameSelectedProfile(to: draftName)
                 draftName = ""
             }
         } message: {
-            Text("El nombre no puede quedar vacío.")
+            Text(AppText.resolve("The name cannot be empty."))
         }
     }
 
@@ -152,16 +153,16 @@ struct ProfileSection: View {
         let layer = profiles.selectedLayer
         return VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
-                Text("Tecla MOD:")
+                Text(AppText.resolve("MOD key:"))
                     .font(.callout)
-                Text(layer.key.map { ControlFacts.of($0).label } ?? "Ninguna")
+                Text(layer.key.map { AppText.resolve(ControlFacts.of($0).label) } ?? AppText.resolve("None"))
                     .font(.system(.callout, design: .monospaced))
                     .foregroundStyle(layer.isActive ? Color.primary : Color.secondary)
                     .lineLimit(1)
                 Menu {
                     // «Ninguna» closes the layer but keeps its entries; «Quitar capa» is the one that
                     // throws them away, so a slip of this menu cannot undo a whole set of assignments.
-                    Button("Ninguna") {
+                    Button(AppText.resolve("None")) {
                         profiles.setLayerKey(nil)
                     }
                     Divider()
@@ -176,20 +177,20 @@ struct ProfileSection: View {
                         }
                     }
                 } label: {
-                    Label("Elegir…", systemImage: "chevron.up.chevron.down")
+                    Label(AppText.resolve("Choose…"), systemImage: "chevron.up.chevron.down")
                         .labelStyle(.titleAndIcon)
                 }
                 .menuStyle(.borderlessButton)
                 .controlSize(.small)
                 .fixedSize()
-                Button("Quitar capa") {
+                Button(AppText.resolve("Remove layer")) {
                     profiles.clearLayer()
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 .disabled(layer.isEmpty)
                 .help(
-                    "Elimina la tecla MOD y todas sus asignaciones. La base no cambia."
+                    AppText.resolve("Removes the MOD key and all its assignments. The base does not change.")
                 )
                 Spacer(minLength: 0)
             }
@@ -197,10 +198,7 @@ struct ProfileSection: View {
             // selector goes with the editor it belongs to instead of staying clickable.
             .disabled(emulation.isEnabled)
             if layer.isActive {
-                Text(
-                    "Mientras mantengas pulsada la tecla MOD, los botones envían lo que dice la "
-                        + "columna MOD; la propia tecla MOD no envía nada."
-                )
+                Text(AppText.resolve("While you hold the MOD key down, the buttons send what the MOD column says; the MOD key itself sends nothing."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
             }
@@ -208,7 +206,7 @@ struct ProfileSection: View {
     }
 
     private var profilePicker: some View {
-        Picker("Perfil activo", selection: Binding(
+        Picker(AppText.resolve("Active profile"), selection: Binding(
             get: { profiles.selectedProfile?.id },
             set: { id in
                 guard let id else { return }
@@ -230,9 +228,9 @@ struct ProfileSection: View {
     /// control the user is no longer looking at.
     private var viewPicker: some View {
         HStack(spacing: 8) {
-            Text("Vista")
+            Text(AppText.resolve("View"))
                 .font(.callout)
-            Picker("Vista", selection: $viewMode) {
+            Picker(AppText.resolve("View"), selection: $viewMode) {
                 ForEach(PadViewMode.allCases, id: \.self) { mode in
                     Text(mode.title).tag(mode)
                 }
@@ -249,7 +247,7 @@ struct ProfileSection: View {
             Text(ControlFacts.of(MappingRules.reservedControl).label)
                 .font(.callout.weight(.medium))
                 .frame(width: 96, alignment: .leading)
-            Label("Reservado: activa y desactiva la emulación al instante", systemImage: "power")
+            Label(AppText.resolve("Reserved: turns emulation on and off instantly"), systemImage: "power")
                 .font(.callout)
                 .foregroundStyle(.secondary)
             Spacer(minLength: 0)
@@ -262,19 +260,19 @@ struct ProfileSection: View {
 
     private var actions: some View {
         HStack(spacing: 8) {
-            Button("Nuevo perfil") {
+            Button(AppText.resolve("New profile")) {
                 profiles.addProfile()
             }
-            Button("Duplicar") {
+            Button(AppText.resolve("Duplicate")) {
                 profiles.duplicateSelectedProfile()
             }
             .disabled(profiles.selectedProfile == nil)
-            Button("Renombrar…") {
+            Button(AppText.resolve("Rename…")) {
                 draftName = profiles.selectedProfile?.name ?? ""
                 isRenaming = true
             }
             .disabled(profiles.selectedProfile == nil)
-            Button("Eliminar") {
+            Button(AppText.resolve("Delete")) {
                 profiles.deleteSelectedProfile()
             }
             .disabled(!profiles.canDeleteProfile)
@@ -291,8 +289,8 @@ private enum PadViewMode: String, CaseIterable {
 
     var title: String {
         switch self {
-        case .graph: return "Gráfica"
-        case .table: return "Tabla"
+        case .graph: return AppText.resolve("Graph")
+        case .table: return AppText.resolve("Table")
         }
     }
 }

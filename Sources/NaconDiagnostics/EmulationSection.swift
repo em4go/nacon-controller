@@ -19,12 +19,12 @@ struct EmulationSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionTitle("Emulación de ratón y teclado")
+            SectionTitle(AppText.resolve("Mouse and keyboard emulation"))
             permissionRow
             if !emulation.hasAccessibility {
                 staleEntryHint
             }
-            Toggle("Emulación activa", isOn: Binding(
+            Toggle(AppText.resolve("Emulation active"), isOn: Binding(
                 get: { emulation.isEnabled },
                 set: { emulation.setEnabled($0) }
             ))
@@ -34,7 +34,7 @@ struct EmulationSection: View {
             rumbleControls
             // S2: the switch shows the value stored in the selected profile, not a leftover global
             // flag, and flipping it edits that profile so two profiles can differ.
-            Toggle("Invertir eje vertical", isOn: Binding(
+            Toggle(AppText.resolve("Invert vertical axis"), isOn: Binding(
                 get: { profiles.selectedInvertVerticalAxis },
                 set: { profiles.setInvertVerticalAxis($0) }
             ))
@@ -43,26 +43,30 @@ struct EmulationSection: View {
             // silently do nothing. Disabled while running, like the mapping editor.
             .disabled(emulation.isEnabled)
             Text(
-                "Actívalo si al empujar el stick hacia arriba el cursor baja. Afecta al cursor y al "
-                + "desplazamiento, no al indicador del stick en pantalla. Se guarda en el perfil "
-                + "activo y se aplica cuando arranca la emulación: deténla para cambiarlo."
+                AppText.resolve(
+                    "Turn it on if pushing the stick up moves the cursor down. It affects the cursor and "
+                    + "scrolling, not the on-screen stick indicator. It is saved in the active profile and "
+                    + "applied when emulation starts: stop it to change the setting."
+                )
             )
             .font(.caption)
             .foregroundStyle(.secondary)
             Text(
-                "El stick izquierdo mueve el cursor y el derecho desplaza. "
-                + "✕/○/□ son los botones del ratón, la cruceta envía flechas. "
-                + "El botón PS activa y desactiva la emulación al instante."
+                AppText.resolve(
+                    "The left stick moves the cursor and the right stick scrolls. ✕/○/□ are the mouse "
+                    + "buttons and the D-pad sends arrow keys. The PS button turns emulation on and off "
+                    + "instantly."
+                )
             )
             .font(.callout)
             .foregroundStyle(.secondary)
             if emulation.stoppedByPad {
-                Text("Emulación detenida desde el mando.")
+                Text(AppText.resolve("Emulation stopped from the pad."))
                     .font(.callout.bold())
                     .foregroundStyle(.orange)
             }
             if emulation.startedByPad {
-                Text("Emulación activada desde el mando.")
+                Text(AppText.resolve("Emulation started from the pad."))
                     .font(.callout.bold())
                     .foregroundStyle(.green)
             }
@@ -89,18 +93,20 @@ struct EmulationSection: View {
 
     private var lightControls: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Toggle("Luz como indicador de emulación", isOn: Binding(
+            Toggle(AppText.resolve("Light as emulation indicator"), isOn: Binding(
                 get: { padLight.source == .emulation },
                 set: { padLight.source = $0 ? .emulation : .manual }
             ))
             .toggleStyle(.switch)
-            Toggle("Luz encendida", isOn: $padLight.isManuallyOn)
+            Toggle(AppText.resolve("Light on"), isOn: $padLight.isManuallyOn)
                 .toggleStyle(.switch)
                 .disabled(padLight.source == .emulation)
             Text(
-                "Con el indicador activado, la luz pequeña bajo el botón PS se enciende mientras la "
-                + "emulación está activa y se apaga al detenerla. Desactívalo para encender y apagar "
-                + "la luz a mano."
+                AppText.resolve(
+                    "With the indicator on, the small light under the PS button comes on while "
+                    + "emulation is active and goes off when you stop it. Turn it off to switch the light "
+                    + "on and off by hand."
+                )
             )
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -111,7 +117,7 @@ struct EmulationSection: View {
 
     private var rumbleControls: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Toggle("Vibrar al iniciar y detener la emulación", isOn: $rumbleFeedback)
+            Toggle(AppText.resolve("Rumble when emulation starts and stops"), isOn: $rumbleFeedback)
                 .toggleStyle(.switch)
             HStack(spacing: 10) {
                 Slider(
@@ -123,22 +129,24 @@ struct EmulationSection: View {
                 )
                 Text(
                     padRumble.isSilent
-                        ? "Apagada"
+                        ? AppText.resolve("Off")
                         : "\(Int((padRumble.intensity * 100).rounded())) %"
                 )
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
                 .frame(width: 60, alignment: .trailing)
-                Button("Probar") {
+                Button(AppText.resolve("Test")) {
                     burstPlayer.fire(padRumble) { service.sendOutput($0) }
                 }
                 .disabled(padRumble.isSilent)
             }
             Text(
-                "Una ráfaga corta confirma que el mando vibra. Con el aviso activado, la misma ráfaga "
-                + "se siente al arrancar y al detener la emulación. La app envía la orden de parada al "
-                + "terminar, pero un cierre forzado puede dejar los motores girando: pon la intensidad "
-                + "a cero antes de cerrarla a la fuerza."
+                AppText.resolve(
+                    "A short burst confirms that the pad rumbles. With the feedback on, the same burst "
+                    + "is felt when emulation starts and stops. The app sends the stop command when it "
+                    + "finishes, but a forced quit can leave the motors spinning: set the intensity to "
+                    + "zero before you force it closed."
+                )
             )
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -147,9 +155,11 @@ struct EmulationSection: View {
 
     private var staleEntryHint: some View {
         Text(
-            "Si la app ya aparece activada en esa lista y el indicador sigue en naranja, la entrada es "
-            + "antigua: selecciónala, quítala con el botón − y vuelve a añadirla, o ejecuta "
-            + "tccutil reset Accessibility dev.nacon.diagnostics y solicita el permiso otra vez."
+            AppText.resolve(
+                "If the app already appears as enabled in that list and the indicator is still orange, "
+                + "the entry is stale: select it, remove it with the − button and add it again, or run "
+                + "tccutil reset Accessibility dev.nacon.diagnostics and request the permission again."
+            )
         )
         .font(.caption)
         .foregroundStyle(.orange)
@@ -157,8 +167,8 @@ struct EmulationSection: View {
 
     private var permissionTitle: String {
         emulation.hasAccessibility
-            ? "Permiso de Accesibilidad concedido"
-            : "Falta el permiso de Accesibilidad"
+            ? AppText.resolve("Accessibility permission granted")
+            : AppText.resolve("Accessibility permission missing")
     }
 
     private var permissionRow: some View {
@@ -170,8 +180,10 @@ struct EmulationSection: View {
                     .font(.callout.bold())
                 if !emulation.hasAccessibility {
                     Text(
-                        "macOS descarta los eventos sin este permiso. Conce­derlo en Ajustes del Sistema "
-                        + "› Privacidad y seguridad › Accesibilidad, y volver a esta ventana."
+                        AppText.resolve(
+                            "macOS drops the events without this permission. Grant it in System Settings "
+                            + "› Privacy & Security › Accessibility, then return to this window."
+                        )
                     )
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -180,10 +192,10 @@ struct EmulationSection: View {
             Spacer()
             if !emulation.hasAccessibility {
                 HStack(spacing: 8) {
-                    Button("Comprobar de nuevo") {
+                    Button(AppText.resolve("Check again")) {
                         emulation.refreshPermission()
                     }
-                    Button("Solicitar permiso") {
+                    Button(AppText.resolve("Request permission")) {
                         emulation.requestAccessibility()
                     }
                 }

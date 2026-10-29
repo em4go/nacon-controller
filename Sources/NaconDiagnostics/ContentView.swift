@@ -16,7 +16,7 @@ private struct LiveReportSections: View {
                 rawPacketHex: feed.latest.rawPacketHex
             )
         } else {
-            Text("Conectado, esperando el primer informe del mando…")
+            Text(AppText.resolve("Connected, waiting for the first report from the controller…"))
                 .font(.callout)
                 .foregroundStyle(.secondary)
         }
@@ -92,7 +92,7 @@ struct DeviceListSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionTitle("Mandos detectados")
+            SectionTitle(AppText.resolve("Detected controllers"))
             if devices.isEmpty {
                 NoDevicePanel()
             } else {
@@ -110,12 +110,9 @@ struct NoDevicePanel: View {
             Image(systemName: "gamecontroller")
                 .font(.system(size: 30))
                 .foregroundStyle(.secondary)
-            Text("NO SE HA DETECTADO NINGÚN MANDO")
+            Text(AppText.resolve("NO CONTROLLER DETECTED"))
                 .font(.headline)
-            Text(
-                "Conecta el NACON por USB. Si ya está conectado, desconéctalo y vuelve a conectarlo "
-                + "sin pulsar botones."
-            )
+            Text(AppText.resolve("Connect the NACON over USB. If it is already connected, unplug it and plug it back in without pressing any buttons."))
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -144,7 +141,7 @@ struct DeviceRow: View {
                         )
                     )
             }
-            Text("\(device.idHex)   ·   serial \(device.serialNumber ?? "no disponible")")
+            Text(AppText.format("%@   ·   serial %@", device.idHex, device.serialNumber ?? AppText.resolve("not available")))
                 .font(.system(.caption, design: .monospaced))
                 .foregroundStyle(.secondary)
             Text(device.mode.readableControls)
@@ -166,7 +163,7 @@ struct ButtonMatrixSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionTitle("Botones")
+            SectionTitle(AppText.resolve("Buttons"))
             LazyVGrid(columns: columns, spacing: 8) {
                 ForEach(XInputControl.allCases, id: \.self) { control in
                     ControlCell(control: control, pressed: control.isPressed(in: report))
@@ -203,10 +200,10 @@ struct AnalogSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionTitle("Sticks y gatillos")
+            SectionTitle(AppText.resolve("Sticks and triggers"))
             HStack(alignment: .top, spacing: 20) {
-                StickView(title: "Stick izquierdo", stick: report.leftStick)
-                StickView(title: "Stick derecho", stick: report.rightStick)
+                StickView(title: AppText.resolve("Left stick"), stick: report.leftStick)
+                StickView(title: AppText.resolve("Right stick"), stick: report.rightStick)
                 VStack(spacing: 16) {
                     TriggerBar(title: "L2", value: report.leftTrigger)
                     TriggerBar(title: "R2", value: report.rightTrigger)
@@ -283,11 +280,11 @@ struct PacketSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionTitle("Diagnóstico del enlace")
+            SectionTitle(AppText.resolve("Link diagnostics"))
             TimelineView(.periodic(from: .now, by: 0.25)) { context in
                 HStack(spacing: 18) {
-                    Metric(label: "Informes", value: "\(reportCount)")
-                    Metric(label: "Último informe", value: age(from: context.date))
+                    Metric(label: AppText.resolve("Reports"), value: "\(reportCount)")
+                    Metric(label: AppText.resolve("Last report"), value: age(from: context.date))
                     Spacer()
                 }
             }
@@ -303,7 +300,7 @@ struct PacketSection: View {
     private func age(from now: Date) -> String {
         guard let lastReportAt else { return "—" }
         let interval = now.timeIntervalSince(lastReportAt)
-        return String(format: "hace %.1f s", interval)
+        return AppText.format("%@ s ago", String(format: "%.1f", interval))
     }
 }
 
@@ -326,24 +323,23 @@ struct LegendSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            SectionTitle("Qué se puede leer")
+            SectionTitle(AppText.resolve("What can be read"))
             Text(
-                "Este mando no es un dispositivo HID, así que GameController y CoreHID no pueden verlo. "
-                + "Se lee con IOUSBHost hablando el protocolo XInput: botones, sticks y gatillos."
+                AppText.resolve(
+                    "This controller is not an HID device, so GameController and CoreHID cannot see it. It is read with IOUSBHost speaking the XInput protocol: buttons, sticks and triggers."
+                )
             )
             .font(.callout)
             .foregroundStyle(.secondary)
             Text(
-                "No accesibles por esta vía: touchpad, jack de audio, luz del mando y vibración "
-                + "en este modo. Tampoco hay lectura posible en modo PS4 (HID) ni en modo bootloader."
+                AppText.resolve(
+                    "Not reachable this way: touchpad, audio jack, the controller light and rumble in this mode. Nothing can be read in PS4 (HID) mode or in bootloader mode either."
+                )
             )
             .font(.callout)
             .foregroundStyle(.secondary)
             if devices.contains(where: { $0.mode == .bootloader }) {
-                Text(
-                    "El mando está en modo actualizador de firmware. "
-                    + "Desconéctalo y vuelve a conectarlo sin pulsar botones."
-                )
+                Text(AppText.resolve("The controller is in firmware update mode. Unplug it and plug it back in without pressing any buttons."))
                     .font(.callout.bold())
                     .foregroundStyle(.orange)
             }

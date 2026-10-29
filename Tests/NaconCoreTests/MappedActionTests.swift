@@ -6,8 +6,8 @@ import XCTest
 ///
 /// These are the labels the rules enum used to print, moved here with the code. The text is
 /// pinned per case on purpose: it is what the table, the strip, the summary and both assign menus show,
-/// so changing one is a user-visible change and has to be a deliberate edit. One test per case also
-/// means a failure names the case instead of pointing at a table of assertions.
+/// so changing one is a user-visible change and has to be a deliberate edit. Cases that read the same
+/// way share a test where the assertion stays precise; a failure still names the string it broke.
 final class MappedActionTests: XCTestCase {
     private var selectAll: KeyCombo { KeyCombo(keyCode: 0, modifiers: [.command]) }
     private var copy: KeyCombo { KeyCombo(keyCode: 8, modifiers: [.command]) }
@@ -35,6 +35,14 @@ final class MappedActionTests: XCTestCase {
     func testScrollActionsRenderDirectionAndAmount() {
         XCTAssertEqual(MappedAction.scrollLines(3).displayName, "Desplazar arriba 3 líneas")
         XCTAssertEqual(MappedAction.scrollLines(-3).displayName, "Desplazar abajo 3 líneas")
+    }
+
+    func testTheSmallestIntegerAmountNamesTheDirectionInsteadOfTrapping() {
+        // A hand-edited profile can carry Int.min, where `abs` traps; the label still has to render.
+        XCTAssertEqual(
+            MappedAction.scrollLines(.min).displayName,
+            "Desplazar abajo 9223372036854775808 líneas"
+        )
     }
 
     func testZeroScrollNamesNoMovement() {

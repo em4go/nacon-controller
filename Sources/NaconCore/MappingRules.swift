@@ -12,8 +12,8 @@ public enum CaptureOutcome: Equatable, Sendable {
 ///
 /// The editor is SwiftUI and needs an event monitor to read the pressed key, but nothing that
 /// decides *what* a press means belongs there: which controls may be remapped, what a captured key
-/// press turns into, when a capture is cancelled and how an action is labelled all live here, so the
-/// rules can be checked without a window.
+/// press turns into, and when a capture is cancelled all live here, so the rules can be checked
+/// without a window. A display name is not a rule: it sits on the value that declares it.
 public enum MappingRules {
     /// The control that is never remappable.
     ///

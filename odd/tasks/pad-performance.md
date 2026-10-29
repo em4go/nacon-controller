@@ -45,3 +45,8 @@ last, on a quiet tree, with the four pre-existing engine suites as the acceptanc
   effect ordering was read against the old `handle`/`tick`/`disableOnQueue`: same press order (scroll,
   command, hold), same repeat gate and "one per advance, due from elapsed" rule, same advance order,
   same release-before-press emission, Guide still after the layer read, safety net unchanged.
+- **L4.** Owner correction: the profile is no longer the engine's to hold. It lives in
+  `PadPerformance` and the engine reads it through a forwarding property, so the mapping the engine
+  reads and the one the performance plays are one value instead of two copies.
+- **L5.** Simplification accepted after review: the held action and its repeat clock are one map of
+  `Held` values, so an orphaned clock is unrepresentable and `reset`/`release` drop both together.

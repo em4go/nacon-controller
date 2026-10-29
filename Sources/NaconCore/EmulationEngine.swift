@@ -51,7 +51,7 @@ public final class EmulationEngine {
     private var previousReport: XInputReport?
     /// S2, S3: what a press does over time — hold, repeat, command steps, scroll, cursor. It takes the
     /// seconds as an argument and answers with effects, so nothing here waits for a clock.
-    private var performance = PadPerformance()
+    private var performance: PadPerformance
     /// The sticks of the last report. They belong to the engine, which is what reads the report; the
     /// performance only receives them when time advances.
     private var leftStick: XInputStick = .center

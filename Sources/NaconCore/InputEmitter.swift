@@ -56,7 +56,7 @@ public final class CGEventEmitter: InputEmitter {
     public func press(_ action: MappedAction) {
         switch action {
         case .none, .scrollLines, .sequence:
-            // A sequence never reaches the emitter: the engine expands it into steps, and each step is
+            // A sequence never reaches the emitter: the performance expands it into steps, and each step is
             // an ordinary key with its own press and release.
             return
         case .key(let combo):

@@ -58,8 +58,8 @@ public enum MappedAction: Hashable, Sendable {
     case key(KeyCombo)
     case mouseButton(MouseButton)
     case scrollLines(Int)
-    /// Several strokes in order: a custom command, such as ⌘A and then ⌘C. The engine runs one step
-    /// per tick and a press runs the whole list once.
+    /// Several strokes in order: a custom command, such as ⌘A and then ⌘C. The performance runs one
+    /// step per advance and a press runs the whole list once.
     case sequence([KeyCombo])
 
     /// A sequence only exists when there is something to chain: one stroke is a key and none is

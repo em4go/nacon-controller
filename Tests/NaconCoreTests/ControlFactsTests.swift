@@ -4,10 +4,10 @@ import XCTest
 
 /// S2, S5: every fact the app knows about one control, answered by one lookup.
 ///
-/// The expectations are written down here on purpose. They are the values the six tables used to hold
-/// in six files — the stored key, the label, the colour and the pointer radius — so this suite is what
-/// proves the move changed nothing, and a rename or a re-tint has to be a deliberate edit in two
-/// places instead of slipping through a refactor.
+/// The expectations are written down here on purpose. They are the values the old per-control tables
+/// held — the stored key, the label, the colour and the pointer radius — so this suite is what proves
+/// the move changed nothing, and a rename or a re-tint has to be a deliberate edit in two places
+/// instead of slipping through a refactor.
 final class ControlFactsTests: XCTestCase {
     /// The keys the persisted format uses. Renaming one rewrites every `profiles.json`, so the set is
     /// written down rather than derived from the code under test (S3).
@@ -166,5 +166,26 @@ final class ControlFactsTests: XCTestCase {
 
         XCTAssertEqual(packed.count, 8)
         XCTAssertEqual(Set(packed).count, packed.count, "two controls share a colour")
+    }
+
+    /// S6: the drawing resolves each mask by the control's stored key, and nothing in the compiler
+    /// connects the two: `prototype/tools/make-masks.py` writes the PNGs and the bundle is only read
+    /// at runtime. The files on disk are pinned here, so renaming an asset or adding a control
+    /// without its mask fails the suite instead of leaving a control silently untinted.
+    func testEveryControlHasItsMaskFile() throws {
+        let repositoryRoot = URL(filePath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let masks = repositoryRoot.appending(path: "Sources/NaconDiagnostics/Resources/masks")
+
+        let shipped = try FileManager.default
+            .contentsOfDirectory(atPath: masks.path)
+            .filter { $0.hasSuffix(".png") }
+        let expected = XInputControl.allCases.map {
+            "diagram-\(ControlFacts.of($0).profileKey).png"
+        }
+
+        XCTAssertEqual(Set(shipped), Set(expected))
     }
 }

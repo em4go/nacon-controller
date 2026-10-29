@@ -150,5 +150,13 @@ final class InputProfileCodingTests: XCTestCase {
             "leftBumper", "rightBumper", "leftTrigger", "rightTrigger",
             "back", "start", "guide", "leftThumb", "rightThumb",
         ])
+        // The set above is the whole vocabulary only while the standard profile maps every control.
+        // A control nobody added to the default would leave this pin measuring a subset, so the
+        // premise is asserted instead of assumed.
+        XCTAssertEqual(
+            InputProfile.standard.mappings.count,
+            XInputControl.allCases.count,
+            "the standard profile has to keep mapping every control for this pin to mean anything"
+        )
     }
 }

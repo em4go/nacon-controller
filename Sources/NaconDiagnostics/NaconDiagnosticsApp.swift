@@ -8,6 +8,14 @@ struct NaconDiagnosticsApp: App {
     @StateObject private var service = ControllerService()
     @StateObject private var emulation = EmulationController()
     @StateObject private var profiles = ProfileLibraryController()
+    /// Read here as well as in the section that changes it, because the root view is rebuilt from it.
+    @AppStorage(LanguagePreference.defaultsKey) private var storedLanguage = AppLanguage.system.rawValue
+
+    init() {
+        // Before the first view is drawn: every string is resolved while drawing, so the preference has
+        // to be in place before there is anything to draw.
+        Localization.language = LanguagePreference.load()
+    }
 
     var body: some Scene {
         WindowGroup("NACON Diagnostics") {
@@ -30,6 +38,12 @@ struct NaconDiagnosticsApp: App {
                     }
                     // S1, S8: the engine runs the profile the library has selected.
                     emulation.attach(to: service, profiles: profiles)
+                }
+                // A language change rebuilds the window: the strings were resolved while it was drawn,
+                // and SwiftUI has no way to know that a value outside its state changed underneath.
+                .id(storedLanguage)
+                .onChange(of: storedLanguage) { raw in
+                    Localization.language = AppLanguage(rawValue: raw) ?? .system
                 }
                 .onDisappear {
                     emulation.shutdown()

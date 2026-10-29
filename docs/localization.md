@@ -28,6 +28,11 @@ R10. **Las pruebas afirman claves o fijan el idioma.** Un test que compara texto
 R11. **Seguir el idioma del sistema** es el patrón de Apple. Un selector propio es legítimo, pero
      obliga a probar cada pantalla en los dos idiomas.
 R12. **Traductores**: `xcodebuild -exportLocalizations` / `-importLocalizations` con XLIFF.
+R13. **Un recurso no se entrega nunca a SwiftUI.** `Text(recurso)` lo resuelve SwiftUI con el idioma del
+     proceso, así que se salta la preferencia elegida en la ventana. Se resuelve por la costura
+     (`Localization.resolve` / `AppText.resolve`) y se entrega el texto ya resuelto. El síntoma es
+     exacto y fácil de reconocer: una sola frase en el idioma del sistema en medio de la ventana en el
+     otro idioma.
 
 ## Punto de partida medido
 

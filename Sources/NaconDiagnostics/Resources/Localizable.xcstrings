@@ -391,6 +391,16 @@
         }
       }
     },
+    "Language": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Idioma"
+          }
+        }
+      }
+    },
     "Last report": {
       "localizations": {
         "es": {
@@ -782,6 +792,16 @@
         }
       }
     },
+    "System language": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Idioma del sistema"
+          }
+        }
+      }
+    },
     "Table": {
       "localizations": {
         "es": {
@@ -868,6 +888,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "No se pudieron guardar los perfiles en %@. Los cambios siguen en pantalla, pero se perderán al cerrar la app: %@"
+          }
+        }
+      }
+    },
+    "The whole window follows this choice. Profile names and the model of the controller stay as they are: they are your data, not interface text.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toda la ventana sigue esta elección. Los nombres de los perfiles y el modelo del mando se quedan como están: son tus datos, no texto de la interfaz."
           }
         }
       }

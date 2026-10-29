@@ -37,6 +37,7 @@ struct ContentView: View {
                 ProfileSection(profiles: profiles, feed: service.feed)
                 SensitivitySection(profiles: profiles)
                 EmulationSection(emulation: emulation)
+                LanguageSection()
                 if service.state.isConnected {
                     // Their own view, so a report rebuilds only this subtree. The menus above it stay
                     // put: an open menu rebuilt underneath itself flickers and closes its submenus.
@@ -69,7 +70,10 @@ struct StatusBanner: View {
                 .frame(width: 12, height: 12)
                 .padding(.top, 5)
             VStack(alignment: .leading, spacing: 3) {
-                Text(state.title)
+                // Resolved through the seam, not handed to SwiftUI as a resource: a resource given
+                // straight to `Text` is looked up with the process language and would ignore the
+                // language chosen in the window.
+                Text(Localization.resolve(state.title))
                     .font(.title3.bold())
                 if let detail = state.detail {
                     Text(detail)

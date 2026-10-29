@@ -12,14 +12,20 @@ public enum Localization {
     /// Languages the app ships: English is the base, Spanish the translation.
     public static let supported = ["en", "es"]
 
+    /// The language the interface speaks, set once at launch from the stored preference.
+    ///
+    /// It is read by every lookup that is not given a locale explicitly, so the whole interface follows
+    /// one value instead of each view deciding for itself.
+    public static var language: AppLanguage = .system
+
     /// A prepared text from this module's catalog.
     public static func resource(_ key: String) -> LocalizedStringResource {
         LocalizedStringResource(String.LocalizationValue(stringLiteral: key), bundle: .module)
     }
 
-    /// Resolves a resource, optionally in a given language instead of the running one.
+    /// Resolves a resource, in the given language, the chosen one, or the system's.
     public static func resolve(_ resource: LocalizedStringResource, locale: Locale? = nil) -> String {
-        guard let locale else { return String(localized: resource) }
+        guard let locale = locale ?? language.locale else { return String(localized: resource) }
         var pinned = resource
         pinned.locale = locale
         return String(localized: pinned)

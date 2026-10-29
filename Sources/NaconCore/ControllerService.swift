@@ -10,6 +10,8 @@ public enum ConnectionState: Equatable, Sendable {
     case disconnected(String)
     case failed(String)
 
+    /// Resolve this at the edge (`Localization.resolve`) instead of handing it to `Text`: SwiftUI
+    /// would look it up with the process language and ignore the language chosen in the window (R13).
     public var title: LocalizedStringResource {
         switch self {
         case .searching: return Localization.resource("Searching for a controller")

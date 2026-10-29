@@ -18,12 +18,10 @@ enum AppText {
         resolve(resource(key), locale: locale)
     }
 
-    /// Resolves a resource of this target, optionally in a pinned language.
+    /// Resolves a resource of this target. The language rule is not repeated here: it is the same
+    /// `Localization` seam the core uses, so both catalogs answer in the same language.
     static func resolve(_ resource: LocalizedStringResource, locale: Locale? = nil) -> String {
-        guard let locale else { return String(localized: resource) }
-        var pinned = resource
-        pinned.locale = locale
-        return String(localized: pinned)
+        Localization.resolve(resource, locale: locale)
     }
 
     /// Fills a translated pattern with already prepared text.

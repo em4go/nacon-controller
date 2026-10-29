@@ -66,6 +66,18 @@ swift test
    Al reconectarlo vuelve solo a «Conectado» sin reiniciar la aplicación.
 6. **Sin mando**: se muestra explícitamente «NO SE HA DETECTADO NINGÚN MANDO».
 
+## Idioma
+
+La app habla español e inglés. Por defecto sigue el idioma del sistema; en la sección **Idioma** puedes
+fijarlo en **English** o **Español** aunque el sistema esté en el otro, y la elección se recuerda en el
+siguiente arranque. El cambio se aplica al instante.
+
+Lo que **no** se traduce son tus datos: los nombres de los perfiles y el modelo del mando se quedan como
+están. La documentación de este repositorio también se queda en español.
+
+El inglés es el idioma base del código: es la clave del catálogo `Localizable.xcstrings`, y el español es
+su traducción. Faltar una traducción nunca deja un hueco: se lee el texto base.
+
 ## Emulación de ratón y teclado
 
 La ventana incluye un interruptor **Emulación activa**, apagado por defecto.

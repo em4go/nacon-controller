@@ -343,12 +343,12 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
     ///
     /// The library is the unit that reaches disk, so the editor mutates through it and the caller
     /// persists the result with the usual controller. The rule that refuses PS and the meaning of
-    /// `.none` stay in `InputProfile.setAction`, which is where a profile edits itself.
+    /// `.none` stay in `InputProfile.setAction`, which is where a profile edits itself: repeating the
+    /// guard here would give the rule two homes and one of them could drift.
     /// - Returns: whether the library changed.
     @discardableResult
     public mutating func setAction(_ action: MappedAction, for control: XInputControl) -> Bool {
-        guard MappingRules.isRemappable(control) else { return false }
-        return editSelectedProfile { $0.setAction(action, for: control) }
+        editSelectedProfile { $0.setAction(action, for: control) }
     }
 
     /// S2: applies the write a finished capture resolved to, and nothing else.

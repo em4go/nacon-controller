@@ -47,6 +47,13 @@ final class CursorSensitivityTests: XCTestCase {
         XCTAssertFalse(library.setCursorSensitivity(.maxSpeed, to: current ?? 0))
     }
 
+    func testResetReportsNoChangeWhenAlreadyStandard() {
+        var library = libraryWithTwoProfiles()
+
+        // Nothing to restore: the library must say so instead of reporting a write that did not happen.
+        XCTAssertFalse(library.resetCursorSensitivity())
+    }
+
     func testResetRestoresTheStandardValuesForTheSelectedProfileOnly() {
         var library = libraryWithTwoProfiles()
         XCTAssertTrue(library.setCursorSensitivity(.maxSpeed, to: 400))

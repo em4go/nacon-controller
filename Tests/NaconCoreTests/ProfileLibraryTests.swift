@@ -408,6 +408,13 @@ final class ProfileLibraryTests: XCTestCase {
         XCTAssertNil(library.layerValue(for: .guide))
     }
 
+    func testAnAssignmentWithoutASelectionIsRefused() {
+        // No profile on screen: the write has nowhere to land, so it reports that it changed nothing.
+        var library = ProfileLibrary(profiles: [], selectedProfileID: nil)
+
+        XCTAssertFalse(library.setAction(.key(KeyCombo(.tab)), for: .buttonA))
+    }
+
     func testLayerEditsTouchOnlyTheNamedProfile() {
         var library = libraryWithCustomSelection()
         let other = library.profiles[0]

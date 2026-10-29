@@ -226,6 +226,8 @@ public final class EmulationEngine {
                 emitter.repeatKey(action)
             case .moveCursor(let deltaX, let deltaY):
                 emitter.moveCursor(deltaX: deltaX, deltaY: deltaY)
+            case .toggleMouseButton(let button):
+                emitter.toggleMouseButton(button)
             case .scroll(let pixels):
                 emitter.scroll(pixels: pixels)
             }
@@ -239,6 +241,8 @@ public final class EmulationEngine {
         // Everything held is released and every run stops: a key or a button must never stay stuck down
         // after the user asked for the emulation to stop.
         emit(performance.reset())
+        // A button held by a toggle would leave the system dragging: the same safety net as a modifier.
+        emitter.releaseAllMouseButtons()
         emitter.releaseHeldModifiers()
         previousReport = nil
         if notify {

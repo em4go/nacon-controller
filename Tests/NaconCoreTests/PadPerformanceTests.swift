@@ -35,7 +35,7 @@ final class PadPerformanceTests: XCTestCase {
     private func group(_ effect: PerformanceEffect) -> EffectGroup {
         switch effect {
         case .moveCursor: return .cursor
-        case .press, .release: return .command
+        case .press, .release, .toggleMouseButton: return .command
         case .scroll: return .scroll
         case .repeatKey: return .repeatKey
         }

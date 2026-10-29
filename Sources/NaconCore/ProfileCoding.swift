@@ -66,6 +66,7 @@ extension MappedAction: Codable {
         case noAction = "none"
         case key
         case mouseButton
+        case toggledMouseButton = "toggleMouseButton"
         case scrollLines
         case sequence
     }
@@ -92,6 +93,13 @@ extension MappedAction: Codable {
                 return
             }
             self = .mouseButton(button)
+        case .toggledMouseButton:
+            let rawButton = try container.decode(String.self, forKey: .button)
+            guard let button = MouseButton(rawValue: rawButton) else {
+                self = .none
+                return
+            }
+            self = .toggledMouseButton(button)
         case .scrollLines:
             self = .scrollLines(try container.decode(Int.self, forKey: .lines))
         case .sequence:
@@ -112,6 +120,9 @@ extension MappedAction: Codable {
             try container.encode(combo, forKey: .key)
         case .mouseButton(let button):
             try container.encode(Kind.mouseButton.rawValue, forKey: .kind)
+            try container.encode(button.rawValue, forKey: .button)
+        case .toggledMouseButton(let button):
+            try container.encode(Kind.toggledMouseButton.rawValue, forKey: .kind)
             try container.encode(button.rawValue, forKey: .button)
         case .scrollLines(let lines):
             try container.encode(Kind.scrollLines.rawValue, forKey: .kind)

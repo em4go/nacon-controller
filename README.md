@@ -125,6 +125,15 @@ logo PS. Las máscaras de resaltado —una por control, con el canal alfa de ese
 `Sources/NaconDiagnostics/Resources/masks/diagram-*.png` y se generan con
 `prototype/tools/make-masks.py`.
 
+### Clic que se queda pulsado
+
+Además del clic normal, el menú **Elegir…** ofrece **Alternar clic izquierdo**, **central** y **derecho**:
+el primero deja el botón pulsado y el segundo lo suelta. Es la forma cómoda de arrastrar durante varios
+segundos —mover una ventana, seleccionar varios párrafos— sin mantener el stick y el botón a la vez.
+
+Al detener la emulación, o con el botón PS, se suelta cualquier botón que hubiera quedado pulsado: un clic
+fijado no puede sobrevivir a la parada.
+
 ### Velocidad normal y velocidad precisa
 
 Junto a los ajustes del cursor hay una **tecla de precisión**: mientras la mantienes pulsada, el cursor y

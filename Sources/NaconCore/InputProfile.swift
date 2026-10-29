@@ -58,6 +58,11 @@ public enum MappedAction: Hashable, Sendable {
     case key(KeyCombo)
     case mouseButton(MouseButton)
     case scrollLines(Int)
+    /// A mouse button that stays down until the control is pressed again.
+    ///
+    /// It is the answer to the one gesture a stick cannot do comfortably: holding a button down for a
+    /// long time while moving — dragging a window, selecting several paragraphs.
+    case toggledMouseButton(MouseButton)
     /// Several strokes in order: a custom command, such as ⌘A and then ⌘C. The performance runs one
     /// step per advance and a press runs the whole list once.
     case sequence([KeyCombo])
@@ -97,6 +102,12 @@ public enum MappedAction: Hashable, Sendable {
             return Localization.resolve("Right click", locale: locale)
         case .mouseButton(.middle):
             return Localization.resolve("Middle click", locale: locale)
+        case .toggledMouseButton(.left):
+            return Localization.resolve("Toggle left click", locale: locale)
+        case .toggledMouseButton(.right):
+            return Localization.resolve("Toggle right click", locale: locale)
+        case .toggledMouseButton(.middle):
+            return Localization.resolve("Toggle middle click", locale: locale)
         case .scrollLines(0):
             return Localization.resolve("No scrolling", locale: locale)
         case .sequence(let steps):

@@ -12,6 +12,8 @@ enum PerformanceEffect: Equatable, Sendable {
     case release(MappedAction)
     /// One repeat of a held key, with the key already down.
     case repeatKey(MappedAction)
+    /// Flip a mouse button: press it if it is up, let go if it is down.
+    case toggleMouseButton(MouseButton)
     /// Move the pointer by a delta, in points.
     case moveCursor(deltaX: Double, deltaY: Double)
     /// Turn the wheel by a number of pixels.
@@ -73,6 +75,11 @@ struct PadPerformance {
     mutating func press(_ control: XInputControl, action: MappedAction) -> [PerformanceEffect] {
         if case .scrollLines(let lines) = action {
             return [.scroll(pixels: Scroll.pixels(forLines: lines))]
+        }
+        if case .toggledMouseButton(let button) = action {
+            // A toggle is a state that lives in the emitter, not a press to hold: storing it would
+            // make the release of the control undo what the press just did.
+            return [.toggleMouseButton(button)]
         }
         if case .sequence(let steps) = action, !steps.isEmpty {
             // The first step goes out now so the control answers the press without a delay.

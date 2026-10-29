@@ -861,6 +861,36 @@
         }
       }
     },
+    "Toggle left click": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alternar clic izquierdo"
+          }
+        }
+      }
+    },
+    "Toggle middle click": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alternar clic central"
+          }
+        }
+      }
+    },
+    "Toggle right click": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alternar clic derecho"
+          }
+        }
+      }
+    },
     "USB read interrupted (%@)": {
       "localizations": {
         "es": {

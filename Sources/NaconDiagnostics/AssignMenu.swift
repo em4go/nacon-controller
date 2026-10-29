@@ -47,6 +47,13 @@ struct AssignMenuItems: View {
                 onChoose(.mouseButton(button))
             }
         }
+        // Dragging something across the screen with a stick is the one gesture a click cannot do
+        // comfortably, so the toggle sits next to it in the same list.
+        ForEach([MouseButton.left, .middle, .right], id: \.self) { button in
+            Button(MappedAction.toggledMouseButton(button).displayName) {
+                onChoose(.toggledMouseButton(button))
+            }
+        }
         Divider()
         Button(MappingRules.scrollUpAction.displayName) {
             onChoose(MappingRules.scrollUpAction)

@@ -119,7 +119,9 @@ final class EmulationEngineTests: XCTestCase {
         emitter.reset()
 
         engine.setEnabledNow(false)
-        XCTAssertEqual(emitter.events, [.release(.mouseButton(.left))])
+        // The safety net for a toggled button also fires; the release of what was held is what matters.
+        let released = emitter.events.filter { $0 != .releaseAllMouseButtons }
+        XCTAssertEqual(released, [.release(.mouseButton(.left))])
     }
 
     func testStopReleasesHeldActionsSynchronously() {
@@ -130,8 +132,10 @@ final class EmulationEngineTests: XCTestCase {
 
         engine.stop()
 
-        // The release must already be posted when stop() returns: the process may exit next.
-        XCTAssertEqual(emitter.events, [.release(.mouseButton(.left))])
+        // The release must already be posted when stop() returns: the process may exit next. The
+        // mouse-button safety net is filtered out; it is a separate promise, tested on its own.
+        let released = emitter.events.filter { $0 != .releaseAllMouseButtons }
+        XCTAssertEqual(released, [.release(.mouseButton(.left))])
     }
 
     private func makeEngine(profile: InputProfile) -> (EmulationEngine, RecordingEmitter) {

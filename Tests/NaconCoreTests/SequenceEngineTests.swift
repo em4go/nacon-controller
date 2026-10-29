@@ -77,7 +77,9 @@ final class SequenceEngineTests: XCTestCase {
         engine.handle(report(buttons: [.buttonY]))
         engine.setEnabledNow(false)
 
-        XCTAssertEqual(emitter.events, step(selectAll), "no step may fire after the user stops the emulation")
+        // Stopping emits the mouse-button safety net as well; what matters is that no step fired.
+        let fired = emitter.events.filter { $0 != .releaseAllMouseButtons }
+        XCTAssertEqual(fired, step(selectAll), "no step may fire after the user stops the emulation")
         XCTAssertEqual(emitter.releasedHeldModifiers, 1)
     }
 }

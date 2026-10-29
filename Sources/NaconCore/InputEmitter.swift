@@ -14,6 +14,12 @@ public protocol InputEmitter: AnyObject {
     /// modifier left in its own count would be added to every later event, which looks exactly like a
     /// key stuck down.
     func releaseHeldModifiers()
+    /// Presses a mouse button that is not down, or lets go of one that is: the same call does both,
+    /// because the state lives in the emitter and two calls could drift from it.
+    func toggleMouseButton(_ button: MouseButton)
+    /// Lets go of every mouse button this emitter pressed. A safety net for emulation stopping: a
+    /// button held by a toggle would otherwise leave the system dragging until the user clicks.
+    func releaseAllMouseButtons()
     func moveCursor(deltaX: Double, deltaY: Double)
     func scroll(pixels: Int)
 }
@@ -55,7 +61,7 @@ public final class CGEventEmitter: InputEmitter {
 
     public func press(_ action: MappedAction) {
         switch action {
-        case .none, .scrollLines, .sequence:
+        case .none, .scrollLines, .sequence, .toggledMouseButton:
             // A sequence never reaches the emitter: the performance expands it into steps, and each step is
             // an ordinary key with its own press and release.
             return
@@ -68,11 +74,21 @@ public final class CGEventEmitter: InputEmitter {
 
     public func release(_ action: MappedAction) {
         switch action {
-        case .none, .scrollLines, .sequence:
+        case .none, .scrollLines, .sequence, .toggledMouseButton:
             return
         case .key(let combo):
             postKey(combo, isDown: false)
         case .mouseButton(let button):
+            postMouse(button, isDown: false)
+        }
+    }
+
+    public func toggleMouseButton(_ button: MouseButton) {
+        postMouse(button, isDown: !pressedButtons.contains(button))
+    }
+
+    public func releaseAllMouseButtons() {
+        for button in pressedButtons {
             postMouse(button, isDown: false)
         }
     }

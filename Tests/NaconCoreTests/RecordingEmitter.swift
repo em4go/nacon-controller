@@ -10,6 +10,8 @@ final class RecordingEmitter: InputEmitter {
         case move(deltaX: Double, deltaY: Double)
         case scroll(Int)
         case repeatKey(MappedAction)
+        case toggleMouseButton(MouseButton)
+        case releaseAllMouseButtons
     }
 
     private(set) var events: [Event] = []
@@ -38,6 +40,14 @@ final class RecordingEmitter: InputEmitter {
 
     func reset() {
         events.removeAll()
+    }
+
+    func toggleMouseButton(_ button: MouseButton) {
+        events.append(.toggleMouseButton(button))
+    }
+
+    func releaseAllMouseButtons() {
+        events.append(.releaseAllMouseButtons)
     }
 
     func releaseHeldModifiers() {

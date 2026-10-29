@@ -12,6 +12,7 @@ let package = Package(
         .executable(name: "nacon-padtest", targets: ["NaconPadTest"]),
         .executable(name: "nacon-touchpad", targets: ["NaconTouchWatch"]),
         .executable(name: "nacon-ps4probe", targets: ["NaconPS4Probe"]),
+        .executable(name: "nacon-motion", targets: ["NaconMotion"]),
     ],
     targets: [
         // `defaultLocalization` is what makes a localized resource bundle exist at all: without it
@@ -29,6 +30,11 @@ let package = Package(
             // resource bundle next to the executable; `scripts/build-app.sh` copies it into the
             // .app so `Bundle.module` finds it there too.
             resources: [.process("Resources")]
+        ),
+        .executableTarget(
+            name: "NaconMotion",
+            dependencies: ["NaconCore"],
+            path: "Sources/NaconMotion"
         ),
         .executableTarget(
             name: "NaconSelfTest",

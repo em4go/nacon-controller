@@ -57,9 +57,10 @@ struct ProfileSection: View {
                             write(action, to: column, for: control, profileID: selected.id)
                         }
                     )
-                    // A capture belongs to the profile it was armed for, so the graph is rebuilt when
-                    // the profile changes, exactly like the table: a pending press must never land on
-                    // the profile the user has just selected.
+                    // The graph is rebuilt when the profile changes, so no cell can wear the state of
+                    // the profile the user has just left. Ending a pending capture is the graph's own
+                    // job — it owns no session, so a rebuild alone would leave one armed
+                    // (`.onChange(of: profileID)` in `PadGraphView`).
                     .id(selected.id)
                     // PS is not a row in the table either, and it must stay visible in both views:
                     // it is the emulation switch and has to remain reachable.
@@ -100,11 +101,7 @@ struct ProfileSection: View {
                 // which column and whether it extends, and the profile guard in `ProfileLibrary`
                 // drops a write aimed at a profile that is no longer selected.
                 profiles.apply(
-                    MappingWrite.resolve(
-                        outcome,
-                        editing: profiles.selectedProfile?.profile,
-                        selectedProfileID: profiles.selectedProfile?.id
-                    )
+                    MappingWrite.resolve(outcome, editing: profiles.selectedProfile)
                 )
             }
         }

@@ -168,8 +168,7 @@ final class MappingWriteTests: XCTestCase {
                 action: .key(captured),
                 intent: .baseCommand
             ),
-            editing: library.selectedProfile?.profile,
-            selectedProfileID: library.selectedProfile?.id
+            editing: library.selectedProfile
         )
 
         XCTAssertEqual(write, .drop)
@@ -185,8 +184,7 @@ final class MappingWriteTests: XCTestCase {
 
         let write = MappingWrite.resolve(
             .cancelled(.buttonA),
-            editing: library.selectedProfile?.profile,
-            selectedProfileID: library.selectedProfile?.id
+            editing: library.selectedProfile
         )
 
         XCTAssertEqual(write, .drop)
@@ -200,8 +198,7 @@ final class MappingWriteTests: XCTestCase {
 
         let write = MappingWrite.resolve(
             .ignored,
-            editing: library.selectedProfile?.profile,
-            selectedProfileID: library.selectedProfile?.id
+            editing: library.selectedProfile
         )
 
         XCTAssertEqual(write, .drop)
@@ -216,6 +213,65 @@ final class MappingWriteTests: XCTestCase {
         XCTAssertFalse(library.apply(.drop))
 
         XCTAssertEqual(library, before)
+    }
+
+    // MARK: - The guard at the unit that reaches disk (S4)
+
+    /// `ProfileSection` builds a closed `MappingWrite.apply` directly from the profile it captured in
+    /// its body, so the library — not `resolve` — is what stops a menu pick from landing on a profile
+    /// the user has just left. Both columns, because the guard is above the column switch.
+    func testTheLibraryRefusesAWriteAimedAtAnotherProfileInEitherColumn() {
+        var library = makeLibrary()
+        let before = library
+
+        for column in [MappingColumn.base, .mod] {
+            let write = MappingWrite.apply(
+                profileID: profileBID,
+                control: .buttonA,
+                column: column,
+                action: .key(captured)
+            )
+            XCTAssertFalse(
+                library.apply(write),
+                "a view cannot write to a profile that is not selected"
+            )
+        }
+
+        XCTAssertEqual(library, before, "the refused writes changed nothing")
+    }
+
+    /// PS is the emulation switch, so it is never stored as an assignment — in either column.
+    func testAWriteToAControlThatIsNeverRemappableIsRefused() {
+        var library = makeLibrary()
+        let before = library
+
+        for column in [MappingColumn.base, .mod] {
+            let write = MappingWrite.apply(
+                profileID: profileAID,
+                control: .guide,
+                column: column,
+                action: .key(captured)
+            )
+            XCTAssertFalse(library.apply(write), "PS is never stored as an assignment")
+        }
+
+        XCTAssertEqual(library, before)
+    }
+
+    func testThereIsNoWriteWithoutAProfile() {
+        let empty = ProfileLibrary(profiles: [])
+
+        let write = MappingWrite.resolve(
+            .mapped(
+                profileID: profileAID,
+                control: .buttonA,
+                action: .key(captured),
+                intent: .baseCommand
+            ),
+            editing: empty.selectedProfile
+        )
+
+        XCTAssertEqual(write, .drop, "no profile on screen means nothing to write")
     }
 
     // MARK: - Fixture
@@ -261,8 +317,7 @@ final class MappingWriteTests: XCTestCase {
                 action: action,
                 intent: intent
             ),
-            editing: library.selectedProfile?.profile,
-            selectedProfileID: library.selectedProfile?.id
+            editing: library.selectedProfile
         )
     }
 }

@@ -61,17 +61,18 @@ public enum MappingWrite: Equatable, Sendable {
 
     /// The write a finished capture asks for, or `.drop` when it must not write.
     ///
+    /// `editing` is the profile on screen, identifier and mapping together, so the two facts a write
+    /// depends on can never disagree: one argument says both which profile it is and what it holds.
+    ///
     /// - Parameters:
     ///   - outcome: what `KeyCaptureSession.handleKey` returned, carrying the arming intent.
     ///   - profile: the profile being edited right now, or `nil` when there is none.
-    ///   - selectedProfileID: identifier of the profile being edited right now.
     public static func resolve(
         _ outcome: KeyCaptureSession.Outcome,
-        editing profile: InputProfile?,
-        selectedProfileID: UUID?
+        editing profile: StoredProfile?
     ) -> MappingWrite {
         guard case let .mapped(profileID, control, action, intent) = outcome else { return .drop }
-        guard profileID == selectedProfileID else { return .drop }
+        guard profileID == profile?.id else { return .drop }
         // Without a profile there is nothing to extend, so the captured action simply replaces.
         guard intent.mode == .appendStep, let profile else {
             return .apply(profileID: profileID, control: control, column: intent.column, action: action)
@@ -79,11 +80,11 @@ public enum MappingWrite: Equatable, Sendable {
         let existing: MappedAction
         switch intent.column {
         case .base:
-            existing = profile.action(for: control)
+            existing = profile.profile.action(for: control)
         case .mod:
             // The layer falls back to the base when it has no entry, but a step appended here must
             // extend the MOD entry: an empty one means there is nothing to chain onto.
-            existing = profile.layer.action(for: control) ?? .none
+            existing = profile.profile.layer.action(for: control) ?? .none
         }
         // Only a key can be a step, and only a command can take one. Anything else is stored as it
         // came, so an append never silently clears or rewrites what the control had.

@@ -26,13 +26,6 @@ public struct ControlFacts: Equatable, Sendable {
     /// Radius of the control's hit circle, in pixels of the artwork `PadLayout` measures.
     public let hitRadius: Double
 
-    public init(profileKey: String, label: String, tint: ControlTint?, hitRadius: Double) {
-        self.profileKey = profileKey
-        self.label = label
-        self.tint = tint
-        self.hitRadius = hitRadius
-    }
-
     /// The facts of one control.
     public static func of(_ control: XInputControl) -> ControlFacts {
         switch control {

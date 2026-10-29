@@ -1,8 +1,11 @@
 # Control facts
 
-One control, one table. Everything the app knows about a single control — its stored key, its label,
-its mask, its tint, its pointer radius — is answered by one lookup built from one exhaustive switch,
-so a new control is one edit and the compiler walks the fields.
+One control, one table. The facts the app reads about a single control — its stored key, its label,
+its tint and its pointer radius — are answered by one lookup built from one exhaustive switch, so the
+compiler walks every case of the enum instead of trusting a count. The mask name is not a field: the
+asset is named after the stored key, so the key is also the mask. The measured position and the mask
+artwork themselves stay in `PadLayout` and `prototype/tools/make-masks.py`, which are tables of data,
+not of labels.
 
 ## Specs
 
@@ -12,9 +15,13 @@ so a new control is one edit and the compiler walks the fields.
   through one lookup; each existing table becomes a field and each caller reads the field it needs.»
 - **S3.** The persisted format does not change: the profile keys stay byte-identical, and a test pins
   the exact key set so a rename cannot slip into `profiles.json`.
-- **S4.** Two tables stay where they are, and the code says why: the protocol bit
+- **S4.** Two protocol tables stay where they are, and the code says why: the protocol bit
   (`XInputButtons.mask` / `isPressed`) belongs to the XInput decoder, and `XInputControl.rawValue` is
-  the diagnostic glyph the live grid prints, not the label a dialog shows.
+  the diagnostic glyph the live grid prints, not the label a dialog shows. Two per-control data tables
+  also stay: `PadLayout.standard` holds the measured positions and `prototype/tools/make-masks.py`
+  holds the mask artwork. Adding a control still breaks the build in this catalogue and still fails
+  `PadLayoutTests`, and it also needs its mask row in the Python tool — the "one edit" claim is about
+  labels and keys, not about the artwork.
 - **S5.** Every case of `XInputControl` answers with facts; one test walks `allCases` instead of
   trusting a count.
 - **S6.** No behaviour change: same labels, same tints, same mask files, same hit radii, same JSON.

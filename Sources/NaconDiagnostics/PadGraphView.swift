@@ -11,7 +11,7 @@ import SwiftUI
 /// control through an invisible circle centred on the point `PadLayout` measured for it, and one strip
 /// below the drawing says which control is under the pointer and what it currently sends.
 ///
-/// The view decides no rule. The positions come from `PadLayout`, the labels from `MappingRules`, the
+/// The view decides no rule. The positions come from `PadLayout`, the labels from `ControlFacts`, the
 /// pressed state from the report it receives and the lock from `isEmulationEnabled`; the caller hands
 /// in the profile, the identifier of that profile and the capture that owns the key session. Tapping a
 /// control arms the capture for it, exactly like pressing «Capturar» in the table: it is the same

@@ -24,6 +24,23 @@ final class PadPerformanceTests: XCTestCase {
         performance.advance(seconds: seconds, leftStick: .center, rightStick: .center)
     }
 
+    /// Which group of the advance order an effect belongs to, so one assertion can pin the order.
+    private enum EffectGroup: Equatable {
+        case cursor
+        case command
+        case scroll
+        case repeatKey
+    }
+
+    private func group(_ effect: PerformanceEffect) -> EffectGroup {
+        switch effect {
+        case .moveCursor: return .cursor
+        case .press, .release: return .command
+        case .scroll: return .scroll
+        case .repeatKey: return .repeatKey
+        }
+    }
+
     // MARK: - Holding one action
 
     func testPressingAKeyHoldsItUntilItIsReleased() {
@@ -216,27 +233,63 @@ final class PadPerformanceTests: XCTestCase {
         XCTAssertEqual(performance.release(.dpadUp), [])
     }
 
-    func testResetAlsoForgetsTheRepeatAndScrollState() {
+    /// S6: the order `advance` documents is a contract, not an accident: cursor, one step per command,
+    /// scrolling, then repeats. Every group is live in the same slice, so swapping two of them fails
+    /// here instead of passing because the other groups happened to be quiet.
+    func testOneAdvanceEmitsEveryGroupInTheDocumentedOrder() {
+        let selectAll = KeyCombo(keyCode: 0, modifiers: [.command])
+        let copy = KeyCombo(keyCode: 8, modifiers: [.command])
+        let profile = InputProfile(
+            mappings: [:],
+            keyRepeat: KeyRepeatSettings(initialDelay: 0, interval: 0.05)
+        )
+        var performance = PadPerformance(profile: profile)
+        _ = performance.press(.dpadUp, action: .key(key))
+        _ = performance.press(.buttonA, action: .sequence([selectAll, copy]))
+
+        let effects = performance.advance(
+            seconds: 0.1,
+            leftStick: stick(normalizedX: 0.9, normalizedY: 0.9),
+            rightStick: stick(normalizedX: 0, normalizedY: 0.9)
+        )
+
+        XCTAssertEqual(
+            effects.map(group),
+            [.cursor, .command, .command, .scroll, .repeatKey],
+            "one advance emits the cursor, the command step, the scroll and the repeat, in that order"
+        )
+    }
+
+    func testResetDropsTheCarriedScrollAndTheHeldKey() {
         let profile = InputProfile(
             mappings: [.dpadUp: .key(key)],
             keyRepeat: KeyRepeatSettings(initialDelay: 0.2, interval: 0.05)
         )
         var performance = PadPerformance(profile: profile)
         _ = performance.press(.dpadUp, action: .key(key))
-        _ = advance(&performance, seconds: 0.1)
-        _ = performance.advance(
-            seconds: 0.05,
-            leftStick: .center,
-            rightStick: stick(normalizedX: 0, normalizedY: 0.2)
-        )
+        // A repeat is due from 0.2 s, so 0.1 s leaves the clock armed and silent.
+        XCTAssertEqual(advance(&performance, seconds: 0.1), [])
+        // Two small slices leave a scroll fraction a fresh performance cannot have.
+        let scrollStick = stick(normalizedX: 0, normalizedY: 0.9)
+        for _ in 0..<2 {
+            _ = performance.advance(seconds: 0.02, leftStick: .center, rightStick: scrollStick)
+        }
 
         _ = performance.reset()
 
-        // No carried scroll fraction and no repeat elapsed time survive the reset.
-        XCTAssertEqual(advance(&performance, seconds: 0.05), [])
+        // The held key went with its clock: this slice is past the initial delay and still repeats
+        // nothing, because nothing is held.
         XCTAssertEqual(
-            performance.advance(seconds: 0.05, leftStick: .center, rightStick: .center),
+            performance.advance(seconds: 0.3, leftStick: .center, rightStick: .center),
             []
+        )
+
+        // The carried fraction is gone too: the same slice scrolls exactly what a fresh performance
+        // scrolls, instead of the extra pixel the fraction would round up.
+        var fresh = PadPerformance(profile: profile)
+        XCTAssertEqual(
+            performance.advance(seconds: 0.02, leftStick: .center, rightStick: scrollStick),
+            fresh.advance(seconds: 0.02, leftStick: .center, rightStick: scrollStick)
         )
     }
 

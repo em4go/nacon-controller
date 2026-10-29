@@ -60,3 +60,16 @@ owns it, with the downstream branches rebased.
   split (the core type, its tests and the view call sites do not compile apart — `mapping-write.md`
   records the same boundary). Each review fix is its own small commit; no commit here adds a new
   oversized unit.
+- **L6.** T2 on `pr/2-library-edit-seam` (rebased onto the fixed #1): the unreachable `isRemappable`
+  guard left `ProfileLibrary.setAction`; the reset-guard and no-selection cases are pinned; the log's
+  own counts and #1's L3 supersession corrected. `swift test` → 320 tests, 0 failures.
+- **L7.** T3 on `pr/3-control-facts` (rebased): the mask files are compared with the stored keys; the
+  JSON pin asserts its own premise; `ControlFacts.init` is internal; the doc states which per-control
+  tables the catalogue does not own. `swift test` → 329 tests, 0 failures.
+- **L8.** T4 on `pr/4-action-names` (rebased): `displayName` lives inside the enum and uses `magnitude`
+  (pinned by a rendering test); the stale header and the duplicated `L2` are fixed. `swift test` → 336
+  tests, 0 failures.
+- **L9.** T5 on `pr/5-pad-performance` (rebased): the advance order and the reset behaviour are pinned;
+  `advanceCommands` no longer claims an order a map cannot give; the three held maps are one; the two
+  types are internal; the stale owner comments and the task file corrected. `swift test` → 353 tests,
+  0 failures. All five branches rebased in order; nothing pushed.

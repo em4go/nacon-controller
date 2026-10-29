@@ -43,6 +43,10 @@ cat > "$APP_DIR/Contents/Info.plist" <<'PLIST'
     <key>CFBundleName</key><string>NaconDiagnostics</string>
     <key>CFBundleDisplayName</key><string>NACON Diagnostics</string>
     <key>CFBundleIdentifier</key><string>dev.nacon.diagnostics</string>
+    <!-- Sin esto la app se anuncia en un solo idioma y toda consulta al catálogo cae al texto base:
+         el sistema no puede elegir español porque el bundle no declara que lo hable. -->
+    <key>CFBundleDevelopmentRegion</key><string>en</string>
+    <key>CFBundleLocalizations</key><array><string>en</string><string>es</string></array>
     <key>CFBundleExecutable</key><string>NaconDiagnostics</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>0.1.0</string>

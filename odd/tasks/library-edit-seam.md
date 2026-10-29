@@ -36,10 +36,11 @@ the feature branch keeps growing by a few hundred lines per candidate.
 ## Log
 
 - **L1.** «good. continue with the proposed tasks in order»
-- **L2.** The review card overstated this one. The seven `firstIndex(where:)` guards it pointed at
-  belong to the operations that name a profile by id (delete, rename, layer); the cursor settings
-  already shared `selectedIndex`. What actually collapsed is `selectedIndex`'s use (4 → 2) and the
-  duplicate `setAction`, whose own `firstIndex` lookup is gone (repo-wide 8 → 7). Kept anyway: the
+- **L2.** The review card overstated this one. Most of the `firstIndex(where:)` guards it pointed at
+  belong to the operations that name a profile by id (delete, rename, layer); two of them are
+  selection lookups, and only one of those collapsed. `selectedIndex`'s call sites go 3 → 1 (the
+  earlier 4 → 2 also counted its declaration), and the duplicate `setAction`, whose own lookup is gone
+  (repo-wide 8 → 7). Kept anyway: the
   seam takes the "resolve, then mutate" pattern out of every future setting, which is the leverage the
   card promised even if the count was off.
 - **L3.** Evidence: `swift test` → 314 tests, 0 failures, before and after, run by the parent; no test

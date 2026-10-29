@@ -60,3 +60,6 @@ layering this change removes. The tests travel with the behaviour they pin. T3 i
   `swift build --build-tests` clean; no `isAppendingStep`, `isLayerCapture` or `includesCapture`
   reference remains; `ProfileLibraryController.setAction` / `setLayerAction` stay (unused by the views)
   for the library edit seam of a later candidate.
+- **L4.** Superseded by `library-edit-seam.md`: the "later candidate" this note bet on is #2, and it
+  removed both unused `ProfileLibraryController` forwards. The sentence above describes the state at
+  #1, not the head of the chain.

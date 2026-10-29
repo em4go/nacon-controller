@@ -31,6 +31,8 @@ final class ProfileLibraryController: ObservableObject {
     var runtimeProfile: InputProfile { library.runtimeProfile }
     /// S2: the vertical-axis value of the profile being edited, shown by the toggle.
     var selectedInvertVerticalAxis: Bool { library.selectedInvertVerticalAxis }
+    /// The precision setting of the profile on screen, or the neutral value when there is none.
+    var selectedPrecision: PrecisionSettings { library.selectedProfile?.profile.precision ?? .off }
 
     /// S8: the selection is part of the library, so it is written like any other change.
     func select(_ id: UUID) {
@@ -80,6 +82,20 @@ final class ProfileLibraryController: ObservableObject {
 
     /// S5: chooses the control that opens the layer, saving it like any other change. `nil` is
     /// «Ninguna», which closes the layer and keeps its entries.
+    /// Which control slows the pointer, and by how much.
+    ///
+    /// Both edits go through the library, which refuses PS, the MOD key and an out-of-range factor; the
+    /// view only says what the user asked for.
+    func setPrecisionKey(_ control: XInputControl?) {
+        guard let id = library.selectedProfile?.id else { return }
+        mutate { $0.setPrecisionKey(control, for: id) }
+    }
+
+    func setPrecisionScale(_ scale: Double) {
+        guard let id = library.selectedProfile?.id else { return }
+        mutate { $0.setPrecisionScale(scale, for: id) }
+    }
+
     func setLayerKey(_ control: XInputControl?) {
         guard let id = library.selectedProfile?.id else { return }
         mutate { $0.setLayerKey(control, for: id) }

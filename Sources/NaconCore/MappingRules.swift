@@ -60,6 +60,11 @@ public enum MappingRules {
         return .mapped(.key(KeyCombo(keyCode: keyCode, modifiers: modifiers)))
     }
 
+    /// Whether a control can slow the pointer. The same rule as any assignment: PS stays the switch.
+    public static func isPrecisionKeyEligible(_ control: XInputControl) -> Bool {
+        isRemappable(control)
+    }
+
     /// Whether a command can take one more step. A command is made of keystrokes, so a mouse button or
     /// a scroll amount has nothing to chain.
     public static func canAppendStep(to action: MappedAction) -> Bool {

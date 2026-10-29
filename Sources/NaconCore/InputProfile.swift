@@ -150,6 +150,37 @@ public struct CursorSettings: Equatable, Sendable {
 }
 
 /// How a held key behaves, mirroring the system keyboard repeat.
+/// Slow cursor while a control is held.
+///
+/// A profile whose cursor crosses the screen at full speed is hard to aim with, and lowering the speed
+/// for everything makes the rest of the work tedious. This is the compromise: the normal speed stays,
+/// and one control held down scales it.
+public struct PrecisionSettings: Equatable, Sendable {
+    /// The control that slows the pointer, or nil when the profile has none.
+    public var key: XInputControl?
+    /// Fraction of the normal speed while the key is held. 1 would do nothing, so the range starts lower.
+    public var scale: Double
+
+    public init(key: XInputControl? = nil, scale: Double = PrecisionSettings.standardScale) {
+        self.key = key
+        self.scale = min(max(scale, Self.minimumScale), Self.maximumScale)
+    }
+
+    public static let standardScale = 0.35
+    public static let minimumScale = 0.1
+    public static let maximumScale = 1.0
+
+    /// A profile without a precision key: the cursor has one speed.
+    public static let off = PrecisionSettings()
+
+    public var isActive: Bool { key != nil }
+
+    /// The factor applied to cursor and scroll speed right now.
+    public var factor: Double {
+        isActive ? scale : 1
+    }
+}
+
 public struct KeyRepeatSettings: Equatable, Sendable {
     public var initialDelay: Double
     public var interval: Double
@@ -169,17 +200,20 @@ public struct InputProfile: Equatable, Sendable {
     public var layer: ProfileLayer
     public var cursor: CursorSettings
     public var keyRepeat: KeyRepeatSettings
+    public var precision: PrecisionSettings
 
     public init(
         mappings: [XInputControl: MappedAction],
         layer: ProfileLayer = .empty,
         cursor: CursorSettings = .standard,
-        keyRepeat: KeyRepeatSettings = .standard
+        keyRepeat: KeyRepeatSettings = .standard,
+        precision: PrecisionSettings = .off
     ) {
         self.mappings = mappings
         self.layer = layer
         self.cursor = cursor
         self.keyRepeat = keyRepeat
+        self.precision = precision
     }
 
     /// Left stick moves the cursor, right stick scrolls, face buttons click, d-pad sends arrows.

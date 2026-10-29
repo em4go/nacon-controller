@@ -109,19 +109,25 @@ struct PadPerformance {
     mutating func advance(
         seconds: Double,
         leftStick: XInputStick,
-        rightStick: XInputStick
+        rightStick: XInputStick,
+        precisionActive: Bool = false
     ) -> [PerformanceEffect] {
         guard seconds > 0 else { return [] }
         var effects: [PerformanceEffect] = []
         let settings = profile.cursor
+        // One factor for both axes and for the wheel: slowing the pointer but not the scroll would
+        // make the two disagree while the same control is held.
+        let factor = precisionActive ? profile.precision.factor : 1
         let velocity = StickMotion.cursorVelocity(stick: leftStick, settings: settings)
         if !velocity.isZero {
-            effects.append(.moveCursor(deltaX: velocity.dx * seconds, deltaY: velocity.dy * seconds))
+            effects.append(
+                .moveCursor(deltaX: velocity.dx * seconds * factor, deltaY: velocity.dy * seconds * factor)
+            )
         }
         effects.append(contentsOf: advanceCommands())
         let rate = StickMotion.scrollLinesPerSecond(stick: rightStick, settings: settings)
         let pixels = scroll.consume(
-            pixelsPerSecond: rate * Scroll.pixelsPerLine,
+            pixelsPerSecond: rate * Scroll.pixelsPerLine * factor,
             seconds: seconds
         )
         if pixels != 0 {

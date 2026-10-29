@@ -125,6 +125,15 @@ logo PS. Las máscaras de resaltado —una por control, con el canal alfa de ese
 `Sources/NaconDiagnostics/Resources/masks/diagram-*.png` y se generan con
 `prototype/tools/make-masks.py`.
 
+### Velocidad normal y velocidad precisa
+
+Junto a los ajustes del cursor hay una **tecla de precisión**: mientras la mantienes pulsada, el cursor y
+el desplazamiento van a la fracción que elijas (por defecto el 35 %). La velocidad normal no cambia, así
+que sirve para cruzar la pantalla rápido y para colocar el cursor al píxel sin tocar el perfil.
+
+Es un control del mando, no una combinación de teclas: no envía nada mientras se mantiene, igual que la
+tecla MOD.
+
 ### Sensibilidad por perfil
 
 Cada perfil guarda su propia velocidad máxima, zona muerta, curva y velocidad de desplazamiento, así

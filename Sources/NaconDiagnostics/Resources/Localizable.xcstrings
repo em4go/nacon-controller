@@ -572,6 +572,16 @@
         }
       }
     },
+    "Precision key": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tecla de precisión"
+          }
+        }
+      }
+    },
     "Press a key…": {
       "localizations": {
         "es": {
@@ -948,6 +958,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Qué se puede leer"
+          }
+        }
+      }
+    },
+    "While you hold it, the cursor and the scroll move slower. The speed above is the normal one.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mientras la mantengas pulsada, el cursor y el desplazamiento van más despacio. La velocidad de arriba es la normal."
           }
         }
       }

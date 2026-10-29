@@ -149,6 +149,7 @@ public final class EmulationEngine {
         // the Guide branch because MOD+PS means "show the summary", even while stopped.
         let layerKey = profile.layer.key
         let layerHeld = layerKey.map { $0.isPressed(in: report) } ?? false
+        let precisionKey = profile.precision.key
 
         // S12: Guide toggles the emulation, so it is decided from the button itself and not from the
         // edge. One press means one toggle, whichever direction it went.
@@ -174,7 +175,9 @@ public final class EmulationEngine {
             effects.append(contentsOf: performance.release(control))
         }
         for control in transitions.pressed {
-            guard control != layerKey else { continue }
+            // A selector emits nothing: the MOD key chooses a reading and the precision key
+            // changes a speed. Neither of them is a keystroke.
+            guard control != layerKey, control != precisionKey else { continue }
             let action = profile.action(for: control, layerActive: layerActive)
             guard action != .none else { continue }
             effects.append(contentsOf: performance.press(control, action: action))
@@ -192,7 +195,20 @@ public final class EmulationEngine {
 
     func tick(seconds: Double) {
         guard enabled else { return }
-        emit(performance.advance(seconds: seconds, leftStick: leftStick, rightStick: rightStick))
+        emit(
+            performance.advance(
+                seconds: seconds,
+                leftStick: leftStick,
+                rightStick: rightStick,
+                precisionActive: isPrecisionHeld
+            )
+        )
+    }
+
+    /// Whether the control that slows the pointer is down in the latest report.
+    private var isPrecisionHeld: Bool {
+        guard let key = profile.precision.key, let report = previousReport else { return false }
+        return key.isPressed(in: report)
     }
 
     /// One place that turns effects into emitter calls.

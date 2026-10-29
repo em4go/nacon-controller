@@ -282,6 +282,30 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
     /// - Returns: whether the library changed. A control that may not select the layer (PS) is
     ///   refused without touching anything.
     @discardableResult
+    /// Sets the control that slows the pointer, or removes it with nil.
+    ///
+    /// It cannot be the control that opens the MOD layer: one control choosing a mapping and a speed at
+    /// the same time would make both harder to reason about, and refusing here keeps the profiles honest.
+    public mutating func setPrecisionKey(_ control: XInputControl?, for profileID: UUID) -> Bool {
+        guard let index = profiles.firstIndex(where: { $0.id == profileID }) else { return false }
+        if let control {
+            guard MappingRules.isPrecisionKeyEligible(control) else { return false }
+            guard control != profiles[index].profile.layer.key else { return false }
+        }
+        guard profiles[index].profile.precision.key != control else { return false }
+        profiles[index].profile.precision.key = control
+        return true
+    }
+
+    /// Changes the speed factor applied while the precision key is held.
+    public mutating func setPrecisionScale(_ scale: Double, for profileID: UUID) -> Bool {
+        guard let index = profiles.firstIndex(where: { $0.id == profileID }) else { return false }
+        let clamped = PrecisionSettings(key: nil, scale: scale).scale
+        guard profiles[index].profile.precision.scale != clamped else { return false }
+        profiles[index].profile.precision.scale = clamped
+        return true
+    }
+
     public mutating func setLayerKey(_ control: XInputControl?, for profileID: UUID) -> Bool {
         guard let index = profiles.firstIndex(where: { $0.id == profileID }) else { return false }
         if let control, !MappingRules.isLayerKeyEligible(control) {

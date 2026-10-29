@@ -17,8 +17,7 @@ struct SensitivitySection: View {
             SectionTitle(AppText.resolve("Cursor sensitivity"))
             Text(
                 AppText.format(
-                    "Settings for the “%@” profile. Each profile keeps its own, so one for design and "
-                    + "one for games can move differently.",
+                    "Settings for the “%@” profile. Each profile keeps its own, so one for design and one for games can move differently.",
                     profiles.selectedProfile?.name ?? "—"
                 )
             )
@@ -29,6 +28,8 @@ struct SensitivitySection: View {
                 slider(for: sensitivity)
             }
 
+            precisionRow
+
             Button(AppText.resolve("Reset")) {
                 profiles.resetCursorSensitivity()
             }
@@ -37,6 +38,53 @@ struct SensitivitySection: View {
             Text(
                 AppText.resolve(
                     "Applied when emulation starts: stop it to change the setting."
+                )
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+    }
+
+    /// The slow-speed control: which one, and how slow.
+    ///
+    /// It is a control and not a key combination because the pad already has enough ways to send keys;
+    /// what the cursor needs is one button held down, like the MOD key chooses a mapping.
+    private var precisionRow: some View {
+        let precision = profiles.selectedPrecision
+        return VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 10) {
+                Text(AppText.resolve("Precision key"))
+                Menu(precision.key.map { Localization.resolve(ControlFacts.of($0).label) } ?? AppText.resolve("None")) {
+                    Button(AppText.resolve("None")) {
+                        profiles.setPrecisionKey(nil as XInputControl?)
+                    }
+                    Divider()
+                    ForEach(MappingRules.remappableControls, id: \.self) { control in
+                        Button(Localization.resolve(ControlFacts.of(control).label)) {
+                            profiles.setPrecisionKey(control)
+                        }
+                    }
+                }
+                .menuStyle(.borderlessButton)
+                .controlSize(.small)
+                .fixedSize()
+                .disabled(emulation.isEnabled || profiles.selectedProfile == nil)
+                Spacer()
+                Text("\(Int((precision.scale * 100).rounded())) %")
+                    .monospacedDigit()
+                    .foregroundStyle(precision.isActive ? Color.primary : Color.secondary)
+            }
+            Slider(
+                value: Binding<Double>(
+                    get: { precision.scale },
+                    set: { profiles.setPrecisionScale($0) }
+                ),
+                in: PrecisionSettings.minimumScale...PrecisionSettings.maximumScale
+            )
+            .disabled(emulation.isEnabled || !precision.isActive)
+            Text(
+                AppText.resolve(
+                    "While you hold it, the cursor and the scroll move slower. The speed above is the normal one."
                 )
             )
             .font(.caption)

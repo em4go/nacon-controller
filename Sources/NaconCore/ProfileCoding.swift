@@ -161,6 +161,31 @@ extension CursorSettings: Codable {
     }
 }
 
+extension PrecisionSettings: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case key
+        case scale
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let stored = try container.decodeIfPresent(String.self, forKey: .key)
+        let control = stored.flatMap(XInputControl.init(profileKey:))
+        // The eligibility rule holds in the model: a file cannot make PS the slow key.
+        let key = control.flatMap { MappingRules.isPrecisionKeyEligible($0) ? $0 : nil }
+        self.init(
+            key: key,
+            scale: try container.decodeIfPresent(Double.self, forKey: .scale) ?? Self.standardScale
+        )
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(key.map { ControlFacts.of($0).profileKey }, forKey: .key)
+        try container.encode(scale, forKey: .scale)
+    }
+}
+
 extension KeyRepeatSettings: Codable {
     private enum CodingKeys: String, CodingKey {
         case initialDelay
@@ -207,11 +232,13 @@ extension InputProfile: Codable {
         case layer
         case cursor
         case keyRepeat
+        case precision
     }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let cursor = try container.decodeIfPresent(CursorSettings.self, forKey: .cursor) ?? .standard
+        let precision = try container.decodeIfPresent(PrecisionSettings.self, forKey: .precision) ?? .off
         let keyRepeat = try container.decodeIfPresent(KeyRepeatSettings.self, forKey: .keyRepeat) ?? .standard
         let layer = try container.decodeIfPresent(ProfileLayer.self, forKey: .layer) ?? .empty
 
@@ -224,7 +251,8 @@ extension InputProfile: Codable {
                 mappings: InputProfile.standard.mappings,
                 layer: layer,
                 cursor: cursor,
-                keyRepeat: keyRepeat
+                keyRepeat: keyRepeat,
+                precision: precision
             )
             return
         }
@@ -240,7 +268,13 @@ extension InputProfile: Codable {
             guard MappingRules.isRemappable(control) || action == .none else { continue }
             mappings[control] = action
         }
-        self.init(mappings: mappings, layer: layer, cursor: cursor, keyRepeat: keyRepeat)
+        self.init(
+            mappings: mappings,
+            layer: layer,
+            cursor: cursor,
+            keyRepeat: keyRepeat,
+            precision: precision
+        )
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -258,6 +292,11 @@ extension InputProfile: Codable {
         }
         try container.encode(cursor, forKey: .cursor)
         try container.encode(keyRepeat, forKey: .keyRepeat)
+        // Only written when it says something, like the layer: a profile without a precision key keeps
+        // the file it already had, byte for byte.
+        if precision.key != nil {
+            try container.encode(precision, forKey: .precision)
+        }
     }
 }
 

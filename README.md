@@ -88,6 +88,9 @@ Reglas de seguridad que el código garantiza:
 - Pulsar **PS** la activa si está parada y la detiene si está en marcha, sin usar el ratón.
 - Si el mando se **desconecta**, la emulación se detiene y suelta lo que tuviera retenido.
 
+El vocabulario del proyecto —mando, control, columna, capa MOD, destino de la captura— está en
+[GLOSSARY.md](GLOSSARY.md).
+
 ### Dos vistas del perfil
 
 El perfil activo se puede leer de dos maneras con el selector **Vista**, y la elección se recuerda
@@ -222,7 +225,8 @@ Cuatro reglas que conviene saber:
 
 Un perfil sin tecla MOD se comporta exactamente como antes, y los perfiles ya guardados se leen sin
 cambios: la capa empieza vacía. La captura de teclado escribe en la columna desde la que se armó, y
-solo en ella: cada columna tiene su botón «Capturar» y su menú, en la tabla y en el dibujo. Escape
+solo en ella. En la tabla cada columna tiene su botón «Capturar» y su menú; en el dibujo se arma con un
+clic en el control (columna Base) o desde **Asignar con MOD › Capturar tecla…** (columna MOD). Escape
 cancela la captura y deja el mapeo como estaba.
 
 ### Resumen de mapeos

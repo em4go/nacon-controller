@@ -19,8 +19,9 @@ pure function in `NaconCore` that the views only apply.
   profile is no longer selected is dropped, and dropping changes nothing.
 - **S5.** A step appended to a control with nothing assigned **replaces** instead of clearing it,
   and a step appended in the MOD column chains onto the MOD entry, never the base one.
-- **S6.** Behaviour of the table is unchanged: a capture armed in one column writes only that
-  column, and Escape still cancels without touching the previous mapping.
+- **S6.** A capture armed in one column writes only that column, and Escape still cancels without
+  touching the previous mapping. Two table details change on purpose: a menu pick «Capturar tecla…»
+  re-arms instead of cancelling, and a MOD capture lights the whole row, as a base capture already did.
 - **S7.** The drawing's MOD submenu offers the same destinations as the table's, capture and steps
   included. Repository contract, README: «Las dos vistas ofrecen la misma lista de destinos porque
   comparten una sola definición», and `docs/manual-acceptance.md` row 31.
@@ -32,12 +33,12 @@ pure function in `NaconCore` that the views only apply.
 | ID | Spec | Route | Commit |
 | --- | --- | --- | --- |
 | T1 | S2, S3, S5 | Core: `CaptureIntent` carried by `KeyCaptureSession`, `MappingWrite.resolve`, `ProfileLibrary.apply`, tests | `8e6d580` |
-| T2 | S2, S4, S6 | Views: delete the two flags, one write seam in `ProfileSection`, narrower row/menu interfaces | `8e6d580` |
+| T2 | S2, S4, S6 | Views: delete the two flags, one write seam in `ProfileSection`, narrower row interface | `8e6d580` |
 | T3 | S7, S8 | Drawing offers capture into the MOD column; README and manual acceptance | `9e6fc1a` |
 
 ## Delivery
 
-Slice boundary: T1 and T2 landed in one commit (`8e6d580`, ~900 authored lines with the new
+Slice boundary: T1 and T2 landed in one commit (`8e6d580`, 714 lines added and 192 removed with the new
 `MappingWrite.swift` and its tests) because they cannot compile apart. The library changes the shape
 of `KeyCaptureSession.Outcome` and deletes the two flags the views read, so a commit holding only the
 core would leave `NaconDiagnostics` unbuilt; the alternative, a transitional shim, is exactly the
@@ -53,9 +54,9 @@ layering this change removes. The tests travel with the behaviour they pin. T3 i
   append rule is total (`canAppendStep` guards it) so an append on an unassigned control replaces
   instead of clearing it — the two old branches disagreed on exactly that. Two verbs, not one: a
   button labelled «Cancelar» cancels whatever the mode, a menu entry only ever arms. Nothing in the
-  persisted format changed. Behaviour kept for the table; the drawing gained the entries it was
-  documented to share (S7).
+  persisted format changed. The table keeps its behaviour apart from the two details S6 names; the
+  drawing gained the entries it was documented to share (S7).
 - **L3.** Evidence: `swift test` → 314 tests, 0 failures, run by the parent after both commits;
-  `swift build --build-tests` clean; no `onArm`, `isCapturingBase` or `isCapturingMod` reference
-  remains; `ProfileLibraryController.setAction` / `setLayerAction` stay (unused by the views) for the
-  library edit seam of a later candidate.
+  `swift build --build-tests` clean; no `isAppendingStep`, `isLayerCapture` or `includesCapture`
+  reference remains; `ProfileLibraryController.setAction` / `setLayerAction` stay (unused by the views)
+  for the library edit seam of a later candidate.

@@ -84,8 +84,9 @@ _Avoid_: grabación, escucha
 
 **Destino de la captura**:
 La columna en la que escribe una captura y si reemplaza lo que había o añade un paso. Se decide al
-armarla, no al recibir la tecla.
-_Avoid_: intención, modo
+armarla, no al recibir la tecla. En el código: `CaptureIntent` (una `MappingColumn` y un `CaptureMode`),
+que viaja dentro de `KeyCaptureSession.Outcome`.
+_Avoid_: modo de captura, grabación de destino
 
 ### Vistas
 

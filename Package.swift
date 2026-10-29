@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "NaconController",
+    defaultLocalization: "en",  // Inglés es el idioma base; el español es una traducción.
     platforms: [.macOS(.v13)],
     products: [
         .executable(name: "NaconDiagnostics", targets: ["NaconDiagnostics"]),
@@ -13,7 +14,13 @@ let package = Package(
         .executable(name: "nacon-ps4probe", targets: ["NaconPS4Probe"]),
     ],
     targets: [
-        .target(name: "NaconCore", path: "Sources/NaconCore"),
+        // `defaultLocalization` is what makes a localized resource bundle exist at all: without it
+        // SwiftPM refuses to process a string catalog, and every lookup silently falls back to the key.
+        .target(
+            name: "NaconCore",
+            path: "Sources/NaconCore",
+            resources: [.process("Resources")]
+        ),
         .executableTarget(
             name: "NaconDiagnostics",
             dependencies: ["NaconCore"],

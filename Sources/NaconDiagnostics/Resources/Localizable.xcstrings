@@ -1,0 +1,17 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Mapping summary" : {
+      "comment" : "Título del panel que resume los mapeos, se abre con MOD + PS.",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resumen de mapeos"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

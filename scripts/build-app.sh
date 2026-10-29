@@ -15,20 +15,25 @@ cp "$BIN_DIR/NaconDiagnostics" "$APP_DIR/Contents/MacOS/NaconDiagnostics"
 
 # SwiftPM writes the processed resources of a target as `<paquete>_<target>.bundle` next to the
 # executable, and `Bundle.module` looks for exactly that name. This package is `NaconController`, so
-# the bundle is `NaconController_NaconDiagnostics.bundle`; the glob keeps the script working if the
-# package or the target is renamed. The copy happens before signing so the seal covers the bundle.
-RESOURCE_BUNDLES=("$BIN_DIR"/*_NaconDiagnostics.bundle)
-if [ "${#RESOURCE_BUNDLES[@]}" -ne 1 ] || [ ! -d "${RESOURCE_BUNDLES[0]}" ]; then
-    echo "error: no se encontró el bundle de recursos (*_NaconDiagnostics.bundle) en $BIN_DIR." >&2
-    echo "       Sin él la app se genera sin el dibujo del mando, así que se aborta." >&2
-    exit 1
-fi
-RESOURCE_BUNDLE="${RESOURCE_BUNDLES[0]}"
+# the bundles are `NaconController_NaconDiagnostics.bundle` (the drawing) and
+# `NaconController_NaconCore.bundle` (the string catalog); the glob keeps the script working if the
+# package or a target is renamed. Every target that ships resources needs its bundle here, or
+# `Bundle.module` finds nothing at run time and the lookup silently falls back to the key. The copy
+# happens before signing so the seal covers the bundles.
 mkdir -p "$RESOURCES_DIR"
-# `rm -rf "$APP_DIR"` above already drops a previous copy; removing the destination explicitly keeps
-# a second run from nesting a bundle inside a bundle even if that cleanup changes.
-rm -rf "${RESOURCES_DIR:?}/$(basename "$RESOURCE_BUNDLE")"
-cp -R "$RESOURCE_BUNDLE" "$RESOURCES_DIR/"
+for TARGET in NaconDiagnostics NaconCore; do
+    RESOURCE_BUNDLES=("$BIN_DIR"/*_"$TARGET".bundle)
+    if [ "${#RESOURCE_BUNDLES[@]}" -ne 1 ] || [ ! -d "${RESOURCE_BUNDLES[0]}" ]; then
+        echo "error: no se encontró el bundle de recursos (*_$TARGET.bundle) en $BIN_DIR." >&2
+        echo "       Sin él la app arranca sin sus recursos (dibujo o catálogo de texto), así que se aborta." >&2
+        exit 1
+    fi
+    RESOURCE_BUNDLE="${RESOURCE_BUNDLES[0]}"
+    # `rm -rf "$APP_DIR"` above already drops a previous copy; removing the destination explicitly
+    # keeps a second run from nesting a bundle inside a bundle even if that cleanup changes.
+    rm -rf "${RESOURCES_DIR:?}/$(basename "$RESOURCE_BUNDLE")"
+    cp -R "$RESOURCE_BUNDLE" "$RESOURCES_DIR/"
+done
 
 cat > "$APP_DIR/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>

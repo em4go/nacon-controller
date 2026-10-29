@@ -31,7 +31,13 @@ final class ControlFactsTests: XCTestCase {
         .rightThumb: "rightThumb",
     ]
 
-    /// The names the editor prints. Spanish, like the rest of the user-facing copy.
+    /// The English base, which is the catalog key. Four controls name a shape, so they differ.
+    private let englishLabels: [XInputControl: String] = [
+        .dpadUp: "D-pad ↑", .dpadDown: "D-pad ↓", .dpadLeft: "D-pad ←", .dpadRight: "D-pad →",
+        .buttonA: "✕ Cross", .buttonB: "○ Circle", .buttonX: "□ Square", .buttonY: "△ Triangle",
+    ]
+
+    /// The Spanish translation the editor prints today.
     private let labels: [XInputControl: String] = [
         .dpadUp: "Cruceta ↑",
         .dpadDown: "Cruceta ↓",
@@ -81,7 +87,7 @@ final class ControlFactsTests: XCTestCase {
             let facts = ControlFacts.of(control)
 
             XCTAssertFalse(facts.profileKey.isEmpty, "\(control) has no stored key")
-            XCTAssertFalse(facts.label.isEmpty, "\(control) has no label")
+            XCTAssertFalse(Localization.resolve(facts.label).isEmpty, "\(control) has no label")
             XCTAssertGreaterThan(facts.hitRadius, 0, "\(control) has no pointer radius")
         }
     }
@@ -114,12 +120,20 @@ final class ControlFactsTests: XCTestCase {
 
     // MARK: - Labels
 
-    func testLabelsMatchTheEditorCopy() {
+    func testLabelsFollowTheLanguage() {
+        let english = Locale(identifier: "en")
+        let spanish = Locale(identifier: "es")
         for control in XInputControl.allCases {
+            let label = ControlFacts.of(control).label
             XCTAssertEqual(
-                ControlFacts.of(control).label,
+                Localization.resolve(label, locale: english),
+                englishLabels[control] ?? labels[control],
+                "\(control) reads differently in English"
+            )
+            XCTAssertEqual(
+                Localization.resolve(label, locale: spanish),
                 labels[control],
-                "\(control) reads differently in the editor"
+                "\(control) reads differently in Spanish"
             )
         }
     }

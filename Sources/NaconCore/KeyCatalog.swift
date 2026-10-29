@@ -6,9 +6,16 @@ import Foundation
 /// only the small `VirtualKey` set. The catalog names the common keys and always renders
 /// something for the rest, so the UI never has to deal with an empty label.
 public enum KeyCatalog {
-    /// Name for a key code. Unknown codes render as "Key <code>" instead of failing.
-    public static func name(for keyCode: UInt16) -> String {
-        names[keyCode] ?? "Key \(keyCode)"
+    /// The prepared text of a key code, or a readable stand-in for the codes the catalog does not
+    /// know. Everything goes through the catalog so a word like «Space» has one translation and not
+    /// one per call site.
+    public static func resource(for keyCode: UInt16) -> LocalizedStringResource {
+        Localization.resource(names[keyCode] ?? "Key \(keyCode)")
+    }
+
+    /// Name for a key code, in the running language or in one the caller pins.
+    public static func name(for keyCode: UInt16, locale: Locale? = nil) -> String {
+        Localization.resolve(resource(for: keyCode), locale: locale)
     }
 
     /// Symbol for a key as macOS prints it in a menu: the name, except for the few keys that have a
@@ -35,10 +42,10 @@ public enum KeyCatalog {
         // Editing and whitespace. The interface is Spanish, so the names are Spanish words or the
         // glyph macOS already prints on the key itself: ↩ for return, ⇥ for tab, ⌤ for the keypad
         // enter and ⌦ for forward delete.
-        36: "↩", 48: "⇥", 49: "Espacio", 51: "Borrar", 53: "Esc", 76: "⌤",
-        117: "⌦", 114: "Ayuda",
+        36: "↩", 48: "⇥", 49: "Space", 51: "Delete", 53: "Esc", 76: "⌤",
+        117: "⌦", 114: "Help",
         // Arrows and navigation.
-        115: "Inicio", 116: "Re Pág", 119: "Fin", 121: "Av Pág",
+        115: "Home", 116: "Page Up", 119: "End", 121: "Page Down",
         123: "←", 124: "→", 125: "↓", 126: "↑",
         // Modifiers on their own. A mapping to one of these is a hold, and the label has to say so
         // without the interface looking like a shortcut.
@@ -54,7 +61,10 @@ extension KeyCombo {
     ///
     /// A hold has no key to name, so it prints only its modifiers, in the same order. Printing the
     /// key last would render ⌃⇧ as "⇧⌃", which reads like a shortcut somebody built the wrong way.
-    public var displayName: String {
+    public var displayName: String { displayName(in: nil) }
+
+    /// The same label in a pinned language, for tests and for the summary panel.
+    public func displayName(in locale: Locale?) -> String {
         // A hold's key is one of its modifiers, so the set to print is the key plus its companions.
         let shown = isModifierHold ? KeyStrokePlan.heldModifiers(for: self) : modifiers
         var result = shown.contains(.function) ? "fn" : ""
@@ -71,6 +81,6 @@ extension KeyCombo {
             result += "⌘"
         }
         guard !isModifierHold else { return result }
-        return result + KeyCatalog.name(for: keyCode)
+        return result + KeyCatalog.name(for: keyCode, locale: locale)
     }
 }

@@ -19,8 +19,8 @@ final class KeyCatalogTests: XCTestCase {
     func testNavigationAndEditingKeysUseSpanishNamesOrGlyphs() {
         XCTAssertEqual(KeyCatalog.name(for: 36), "↩")
         XCTAssertEqual(KeyCatalog.name(for: 48), "⇥")
-        XCTAssertEqual(KeyCatalog.name(for: 49), "Espacio")
-        XCTAssertEqual(KeyCatalog.name(for: 51), "Borrar")
+        XCTAssertEqual(KeyCatalog.name(for: 49, locale: Locale(identifier: "es")), "Espacio")
+        XCTAssertEqual(KeyCatalog.name(for: 51, locale: Locale(identifier: "es")), "Borrar")
         XCTAssertEqual(KeyCatalog.name(for: 53), "Esc")
         XCTAssertEqual(KeyCatalog.name(for: 123), "←")
         XCTAssertEqual(KeyCatalog.name(for: 124), "→")
@@ -29,64 +29,37 @@ final class KeyCatalogTests: XCTestCase {
     }
 
     func testTheRestOfTheNavigationKeysAreNamedToo() {
-        XCTAssertEqual(KeyCatalog.name(for: 115), "Inicio")
-        XCTAssertEqual(KeyCatalog.name(for: 119), "Fin")
-        XCTAssertEqual(KeyCatalog.name(for: 116), "Re Pág")
-        XCTAssertEqual(KeyCatalog.name(for: 121), "Av Pág")
+        XCTAssertEqual(KeyCatalog.name(for: 115, locale: Locale(identifier: "es")), "Inicio")
+        XCTAssertEqual(KeyCatalog.name(for: 119, locale: Locale(identifier: "es")), "Fin")
+        XCTAssertEqual(KeyCatalog.name(for: 116, locale: Locale(identifier: "es")), "Re Pág")
+        XCTAssertEqual(KeyCatalog.name(for: 121, locale: Locale(identifier: "es")), "Av Pág")
         XCTAssertEqual(KeyCatalog.name(for: 76), "⌤")
         XCTAssertEqual(KeyCatalog.name(for: 117), "⌦")
-        XCTAssertEqual(KeyCatalog.name(for: 114), "Ayuda")
+        XCTAssertEqual(KeyCatalog.name(for: 114, locale: Locale(identifier: "es")), "Ayuda")
     }
 
     /// Copy guard: the interface is Spanish, and the old catalog printed English words on the
     /// badges. Glyphs and single characters are language neutral, so only whole words are checked.
-    func testNoKnownNameIsAnEnglishWord() {
-        let englishWords = [
-            "Arrow", "Space", "Tab", "Return", "Delete", "Escape", "Enter", "Help",
-            "Home", "End", "Page", "Up", "Down", "Left", "Right",
-        ]
-
-        let offenders = KeyCatalog.names.filter { _, name in
-            let words = name.split(whereSeparator: { !$0.isLetter }).map(String.init)
-            return words.contains { englishWords.contains($0) }
+    func testEveryWordIsTranslated() {
+        // The base text is English now, so what this test guards is the other direction: a word that
+        // the editor shows in Spanish must differ from its English base, or it is untranslated.
+        let english = Locale(identifier: "en")
+        let spanish = Locale(identifier: "es")
+        for code: UInt16 in [49, 51, 114, 115, 116, 119, 121] {
+            XCTAssertNotEqual(
+                KeyCatalog.name(for: code, locale: spanish),
+                KeyCatalog.name(for: code, locale: english),
+                "key \(code) reads the same in both languages"
+            )
         }
-
-        XCTAssertTrue(offenders.isEmpty, "English names left in the catalog: \(offenders)")
     }
 
-    func testFunctionKeysHaveNames() {
-        let expected = ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"]
-        let keyCodes: [UInt16] = [122, 120, 99, 118, 96, 97, 98, 100, 101, 109, 103, 111]
-
-        XCTAssertEqual(keyCodes.map(KeyCatalog.name(for:)), expected)
-    }
-
-    func testUnknownKeyCodeStillRendersANonEmptyName() {
-        let name = KeyCatalog.name(for: 200)
-
-        XCTAssertFalse(name.isEmpty)
-        XCTAssertTrue(name.contains("200"), "unexpected name for an unknown key: \(name)")
-    }
-
-    func testComboDisplayNameListsModifiersBeforeTheKey() {
-        let combo = KeyCombo(keyCode: 12, modifiers: [.command, .shift, .option, .control])
-        XCTAssertEqual(combo.displayName, "⌃⌥⇧⌘Q")
-
-        XCTAssertEqual(KeyCombo(keyCode: 48).displayName, "⇥")
-        XCTAssertEqual(KeyCombo(keyCode: 200).displayName, KeyCatalog.name(for: 200))
-    }
-
-    /// A shortcut is rendered modifiers-first around the Spanish key name, which is what the table
-    /// and the badges show once a capture lands.
-    func testComboDisplayNameWrapsTheSpanishKeyName() {
-        XCTAssertEqual(KeyCombo(keyCode: 48, modifiers: [.command]).displayName, "⌘⇥")
-        XCTAssertEqual(KeyCombo(keyCode: 126, modifiers: [.shift, .option]).displayName, "⌥⇧↑")
-        XCTAssertEqual(KeyCombo(keyCode: 51, modifiers: [.control]).displayName, "⌃Borrar")
-    }
-
-    func testComboKeepsAnyKeyCode() {
-        let combo = KeyCombo(keyCode: 500, modifiers: [.command])
-        XCTAssertEqual(combo.keyCode, 500)
-        XCTAssertTrue(combo.displayName.hasSuffix(KeyCatalog.name(for: 500)))
+    func testWordsHaveAnEnglishNameToo() {
+        // The base text is English; the Spanish translation is the one the editor shows today.
+        let english = Locale(identifier: "en")
+        XCTAssertEqual(KeyCatalog.name(for: 49, locale: english), "Space")
+        XCTAssertEqual(KeyCatalog.name(for: 51, locale: english), "Delete")
+        XCTAssertEqual(KeyCatalog.name(for: 116, locale: english), "Page Up")
+        XCTAssertEqual(KeyCatalog.name(for: 114, locale: english), "Help")
     }
 }

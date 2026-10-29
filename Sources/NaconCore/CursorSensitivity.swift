@@ -64,18 +64,26 @@ public enum CursorSensitivity: String, CaseIterable, Equatable, Sendable {
     }
 
     /// The value as the slider must show it. A bare number would not say what it measures.
-    public func formatted(_ raw: Double) -> String {
+    public func formatted(_ raw: Double, locale: Locale? = nil) -> String {
         let value = clamp(raw)
         switch self {
         case .maxSpeed:
-            return "\(value.formatted(.number.precision(.fractionLength(0)))) pt/s"
+            return unit(value.formatted(.number.precision(.fractionLength(0))), pattern: "%@ pt/s", locale: locale)
         case .deadzone:
             return value.formatted(.number.precision(.fractionLength(2)))
         case .scrollSpeed:
-            return "\(value.formatted(.number.precision(.fractionLength(0)))) líneas/s"
+            return unit(value.formatted(.number.precision(.fractionLength(0))), pattern: "%@ lines/s", locale: locale)
         case .curve:
             return "\(value.formatted(.number.precision(.fractionLength(1))))×"
         }
+    }
+
+    /// Fills a localized pattern with an already formatted number. The unit is translated; the number
+    /// is formatted by the same language, so the two cannot disagree.
+    private func unit(_ number: String, pattern: String, locale: Locale?) -> String {
+        var resource = Localization.resource(pattern)
+        if let locale { resource.locale = locale }
+        return String(format: String(localized: resource), number)
     }
 
     /// The nearest value inside `range`. A non-finite number becomes the lower bound.

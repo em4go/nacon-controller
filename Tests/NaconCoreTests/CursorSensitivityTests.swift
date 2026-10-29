@@ -89,7 +89,7 @@ final class CursorSensitivityTests: XCTestCase {
         // The formatter is what the slider shows next to the thumb; a bare number would not say
         // whether 1400 means points per second or something else.
         XCTAssertTrue(CursorSensitivity.maxSpeed.formatted(1_400).contains("pt/s"))
-        XCTAssertTrue(CursorSensitivity.scrollSpeed.formatted(14).contains("líneas/s"))
+        XCTAssertTrue(CursorSensitivity.scrollSpeed.formatted(14, locale: Locale(identifier: "es")).contains("líneas/s"))
         XCTAssertTrue(CursorSensitivity.curve.formatted(2).contains("×"))
         XCTAssertTrue(CursorSensitivity.deadzone.formatted(0.18).contains("18"))
     }

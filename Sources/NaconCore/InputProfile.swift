@@ -77,29 +77,39 @@ public enum MappedAction: Hashable, Sendable {
     ///
     /// Keys defer to `KeyCombo.displayName`, which already covers every key code including the ones
     /// the catalog does not know.
-    public var displayName: String {
+    /// This is a composed label, not a translatable unit: a key combination is glyphs plus the words
+    /// the key catalog already translated, so the only translatable pieces here are the words of the
+    /// cases themselves, and they come from the catalog. The plural travels with the count through
+    /// `String.LocalizationValue`, so the catalog decides one line from several and a language can
+    /// have more than two forms.
+    public var displayName: String { displayName(in: nil) }
+
+    /// The same label in a pinned language.
+    public func displayName(in locale: Locale?) -> String {
         switch self {
         case .none:
-            return "Sin asignar"
+            return Localization.resolve("Unassigned", locale: locale)
         case .key(let combo):
-            return combo.displayName
+            return combo.displayName(in: locale)
         case .mouseButton(.left):
-            return "Clic izquierdo"
+            return Localization.resolve("Left click", locale: locale)
         case .mouseButton(.right):
-            return "Clic derecho"
+            return Localization.resolve("Right click", locale: locale)
         case .mouseButton(.middle):
-            return "Clic central"
+            return Localization.resolve("Middle click", locale: locale)
         case .scrollLines(0):
-            return "Sin desplazamiento"
+            return Localization.resolve("No scrolling", locale: locale)
         case .sequence(let steps):
-            return steps.map(\.displayName).joined(separator: " luego ")
+            return steps.map { $0.displayName(in: locale) }
+                .joined(separator: " " + Localization.resolve("then", locale: locale) + " ")
         case .scrollLines(let lines):
             // `magnitude`, not `abs`: a hand-edited profile can carry `Int.min`, where `abs` traps.
             let amount = lines.magnitude
-            let unit = amount == 1 ? "línea" : "líneas"
-            return lines > 0
-                ? "Desplazar arriba \(amount) \(unit)"
-                : "Desplazar abajo \(amount) \(unit)"
+            var resource = lines > 0
+                ? LocalizedStringResource("Scroll up \(amount) lines", bundle: .module)
+                : LocalizedStringResource("Scroll down \(amount) lines", bundle: .module)
+            if let locale { resource.locale = locale }
+            return String(localized: resource)
         }
     }
 }

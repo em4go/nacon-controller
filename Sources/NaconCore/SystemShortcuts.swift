@@ -19,24 +19,33 @@ public struct SystemShortcut: Identifiable, Hashable, Sendable {
         case apps
         case system
 
-        /// Spanish heading.
-        public var title: String {
+        /// Heading, resolved from this module's catalog.
+        public var title: LocalizedStringResource {
             switch self {
-            case .editing: return "Editar y documentos"
-            case .windows: return "Ventanas y escritorios"
-            case .apps: return "Aplicaciones"
-            case .system: return "Sistema"
+            case .editing: return Localization.resource("Editing and documents")
+            case .windows: return Localization.resource("Windows and desktops")
+            case .apps: return Localization.resource("Applications")
+            case .system: return Localization.resource("System")
             }
         }
     }
 
     /// Stable slug, used as the menu identity.
     public let id: String
-    /// Spanish name shown in the menu.
-    public let name: String
+    /// The catalog key of the name, which is its English base text.
+    ///
+    /// The key is what makes two shortcuts equal and what identifies the entry; the translated name is
+    /// derived from it. Keeping the text out of the stored value is also what keeps this type
+    /// `Hashable`, which `LocalizedStringResource` is not.
+    public let nameKey: String
     public let category: Category
     /// The keys the system will receive.
     public let combo: KeyCombo
+
+    /// Name shown in the menu, resolved from this module's catalog when it is needed.
+    public var name: LocalizedStringResource {
+        Localization.resource(nameKey)
+    }
 
     /// What the editor must write. An ordinary `.key` mapping, the same a captured press produces.
     public var action: MappedAction {
@@ -45,7 +54,7 @@ public struct SystemShortcut: Identifiable, Hashable, Sendable {
 
     private init(_ id: String, _ name: String, _ category: Category, _ keyCode: UInt16, _ modifiers: ModifierSet) {
         self.id = id
-        self.name = name
+        self.nameKey = name
         self.category = category
         self.combo = KeyCombo(keyCode: keyCode, modifiers: modifiers)
     }
@@ -57,39 +66,39 @@ public struct SystemShortcut: Identifiable, Hashable, Sendable {
     public static let all: [SystemShortcut] = [
         // Editing and documents. These are conventions rather than system-wide shortcuts: every macOS
         // application that edits text answers to them, which is why they save memorising a combination.
-        SystemShortcut("copy", "Copiar", .editing, 8, [.command]),
-        SystemShortcut("paste", "Pegar", .editing, 9, [.command]),
-        SystemShortcut("paste-plain", "Pegar sin formato", .editing, 9, [.shift, .option, .command]),
-        SystemShortcut("cut", "Cortar", .editing, 7, [.command]),
-        SystemShortcut("undo", "Deshacer", .editing, 6, [.command]),
-        SystemShortcut("redo", "Rehacer", .editing, 6, [.shift, .command]),
-        SystemShortcut("select-all", "Seleccionar todo", .editing, 0, [.command]),
-        SystemShortcut("save", "Guardar", .editing, 1, [.command]),
-        SystemShortcut("find", "Buscar en el documento", .editing, 3, [.command]),
-        SystemShortcut("print", "Imprimir", .editing, 35, [.command]),
-        SystemShortcut("new-tab", "Nueva pestaña", .editing, 17, [.command]),
-        SystemShortcut("delete-word", "Borrar la palabra anterior", .editing, 51, [.option]),
-        SystemShortcut("line-start", "Ir al principio de la línea", .editing, 123, [.command]),
-        SystemShortcut("line-end", "Ir al final de la línea", .editing, 124, [.command]),
+        SystemShortcut("copy", "Copy", .editing, 8, [.command]),
+        SystemShortcut("paste", "Paste", .editing, 9, [.command]),
+        SystemShortcut("paste-plain", "Paste and Match Style", .editing, 9, [.shift, .option, .command]),
+        SystemShortcut("cut", "Cut", .editing, 7, [.command]),
+        SystemShortcut("undo", "Undo", .editing, 6, [.command]),
+        SystemShortcut("redo", "Redo", .editing, 6, [.shift, .command]),
+        SystemShortcut("select-all", "Select All", .editing, 0, [.command]),
+        SystemShortcut("save", "Save", .editing, 1, [.command]),
+        SystemShortcut("find", "Find in Document", .editing, 3, [.command]),
+        SystemShortcut("print", "Print", .editing, 35, [.command]),
+        SystemShortcut("new-tab", "New Tab", .editing, 17, [.command]),
+        SystemShortcut("delete-word", "Delete Previous Word", .editing, 51, [.option]),
+        SystemShortcut("line-start", "Move to Beginning of Line", .editing, 123, [.command]),
+        SystemShortcut("line-end", "Move to End of Line", .editing, 124, [.command]),
 
         // Windows and desktops.
         SystemShortcut("mission-control", "Mission Control", .windows, 126, [.control]),
-        SystemShortcut("app-windows", "Mostrar las ventanas de la app", .windows, 125, [.control]),
-        SystemShortcut("space-left", "Escritorio a la izquierda", .windows, 123, [.control]),
-        SystemShortcut("space-right", "Escritorio a la derecha", .windows, 124, [.control]),
-        SystemShortcut("close-window", "Cerrar la ventana", .windows, 13, [.command]),
+        SystemShortcut("app-windows", "Show App Windows", .windows, 125, [.control]),
+        SystemShortcut("space-left", "Desktop Left", .windows, 123, [.control]),
+        SystemShortcut("space-right", "Desktop Right", .windows, 124, [.control]),
+        SystemShortcut("close-window", "Close Window", .windows, 13, [.command]),
 
         // Applications.
-        SystemShortcut("switch-app", "Cambiar de aplicación", .apps, 48, [.command]),
-        SystemShortcut("next-window", "Ventana siguiente de la misma app", .apps, 50, [.command]),
-        SystemShortcut("quit-app", "Cerrar la aplicación", .apps, 12, [.command]),
-        SystemShortcut("force-quit", "Forzar la salida de la aplicación", .apps, 53, [.option, .command]),
+        SystemShortcut("switch-app", "Switch Application", .apps, 48, [.command]),
+        SystemShortcut("next-window", "Next Window of the Same App", .apps, 50, [.command]),
+        SystemShortcut("quit-app", "Quit App", .apps, 12, [.command]),
+        SystemShortcut("force-quit", "Force Quit", .apps, 53, [.option, .command]),
 
         // System.
-        SystemShortcut("spotlight", "Buscar (Spotlight)", .system, 49, [.command]),
-        SystemShortcut("screenshot-screen", "Capturar la pantalla completa", .system, 20, [.command, .shift]),
-        SystemShortcut("screenshot-area", "Capturar una zona", .system, 21, [.command, .shift]),
-        SystemShortcut("screenshot-options", "Opciones de captura y grabación", .system, 23, [.command, .shift]),
+        SystemShortcut("spotlight", "Search (Spotlight)", .system, 49, [.command]),
+        SystemShortcut("screenshot-screen", "Capture the Full Screen", .system, 20, [.command, .shift]),
+        SystemShortcut("screenshot-area", "Capture an Area", .system, 21, [.command, .shift]),
+        SystemShortcut("screenshot-options", "Capture and Recording Options", .system, 23, [.command, .shift]),
     ]
 
     /// The shortcuts of one category, in catalog order.

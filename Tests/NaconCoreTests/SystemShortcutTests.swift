@@ -25,7 +25,7 @@ final class SystemShortcutTests: XCTestCase {
 
     func testEveryShortcutHasASpanishNameAndAModifier() {
         for shortcut in SystemShortcut.all {
-            XCTAssertFalse(shortcut.name.isEmpty, shortcut.id)
+            XCTAssertFalse(shortcut.nameKey.isEmpty, shortcut.id)
             // A combination without a modifier would fire on its own while the user types, so every
             // entry in the catalog must be a real shortcut, not a bare key.
             XCTAssertFalse(shortcut.combo.modifiers.isEmpty, "\(shortcut.id) has no modifier")
@@ -43,8 +43,8 @@ final class SystemShortcutTests: XCTestCase {
         for category in SystemShortcut.Category.allCases {
             let shortcuts = SystemShortcut.inCategory(category)
 
-            XCTAssertFalse(shortcuts.isEmpty, category.title)
-            XCTAssertTrue(shortcuts.allSatisfy { $0.category == category }, category.title)
+            XCTAssertFalse(shortcuts.isEmpty, category.rawValue)
+            XCTAssertTrue(shortcuts.allSatisfy { $0.category == category }, category.rawValue)
         }
     }
 
@@ -87,8 +87,11 @@ final class SystemShortcutTests: XCTestCase {
         XCTAssertEqual(byID["cut"]?.combo.glyph, "⌘X")
         XCTAssertEqual(byID["select-all"]?.combo.glyph, "⌘A")
         XCTAssertEqual(byID["paste-plain"]?.combo.glyph, "⌥⇧⌘V")
-        XCTAssertEqual(byID["copy"]?.name, "Copiar")
-        XCTAssertEqual(byID["paste"]?.name, "Pegar")
+        // The stored value is the English key; the name is resolved in whichever language is asked.
+        let spanish = Locale(identifier: "es")
+        XCTAssertEqual(byID["copy"]?.nameKey, "Copy")
+        XCTAssertEqual(Localization.resolve(byID["copy"]!.name, locale: spanish), "Copiar")
+        XCTAssertEqual(Localization.resolve(byID["paste"]!.name, locale: spanish), "Pegar")
     }
 
     func testEveryCatalogEntryWritesWhatACaptureWouldWrite() {

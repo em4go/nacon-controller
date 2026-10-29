@@ -257,7 +257,7 @@ struct PadGraphView: View {
         let control = describedControl
         let isWaiting = control.map { capture.isCapturing($0) } ?? false
         return HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Text(control.map { ControlFacts.of($0).label } ?? "Sin seleccionar")
+            Text(control.map { Localization.resolve(ControlFacts.of($0).label) } ?? "Sin seleccionar")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
@@ -323,7 +323,7 @@ struct PadGraphView: View {
         .overlay(
             RoundedRectangle(cornerRadius: 8).strokeBorder(Color.secondary.opacity(0.25), lineWidth: 1)
         )
-        .help(control.map { "\(ControlFacts.of($0).label): \(assignment(for: $0))" } ?? "")
+        .help(control.map { "\(Localization.resolve(ControlFacts.of($0).label)): \(assignment(for: $0))" } ?? "")
     }
 
     /// Writes one assignment into one column and returns the drawing to its normal state.
@@ -374,7 +374,7 @@ struct PadGraphView: View {
                 .foregroundStyle(Color.accentColor)
                 .help(
                     "Se asignará la próxima pulsación a "
-                        + ControlFacts.of(armed).label + "."
+                        + Localization.resolve(ControlFacts.of(armed).label) + "."
                 )
         } else {
             Text(

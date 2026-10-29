@@ -18,7 +18,7 @@ final class EmulationController: ObservableObject {
     /// What the summary shows. A separate source because it wants the profile's display name too,
     /// which the engine does not carry.
     private var summarySource: @MainActor () -> MappingSummaryWindow.Content = {
-        MappingSummaryWindow.Content(title: "Perfil estándar", profile: .standard)
+        MappingSummaryWindow.Content(title: AppText.resolve("Standard profile"), profile: .standard)
     }
     private let summary = MappingSummaryWindow()
     private var cancellables: Set<AnyCancellable> = []
@@ -77,7 +77,7 @@ final class EmulationController: ObservableObject {
         profileSource = { profiles.runtimeProfile }
         summarySource = {
             MappingSummaryWindow.Content(
-                title: profiles.selectedProfile?.name ?? "Perfil estándar",
+                title: profiles.selectedProfile?.name ?? AppText.resolve("Standard profile"),
                 profile: profiles.runtimeProfile
             )
         }

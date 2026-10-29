@@ -137,9 +137,11 @@ final class ProfileLibraryController: ObservableObject {
             try store.save(library)
             saveFailure = nil
         } catch {
-            saveFailure = "No se pudieron guardar los perfiles en \(store.fileURL.path). "
-                + "Los cambios siguen en pantalla, pero se perderán al cerrar la app: "
-                + error.localizedDescription
+            saveFailure = AppText.format(
+                "The profiles could not be saved to %@. The changes are still on screen, but they will be lost when the app closes: %@",
+                store.fileURL.path,
+                error.localizedDescription
+            )
         }
     }
 }

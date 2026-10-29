@@ -31,12 +31,42 @@
         }
       }
     },
+    "Access error": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error de acceso"
+          }
+        }
+      }
+    },
+    "All buttons, sticks and triggers through the XInput protocol.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos los botones, sticks y gatillos mediante el protocolo XInput."
+          }
+        }
+      }
+    },
     "Applications": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Aplicaciones"
+          }
+        }
+      }
+    },
+    "Bootloader": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bootloader"
           }
         }
       }
@@ -81,12 +111,52 @@
         }
       }
     },
+    "Configuring the device": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurando dispositivo"
+          }
+        }
+      }
+    },
+    "Connected": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectado"
+          }
+        }
+      }
+    },
+    "Controller disconnected": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mando desconectado"
+          }
+        }
+      }
+    },
     "Copy": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Copiar"
+          }
+        }
+      }
+    },
+    "Could not read from the endpoint: %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo leer del endpoint: %@"
           }
         }
       }
@@ -231,6 +301,16 @@
         }
       }
     },
+    "Firmware update mode: it sends no input.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modo de actualización de firmware: no envía entradas."
+          }
+        }
+      }
+    },
     "Force Quit": {
       "localizations": {
         "es": {
@@ -361,6 +441,16 @@
         }
       }
     },
+    "NACON device": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dispositivo NACON"
+          }
+        }
+      }
+    },
     "New Tab": {
       "localizations": {
         "es": {
@@ -407,6 +497,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "PS"
+          }
+        }
+      }
+    },
+    "PS4 / HID": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PS4 / HID"
+          }
+        }
+      }
+    },
+    "PS4 HID mode: this application does not read it.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modo HID de PS4: no lo lee esta aplicación."
           }
         }
       }
@@ -651,6 +761,16 @@
         }
       }
     },
+    "Searching for a controller": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscando mando"
+          }
+        }
+      }
+    },
     "Select All": {
       "localizations": {
         "es": {
@@ -721,6 +841,36 @@
         }
       }
     },
+    "The controller stopped sending data": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El mando dejó de enviar datos"
+          }
+        }
+      }
+    },
+    "The device did not expose interface 0 after being configured.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El dispositivo no expuso la interfaz 0 tras configurarlo."
+          }
+        }
+      }
+    },
+    "USB read interrupted (%@)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lectura USB interrumpida (%@)"
+          }
+        }
+      }
+    },
     "Unassigned": {
       "localizations": {
         "es": {
@@ -741,12 +891,32 @@
         }
       }
     },
+    "Unknown": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desconocido"
+          }
+        }
+      }
+    },
     "Windows and desktops": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Ventanas y escritorios"
+          }
+        }
+      }
+    },
+    "XInput": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "XInput"
           }
         }
       }

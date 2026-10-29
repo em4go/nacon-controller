@@ -30,6 +30,14 @@ public enum Localization {
         resolve(resource(key), locale: locale)
     }
 
+    /// Fills a translated pattern with already prepared text.
+    ///
+    /// A sentence that names something is one key with holes: two concatenated fragments cannot be
+    /// reordered by a translator.
+    public static func format(_ key: String, _ arguments: String...) -> String {
+        String(format: resolve(key), arguments: arguments)
+    }
+
     /// Spanish and English are the languages this project promises; anything else is a fallback to the
     /// base, which the interface is expected to survive.
     public static func locale(for language: String) -> Locale {

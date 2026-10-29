@@ -762,6 +762,16 @@
         }
       }
     },
+    "Standard profile": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perfil estándar"
+          }
+        }
+      }
+    },
     "Sticks and triggers": {
       "localizations": {
         "es": {
@@ -848,6 +858,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Se asignará la próxima pulsación a %@."
+          }
+        }
+      }
+    },
+    "The profiles could not be saved to %@. The changes are still on screen, but they will be lost when the app closes: %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudieron guardar los perfiles en %@. Los cambios siguen en pantalla, pero se perderán al cerrar la app: %@"
           }
         }
       }

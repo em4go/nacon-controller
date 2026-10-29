@@ -19,17 +19,27 @@ public enum NaconDeviceMode: String, Sendable {
     case xinput = "XInput"
     case ps4HID = "PS4 / HID"
     case bootloader = "Bootloader"
-    case unknown = "Desconocido"
+    case unknown = "unknown"
 
     /// Controls that this project can actually read in the given mode.
+    /// Name of the mode as the window prints it. The raw value is an identifier, not a label.
+    public var displayName: LocalizedStringResource {
+        switch self {
+        case .xinput: return Localization.resource("XInput")
+        case .ps4HID: return Localization.resource("PS4 / HID")
+        case .bootloader: return Localization.resource("Bootloader")
+        case .unknown: return Localization.resource("Unknown")
+        }
+    }
+
     public var readableControls: String {
         switch self {
         case .xinput:
-            return "Todos los botones, sticks y gatillos mediante el protocolo XInput."
+            return Localization.resolve("All buttons, sticks and triggers through the XInput protocol.")
         case .ps4HID:
-            return "Modo HID de PS4: no lo lee esta aplicación."
+            return Localization.resolve("PS4 HID mode: this application does not read it.")
         case .bootloader:
-            return "Modo de actualización de firmware: no envía entradas."
+            return Localization.resolve("Firmware update mode: it sends no input.")
         case .unknown:
             return "Identidad desconocida: no se intenta leer."
         }

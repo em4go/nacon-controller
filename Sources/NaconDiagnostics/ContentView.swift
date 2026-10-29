@@ -131,7 +131,7 @@ struct DeviceRow: View {
             HStack {
                 Text(device.productName).font(.headline)
                 Spacer()
-                Text(device.mode.rawValue)
+                Text(Localization.resolve(device.mode.displayName))
                     .font(.caption.bold())
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)

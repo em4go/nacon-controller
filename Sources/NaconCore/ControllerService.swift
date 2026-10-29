@@ -10,13 +10,13 @@ public enum ConnectionState: Equatable, Sendable {
     case disconnected(String)
     case failed(String)
 
-    public var title: String {
+    public var title: LocalizedStringResource {
         switch self {
-        case .searching: return "Buscando mando"
-        case .configuring: return "Configurando dispositivo"
-        case .connected: return "Conectado"
-        case .disconnected: return "Mando desconectado"
-        case .failed: return "Error de acceso"
+        case .searching: return Localization.resource("Searching for a controller")
+        case .configuring: return Localization.resource("Configuring the device")
+        case .connected: return Localization.resource("Connected")
+        case .disconnected: return Localization.resource("Controller disconnected")
+        case .failed: return Localization.resource("Access error")
         }
     }
 
@@ -154,7 +154,7 @@ public final class ControllerService: ObservableObject {
                 found.forEach { IOObjectRelease($0.service) }
                 return
             }
-            teardown(reason: "el mando dejó de enviar datos")
+            teardown(reason: Localization.resolve("The controller stopped sending data"))
         }
 
         guard let candidate = found.first(where: { $0.info.isReadable }) else {
@@ -234,7 +234,7 @@ public final class ControllerService: ObservableObject {
                 self.ioQueue.async {
                     guard !current.isDead, self.link === current else { return }
                     guard status == kIOReturnSuccess else {
-                        self.teardown(reason: "lectura USB interrumpida (\(Self.hex(status)))")
+                        self.teardown(reason: Localization.format("USB read interrupted (%@)", Self.hex(status)))
                         return
                     }
                     let bytes = [UInt8](Data(bytes: buffer.bytes, count: Int(transferred)))
@@ -243,7 +243,7 @@ public final class ControllerService: ObservableObject {
                 }
             }
         } catch {
-            teardown(reason: "no se pudo leer del endpoint: \(error.localizedDescription)")
+            teardown(reason: Localization.format("Could not read from the endpoint: %@", error.localizedDescription))
         }
     }
 
@@ -330,7 +330,7 @@ private enum ControllerError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .interfaceMissing:
-            return "El dispositivo no expuso la interfaz 0 tras configurarlo."
+            return Localization.resolve("The device did not expose interface 0 after being configured.")
         }
     }
 }
@@ -374,7 +374,7 @@ extension ControllerService {
             id: entryID,
             productName: stringProperty(service, "USB Product Name")
                 ?? stringProperty(service, "kUSBProductString")
-                ?? "Dispositivo NACON",
+                ?? Localization.resolve("NACON device"),
             vendorID: vendor,
             productID: product,
             serialNumber: stringProperty(service, "kUSBSerialNumberString"),

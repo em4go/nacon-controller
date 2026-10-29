@@ -21,6 +21,26 @@
         }
       }
     },
+    "%@ · MOD %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · MOD %@"
+          }
+        }
+      }
+    },
+    "%@ — %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ — %@"
+          }
+        }
+      }
+    },
     "A short burst confirms that the pad rumbles. With the feedback on, the same burst is felt when emulation starts and stops. The app sends the stop command when it finishes, but a forced quit can leave the motors spinning: set the intensity to zero before you force it closed.": {
       "localizations": {
         "es": {
@@ -61,12 +81,62 @@
         }
       }
     },
+    "Add a step to the command…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir paso al comando…"
+          }
+        }
+      }
+    },
     "Applied when emulation starts: stop it to change the setting.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Se aplica al arrancar la emulación: deténla para cambiarlo."
+          }
+        }
+      }
+    },
+    "Assign to base": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asignar a la base"
+          }
+        }
+      }
+    },
+    "Assign with MOD": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asignar con MOD"
+          }
+        }
+      }
+    },
+    "Assign…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asignar…"
+          }
+        }
+      }
+    },
+    "Base": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Base"
           }
         }
       }
@@ -91,6 +161,26 @@
         }
       }
     },
+    "Capture": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capturar"
+          }
+        }
+      }
+    },
+    "Capture a key…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capturar tecla…"
+          }
+        }
+      }
+    },
     "Changes are saved as you make them; there is no save button. A new profile starts from the standard profile, and the active profile is remembered the next time you open the app.": {
       "localizations": {
         "es": {
@@ -107,6 +197,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Comprobar de nuevo"
+          }
+        }
+      }
+    },
+    "Choose what this control sends while the MOD key is held": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige qué envía este control con la tecla MOD pulsada"
           }
         }
       }
@@ -137,6 +237,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Conectado, esperando el primer informe del mando…"
+          }
+        }
+      }
+    },
+    "Control": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Control"
+          }
+        }
+      }
+    },
+    "Control mapping": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mapeo de controles"
           }
         }
       }
@@ -191,6 +311,26 @@
         }
       }
     },
+    "Emulation is running, so the mapping is locked. Stop emulation to change it: changing an assignment with a button held down can leave a key stuck.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La emulación está activa, así que el mapeo está bloqueado. Detén la emulación para cambiarlo: cambiar una asignación con un botón pulsado puede dejar una tecla atascada."
+          }
+        }
+      }
+    },
+    "Emulation is running, so the mapping is locked: the drawing only shows the state of the controls.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La emulación está activa, así que el mapeo está bloqueado: la gráfica solo muestra el estado de los controles."
+          }
+        }
+      }
+    },
     "Emulation started from the pad.": {
       "localizations": {
         "es": {
@@ -217,6 +357,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gráfica"
+          }
+        }
+      }
+    },
+    "Hold a modifier": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantener modificador"
           }
         }
       }
@@ -352,6 +502,16 @@
         }
       }
     },
+    "Not all highlight masks could be loaded: the drawing shows, but some control does not light up when the pointer passes over it.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se han podido cargar todas las máscaras de resaltado: el dibujo se ve, pero algún control no se ilumina al pasar el ratón."
+          }
+        }
+      }
+    },
     "Not reachable this way: touchpad, audio jack, the controller light and rumble in this mode. Nothing can be read in PS4 (HID) mode or in bootloader mode either.": {
       "localizations": {
         "es": {
@@ -362,12 +522,82 @@
         }
       }
     },
+    "Nothing selected": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin seleccionar"
+          }
+        }
+      }
+    },
     "Off": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Apagada"
+          }
+        }
+      }
+    },
+    "PS: turn emulation on and off · MOD + PS: this summary · Esc or a click outside: close": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PS: encender o apagar · MOD + PS: este resumen · Esc o un clic fuera: cerrar"
+          }
+        }
+      }
+    },
+    "Pass the pointer over a button of the drawing: its own shape lights up, and the strip above says what it sends. Tap to assign a key to it. The printed glyph does not change when remapping, so the assignment is read in that strip and in the “Table” view.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pasa el ratón por un botón del dibujo: se ilumina su propia forma, y la franja de arriba dice qué envía. Pulsa para asignarle una tecla. El glifo impreso no cambia al reasignar, así que la asignación se lee en esa franja y en la vista «Tabla»."
+          }
+        }
+      }
+    },
+    "Press a key…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pulsa una tecla…"
+          }
+        }
+      }
+    },
+    "Press a key… Esc cancels": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pulsa una tecla… Esc cancela"
+          }
+        }
+      }
+    },
+    "Press “Capture” and then the combination you want to assign, with the modifiers you need (⌘, ⌥, ⌃, ⇧). Escape cancels the capture and keeps the previous mapping.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pulsa «Capturar» y después la combinación que quieras asignar, con los modificadores que necesites (⌘, ⌥, ⌃, ⇧). Escape cancela la captura y deja el mapeo anterior."
+          }
+        }
+      }
+    },
+    "Profile": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perfil"
           }
         }
       }
@@ -398,6 +628,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Quitar capa"
+          }
+        }
+      }
+    },
+    "Remove the last step": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitar el último paso"
           }
         }
       }
@@ -448,6 +688,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Solicitar permiso"
+          }
+        }
+      }
+    },
+    "Reserved: turns emulation on and off": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reservado: activa y apaga la emulación"
+          }
+        }
+      }
+    },
+    "Reserved: turns emulation on and off instantly": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reservado: activa y desactiva la emulación al instante"
           }
         }
       }
@@ -532,12 +792,32 @@
         }
       }
     },
+    "The PS button cannot be reassigned: it is the switch that turns emulation on and off without touching the mouse or the keyboard, so it must always stay within reach.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El botón PS no se puede reasignar: es el interruptor que activa y desactiva la emulación sin tocar el ratón ni el teclado, así que debe seguir siempre a mano."
+          }
+        }
+      }
+    },
     "The controller is in firmware update mode. Unplug it and plug it back in without pressing any buttons.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "El mando está en modo actualizador de firmware. Desconéctalo y vuelve a conectarlo sin pulsar botones."
+          }
+        }
+      }
+    },
+    "The drawing of the controller could not be loaded.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se ha podido cargar el dibujo del mando."
           }
         }
       }
@@ -562,12 +842,32 @@
         }
       }
     },
+    "The next key press will be assigned to %@.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se asignará la próxima pulsación a %@."
+          }
+        }
+      }
+    },
     "This controller is not an HID device, so GameController and CoreHID cannot see it. It is read with IOUSBHost speaking the XInput protocol: buttons, sticks and triggers.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Este mando no es un dispositivo HID, así que GameController y CoreHID no pueden verlo. Se lee con IOUSBHost hablando el protocolo XInput: botones, sticks y gatillos."
+          }
+        }
+      }
+    },
+    "To get a second layer, choose a MOD key above, in “MOD key:”. With it held, each button sends what the MOD column says and, if you have changed nothing, the same as the base.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Para tener una segunda capa, elige una tecla MOD arriba, en «Tecla MOD:». Con ella pulsada, cada botón envía lo que diga la columna MOD y, si no has cambiado nada, lo mismo que en la base."
           }
         }
       }
@@ -608,6 +908,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mientras mantengas pulsada la tecla MOD, los botones envían lo que dice la columna MOD; la propia tecla MOD no envía nada."
+          }
+        }
+      }
+    },
+    "With the MOD key held it sends “%@”": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Con la tecla MOD pulsada envía «%@»"
+          }
+        }
+      }
+    },
+    "With the MOD key it uses the base action": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Con la tecla MOD usa la acción de la base"
           }
         }
       }

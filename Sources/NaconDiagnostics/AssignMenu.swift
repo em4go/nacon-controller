@@ -28,15 +28,15 @@ struct AssignMenuItems: View {
     var onDropLastStep: (() -> Void)?
 
     var body: some View {
-        Button("Capturar tecla…") {
+        Button(AppText.resolve("Capture a key…")) {
             onCapture()
         }
         if MappingRules.canAppendStep(to: current), let onAppendStep {
-            Button("Añadir paso al comando…") {
+            Button(AppText.resolve("Add a step to the command…")) {
                 onAppendStep()
             }
             if case .sequence = current, let onDropLastStep {
-                Button("Quitar el último paso") {
+                Button(AppText.resolve("Remove the last step")) {
                     onDropLastStep()
                 }
             }
@@ -58,9 +58,9 @@ struct AssignMenuItems: View {
         // macOS actions that are really keystrokes. Offering them saves memorising a combination, and
         // the submenu says which ones depend on a setting in System Settings.
         ForEach(SystemShortcut.Category.allCases, id: \.self) { category in
-            Menu(category.title) {
+            Menu(Localization.resolve(category.title)) {
                 ForEach(SystemShortcut.inCategory(category)) { shortcut in
-                    Button("\(shortcut.name) — \(shortcut.combo.glyph)") {
+                    Button(AppText.format("%@ — %@", Localization.resolve(shortcut.name), shortcut.combo.glyph)) {
                         onChoose(shortcut.action)
                     }
                 }
@@ -71,7 +71,7 @@ struct AssignMenuItems: View {
         // one button cannot do. These map a single control to the modifier so two controls can, and a
         // tool that listens for a combination of modifiers with no key — a dictation app on ⌃⇧ — needs
         // exactly this.
-        Menu("Mantener modificador") {
+        Menu(AppText.resolve("Hold a modifier")) {
             // Identity is the combo, not its key code: ⌃, ⌃⌥, ⌃⇧, ⌃⌘ and ⌃fn share code 59, and a
             // ForEach keyed on that renders five rows for the same identifier with the labels mixed.
             ForEach(KeyStrokePlan.holdCombos, id: \.self) { combo in

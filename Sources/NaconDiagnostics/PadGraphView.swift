@@ -79,10 +79,7 @@ struct PadGraphView: View {
             if Masks.isIncomplete {
                 // One note for the whole drawing: the picture is still useful without the tint, and
                 // seventeen copies of the same sentence would not be.
-                Text(
-                    "No se han podido cargar todas las máscaras de resaltado: el dibujo se ve, pero "
-                        + "algún control no se ilumina al pasar el ratón."
-                )
+                Text(AppText.resolve("Not all highlight masks could be loaded: the drawing shows, but some control does not light up when the pointer passes over it."))
                 .font(.caption)
                 .foregroundStyle(.orange)
                 .frame(maxWidth: Self.maxDrawingWidth, alignment: .leading)
@@ -257,12 +254,12 @@ struct PadGraphView: View {
         let control = describedControl
         let isWaiting = control.map { capture.isCapturing($0) } ?? false
         return HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Text(control.map { Localization.resolve(ControlFacts.of($0).label) } ?? "Sin seleccionar")
+            Text(control.map { Localization.resolve(ControlFacts.of($0).label) } ?? AppText.resolve("Nothing selected"))
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
             Spacer(minLength: 8)
-            Text(isWaiting ? "Pulsa una tecla…" : assignment(for: control))
+            Text(isWaiting ? AppText.resolve("Press a key…") : assignment(for: control))
                 .font(.callout.weight(.semibold))
                 .foregroundStyle(isWaiting ? Color.accentColor : Color.primary)
                 .lineLimit(1)
@@ -271,7 +268,7 @@ struct PadGraphView: View {
                 Menu {
                     // Two destinations, two submenus. Both render the one shared list, so a control
                     // offers the same choices here as in the table whichever layer it writes to.
-                    Menu("Asignar a la base") {
+                    Menu(AppText.resolve("Assign to base")) {
                         AssignMenuItems(
                             onCapture: { arm(control, intent: .base) },
                             onChoose: { write(control, .base, $0) },
@@ -290,7 +287,7 @@ struct PadGraphView: View {
                     // to a layer nothing can reach. It offers the same entries as the base, capture
                     // and steps included, because the two columns are one list read twice.
                     if profile.layer.isActive {
-                        Menu("Asignar con MOD") {
+                        Menu(AppText.resolve("Assign with MOD")) {
                             AssignMenuItems(
                                 onCapture: { arm(control, intent: .mod) },
                                 onChoose: { write(control, .mod, $0) },
@@ -309,7 +306,7 @@ struct PadGraphView: View {
                         }
                     }
                 } label: {
-                    Label("Asignar…", systemImage: "ellipsis.circle")
+                    Label(AppText.resolve("Assign…"), systemImage: "ellipsis.circle")
                         .labelStyle(.titleAndIcon)
                 }
                 .menuStyle(.borderlessButton)
@@ -323,7 +320,15 @@ struct PadGraphView: View {
         .overlay(
             RoundedRectangle(cornerRadius: 8).strokeBorder(Color.secondary.opacity(0.25), lineWidth: 1)
         )
-        .help(control.map { "\(Localization.resolve(ControlFacts.of($0).label)): \(assignment(for: $0))" } ?? "")
+        .help(
+            control.map {
+                AppText.format(
+                    "%@: %@",
+                    Localization.resolve(ControlFacts.of($0).label),
+                    assignment(for: $0)
+                )
+            } ?? ""
+        )
     }
 
     /// Writes one assignment into one column and returns the drawing to its normal state.
@@ -347,13 +352,13 @@ struct PadGraphView: View {
     private func assignment(for control: XInputControl?) -> String {
         guard let control else { return "—" }
         guard MappingRules.isRemappable(control) else {
-            return "Reservado: activa y apaga la emulación"
+            return AppText.resolve("Reserved: turns emulation on and off")
         }
         let base = profile.action(for: control).displayName
         guard profile.layer.isActive, let layered = profile.layer.action(for: control) else {
             return base
         }
-        return base + " · MOD " + layered.displayName
+        return AppText.format("%@ · MOD %@", base, layered.displayName)
     }
 
     // MARK: - The line under the strip
@@ -362,34 +367,34 @@ struct PadGraphView: View {
     /// emulation runs, and how to read the drawing otherwise.
     @ViewBuilder private var hint: some View {
         if isEmulationEnabled {
-            Text(
-                "La emulación está activa, así que el mapeo está bloqueado: la gráfica solo muestra "
-                    + "el estado de los controles."
-            )
+            Text(AppText.resolve("Emulation is running, so the mapping is locked: the drawing only shows the state of the controls."))
             .font(.caption)
             .foregroundStyle(.secondary)
         } else if let armed = capture.session.armedControl {
-            Text("Pulsa una tecla… Esc cancela")
+            Text(AppText.resolve("Press a key… Esc cancels"))
                 .font(.caption.bold())
                 .foregroundStyle(Color.accentColor)
                 .help(
-                    "Se asignará la próxima pulsación a "
-                        + Localization.resolve(ControlFacts.of(armed).label) + "."
+                    AppText.format(
+                        "The next key press will be assigned to %@.",
+                        Localization.resolve(ControlFacts.of(armed).label)
+                    )
                 )
         } else {
-            Text(
-                "Pasa el ratón por un botón del dibujo: se ilumina su propia forma, y la franja de "
-                    + "arriba dice qué envía. Pulsa para asignarle una tecla. El glifo impreso no "
-                    + "cambia al reasignar, así que la asignación se lee en esa franja y en la vista "
-                    + "«Tabla»."
-            )
+            Text(AppText.resolve(
+                """
+                Pass the pointer over a button of the drawing: its own shape lights up, and the strip \
+                above says what it sends. Tap to assign a key to it. The printed glyph does not \
+                change when remapping, so the assignment is read in that strip and in the “Table” view.
+                """
+            ))
             .font(.caption)
             .foregroundStyle(.secondary)
         }
     }
 
     private var unavailableArtwork: some View {
-        Text("No se ha podido cargar el dibujo del mando.")
+        Text(AppText.resolve("The drawing of the controller could not be loaded."))
             .font(.callout)
             .foregroundStyle(.secondary)
             .multilineTextAlignment(.center)

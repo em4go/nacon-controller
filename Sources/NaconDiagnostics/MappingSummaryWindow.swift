@@ -149,19 +149,19 @@ private struct MappingSummaryView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(name.isEmpty ? "Perfil" : name)
+                Text(name.isEmpty ? AppText.resolve("Profile") : name)
                     .font(.title2.weight(.semibold))
-                Text("Resumen de mapeos")
+                Text(AppText.resolve("Mapping summary"))
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
 
             Grid(alignment: .leading, horizontalSpacing: 24, verticalSpacing: 8) {
                 GridRow {
-                    Text("Control")
-                    Text("Base")
+                    Text(AppText.resolve("Control"))
+                    Text(AppText.resolve("Base"))
                     if profile.layer.isActive {
-                        Text("MOD")
+                        Text(verbatim: "MOD")
                     }
                 }
                 .font(.callout.weight(.semibold))
@@ -169,7 +169,7 @@ private struct MappingSummaryView: View {
 
                 ForEach(rows) { row in
                     GridRow {
-                        Text(ControlFacts.of(row.control).label)
+                        Text(Localization.resolve(ControlFacts.of(row.control).label))
                             .font(.body.weight(.medium))
                         Text(row.base)
                             .font(.system(.title3, design: .monospaced))
@@ -182,7 +182,7 @@ private struct MappingSummaryView: View {
                 }
             }
 
-            Text("PS: encender o apagar · MOD + PS: este resumen · Esc o un clic fuera: cerrar")
+            Text(AppText.resolve("PS: turn emulation on and off · MOD + PS: this summary · Esc or a click outside: close"))
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }

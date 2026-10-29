@@ -43,11 +43,13 @@ struct MappingEditor: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionTitle("Mapeo de controles")
-            Text(
-                "Pulsa «Capturar» y después la combinación que quieras asignar, con los modificadores "
-                + "que necesites (⌘, ⌥, ⌃, ⇧). Escape cancela la captura y deja el mapeo anterior."
-            )
+            SectionTitle(AppText.resolve("Control mapping"))
+            Text(AppText.resolve(
+                """
+                Press “Capture” and then the combination you want to assign, with the modifiers you \
+                need (⌘, ⌥, ⌃, ⇧). Escape cancels the capture and keeps the previous mapping.
+                """
+            ))
             .font(.caption)
             .foregroundStyle(.secondary)
             if isEmulationEnabled {
@@ -77,18 +79,22 @@ struct MappingEditor: View {
             }
             .disabled(isEmulationEnabled)
             if !showsLayer {
-                Text(
-                    "Para tener una segunda capa, elige una tecla MOD arriba, en «Tecla MOD:». Con ella "
-                        + "pulsada, cada botón envía lo que diga la columna MOD y, si no has cambiado "
-                        + "nada, lo mismo que en la base."
-                )
+                Text(AppText.resolve(
+                    """
+                    To get a second layer, choose a MOD key above, in “MOD key:”. With it held, each \
+                    button sends what the MOD column says and, if you have changed nothing, the same \
+                    as the base.
+                    """
+                ))
                 .font(.caption)
                 .foregroundStyle(.secondary)
             }
-            Text(
-                "El botón PS no se puede reasignar: es el interruptor que activa y desactiva la "
-                + "emulación sin tocar el ratón ni el teclado, así que debe seguir siempre a mano."
-            )
+            Text(AppText.resolve(
+                """
+                The PS button cannot be reassigned: it is the switch that turns emulation on and off \
+                without touching the mouse or the keyboard, so it must always stay within reach.
+                """
+            ))
             .font(.caption)
             .foregroundStyle(.secondary)
         }
@@ -107,9 +113,9 @@ struct MappingEditor: View {
     private var columnHeader: some View {
         HStack(spacing: 10) {
             Color.clear.frame(width: 96, height: 1)
-            Text("Base")
+            Text(AppText.resolve("Base"))
                 .frame(maxWidth: .infinity, alignment: .leading)
-            Text("MOD")
+            Text(verbatim: "MOD")
         }
         .font(.caption.weight(.semibold))
         .foregroundStyle(.secondary)
@@ -120,11 +126,7 @@ struct MappingEditor: View {
         HStack(alignment: .top, spacing: 8) {
             Image(systemName: "lock.fill")
                 .foregroundStyle(.orange)
-            Text(
-                "La emulación está activa, así que el mapeo está bloqueado. Detén la emulación para "
-                + "cambiarlo: cambiar una asignación con un botón pulsado puede dejar una tecla "
-                + "atascada."
-            )
+            Text(AppText.resolve("Emulation is running, so the mapping is locked. Stop emulation to change it: changing an assignment with a button held down can leave a key stuck."))
             .font(.caption)
             .foregroundStyle(.orange)
         }
@@ -132,10 +134,10 @@ struct MappingEditor: View {
 
     private var reservedRow: some View {
         HStack(spacing: 10) {
-            Text(ControlFacts.of(MappingRules.reservedControl).label)
+            Text(Localization.resolve(ControlFacts.of(MappingRules.reservedControl).label))
                 .font(.callout.weight(.medium))
                 .frame(width: 96, alignment: .leading)
-            Label("Reservado: activa y desactiva la emulación al instante", systemImage: "power")
+            Label(AppText.resolve("Reserved: turns emulation on and off instantly"), systemImage: "power")
                 .font(.callout)
                 .foregroundStyle(.secondary)
             Spacer(minLength: 0)
@@ -184,15 +186,15 @@ private struct MappingRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            Text(ControlFacts.of(control).label)
+            Text(Localization.resolve(ControlFacts.of(control).label))
                 .font(.callout.weight(.medium))
                 .frame(width: 96, alignment: .leading)
-            Text(isWaitingInBase ? "Pulsa una tecla…" : action.displayName)
+            Text(isWaitingInBase ? AppText.resolve("Press a key…") : action.displayName)
                 .font(.system(.callout, design: .monospaced))
                 .foregroundStyle(isWaitingInBase ? Color.accentColor : Color.primary)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            Button(isWaitingInBase ? "Cancelar" : "Capturar") {
+            Button(isWaitingInBase ? AppText.resolve("Cancel") : AppText.resolve("Capture")) {
                 capture.toggle(
                     control,
                     for: profileID,
@@ -205,7 +207,7 @@ private struct MappingRow: View {
             Menu {
                 alternatives
             } label: {
-                Label("Elegir…", systemImage: "chevron.up.chevron.down")
+                Label(AppText.resolve("Choose…"), systemImage: "chevron.up.chevron.down")
                     .labelStyle(.titleAndIcon)
             }
             .menuStyle(.borderlessButton)
@@ -233,7 +235,7 @@ private struct MappingRow: View {
     /// something with MOD held: it does what the base says (S2).
     private var layerCell: some View {
         HStack(spacing: 10) {
-            Text(isWaitingInMod ? "Pulsa una tecla…" : layerAction.map(\.displayName) ?? "—")
+            Text(isWaitingInMod ? AppText.resolve("Press a key…") : layerAction.map(\.displayName) ?? "—")
                 .font(.system(.callout, design: .monospaced))
                 .foregroundStyle(layerAction == nil || isWaitingInMod ? Color.secondary : Color.primary)
                 .lineLimit(1)
@@ -242,7 +244,7 @@ private struct MappingRow: View {
             // The same button the base column has, because the columns are the same thing read twice.
             // Without it the only way into the layer was a menu entry, which is not how the base
             // column teaches the gesture.
-            Button(isWaitingInMod ? "Cancelar" : "Capturar") {
+            Button(isWaitingInMod ? AppText.resolve("Cancel") : AppText.resolve("Capture")) {
                 capture.toggle(
                     control,
                     for: profileID,
@@ -265,21 +267,21 @@ private struct MappingRow: View {
                     }
                 )
             } label: {
-                Label("Elegir…", systemImage: "chevron.up.chevron.down")
+                Label(AppText.resolve("Choose…"), systemImage: "chevron.up.chevron.down")
                     .labelStyle(.titleAndIcon)
             }
             .menuStyle(.borderlessButton)
             .controlSize(.small)
             .fixedSize()
-            .help("Elige qué envía este control con la tecla MOD pulsada")
+            .help(AppText.resolve("Choose what this control sends while the MOD key is held"))
         }
     }
 
     private var layerHelp: String {
         guard let layerAction else {
-            return "Con la tecla MOD usa la acción de la base"
+            return AppText.resolve("With the MOD key it uses the base action")
         }
-        return "Con la tecla MOD pulsada envía «\(layerAction.displayName)»"
+        return AppText.format("With the MOD key held it sends “%@”", layerAction.displayName)
     }
 
     /// What the capture button cannot express: mouse buttons, scrolling, the system catalog, the

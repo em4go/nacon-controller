@@ -73,3 +73,6 @@ owns it, with the downstream branches rebased.
   `advanceCommands` no longer claims an order a map cannot give; the three held maps are one; the two
   types are internal; the stale owner comments and the task file corrected. `swift test` → 353 tests,
   0 failures. All five branches rebased in order; nothing pushed.
+- **L10.** Delivery decision: the whole chain is published as `main` (fast-forward) and the five PR
+  branches are removed from `origin`. The stack is linear, so `main` at the chain tip contains every
+  slice; the review reports and this record stay in `.build/review/` and `odd/tasks/`.

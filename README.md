@@ -66,6 +66,15 @@ swift test
    Al reconectarlo vuelve solo a «Conectado» sin reiniciar la aplicación.
 6. **Sin mando**: se muestra explícitamente «NO SE HA DETECTADO NINGÚN MANDO».
 
+## Icono en la barra
+
+La app vive también en la barra de menús: estado de la conexión, encender y apagar la emulación, el perfil
+activo, abrir la ventana y salir. El icono cambia cuando la emulación está en marcha.
+
+Consecuencia que conviene saber: **cerrar la ventana ya no cierra la app**, que es lo que permite tenerla
+disponible sin ventanas. Para terminarla, **Salir** del menú de la barra o ⌘Q. Mientras haya una copia
+abierta, el mando está ocupado: al compilar una versión nueva, cierra la anterior antes de probarla.
+
 ## Idioma
 
 La app habla español e inglés. Por defecto sigue el idioma del sistema; en la sección **Idioma** puedes

@@ -552,6 +552,16 @@
         }
       }
     },
+    "Open window": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir la ventana"
+          }
+        }
+      }
+    },
     "PS: turn emulation on and off · MOD + PS: this summary · Esc or a click outside: close": {
       "localizations": {
         "es": {
@@ -632,12 +642,32 @@
         }
       }
     },
+    "Profile: %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perfil: %@"
+          }
+        }
+      }
+    },
     "Profiles": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Perfiles"
+          }
+        }
+      }
+    },
+    "Quit": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salir"
           }
         }
       }
@@ -928,6 +958,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Para tener una segunda capa, elige una tecla MOD arriba, en «Tecla MOD:». Con ella pulsada, cada botón envía lo que diga la columna MOD y, si no has cambiado nada, lo mismo que en la base."
+          }
+        }
+      }
+    },
+    "Turn emulation off": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagar la emulación"
+          }
+        }
+      }
+    },
+    "Turn emulation on": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encender la emulación"
           }
         }
       }

@@ -18,7 +18,7 @@ struct NaconDiagnosticsApp: App {
     }
 
     var body: some Scene {
-        WindowGroup("NACON Diagnostics") {
+        WindowGroup("NACON Diagnostics", id: WindowID.main) {
             ContentView()
                 .environmentObject(service)
                 .environmentObject(emulation)
@@ -51,6 +51,13 @@ struct NaconDiagnosticsApp: App {
                 }
         }
         .windowResizability(.contentMinSize)
+
+        // El icono de la barra tiene que mostrarse sin depender de que la ventana exista.
+        MenuBarExtra {
+            MenuBarContent(service: service, emulation: emulation, profiles: profiles)
+        } label: {
+            Image(systemName: emulation.isEnabled ? "gamecontroller.fill" : "gamecontroller")
+        }
     }
 }
 
@@ -64,8 +71,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
     }
 
+    /// Closing the window no longer quits: the menu bar item is the app while there is no window.
+    ///
+    /// The cost is a process that stays alive holding the pad, which matters during development: a new
+    /// build cannot read the controller until the running copy is quit, from the icon or with ⌘Q.
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        true
+        false
     }
 
     /// S13: quitting must leave the pad dark, including Cmd+Q.

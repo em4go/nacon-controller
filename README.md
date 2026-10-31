@@ -1,11 +1,13 @@
-# NACON Compact Controller — lector de diagnóstico para macOS
+# NACON Compact Controller — el mando como ratón y teclado en macOS
 
-Aplicación nativa de macOS (Swift + SwiftUI) que lee el mando **NACON / Bigben Compact Controller
-(USB `146B:0603`)** y muestra en tiempo real botones, sticks y gatillos, además del estado de
-conexión y la reconexión.
+Aplicación nativa de macOS (Swift + SwiftUI) que convierte el mando **NACON / Bigben Compact
+Controller (USB `146B:0603`)** en ratón y teclado: mueve el cursor, hace clic, arrastra, desplaza en
+los dos ejes y pulsa teclas, atajos o comandos de varios pasos. Todo eso se configura por perfil, con
+una capa MOD que redefine los botones mientras la mantienes y un editor gráfico del mando.
 
-Esta etapa **solo lee**. No emula teclado ni ratón, no inyecta eventos, no mueve el cursor, no pide
-permisos de Accesibilidad, no usa perfiles y no corre en segundo plano.
+**Emula entrada de verdad.** Inyecta eventos de ratón y teclado con CoreGraphics, así que necesita el
+permiso de Accesibilidad y vive también en la barra de menús. Se detiene desde el propio mando con
+**PS**, que sigue funcionando aunque el resto se atasque, y nunca deja una tecla ni un botón pulsado.
 
 ## Por qué no se usa GameController
 

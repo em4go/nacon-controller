@@ -29,6 +29,35 @@ struct ContentView: View {
     @EnvironmentObject private var profiles: ProfileLibraryController
 
     var body: some View {
+        VStack(spacing: 0) {
+            scrollingSections
+            footer
+        }
+        .background(Color(nsColor: .windowBackgroundColor))
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
+            // S5: never leave the pad light on after the app is gone.
+            service.sendOutput(PadLight.offPacket)
+            // S10: same reasoning for the motors. The stop is unconditional because at exit the app
+            // cannot know whether a burst is still running.
+            service.sendOutput(PadRumble.stopPacket)
+        }
+    }
+
+    /// Which build this is, always visible and never in the way: the question "am I testing the change?"
+    /// has to be answerable without scrolling or guessing.
+    private var footer: some View {
+        HStack(spacing: 0) {
+            Spacer(minLength: 0)
+            Text(BuildStamp.text)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .textSelection(.enabled)
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 8)
+    }
+
+    private var scrollingSections: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 StatusBanner(state: service.state)
@@ -49,14 +78,6 @@ struct ContentView: View {
                 LegendSection(devices: service.devices)
             }
             .padding(20)
-        }
-        .background(Color(nsColor: .windowBackgroundColor))
-        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
-            // S5: never leave the pad light on after the app is gone.
-            service.sendOutput(PadLight.offPacket)
-            // S10: same reasoning for the motors. The stop is unconditional because at exit the app
-            // cannot know whether a burst is still running.
-            service.sendOutput(PadRumble.stopPacket)
         }
     }
 }

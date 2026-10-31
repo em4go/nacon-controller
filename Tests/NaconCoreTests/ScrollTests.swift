@@ -30,6 +30,23 @@ final class ScrollTests: XCTestCase {
         XCTAssertEqual(second.y, 0, "and must not appear on the vertical axis")
     }
 
+    func testTheWheelSignMatchesWhatTheUserSeesOnEachAxis() {
+        // What the system receives, not what the engine decided: this is the one place where the
+        // sign can be wrong without any test noticing, and it was. Pushing the stick right moved the
+        // content left, while pushing it down moved the content down.
+        let right = Scroll.wheelDeltas(for: ScrollPixels(x: 24, y: 0))
+        XCTAssertEqual(right.x, -24, "pushing right must move the content right, not left")
+        XCTAssertEqual(right.y, 0)
+
+        let down = Scroll.wheelDeltas(for: ScrollPixels(x: 0, y: 24))
+        XCTAssertEqual(down.y, 24, "the vertical axis keeps the sign it always had")
+        XCTAssertEqual(down.x, 0)
+
+        let diagonal = Scroll.wheelDeltas(for: ScrollPixels(x: -8, y: 16))
+        XCTAssertEqual(diagonal.x, 8, "a leftward push is the mirror image of a rightward one")
+        XCTAssertEqual(diagonal.y, 16)
+    }
+
     func testPushingTheRightStickRightScrollsHorizontally() {
         let events = scrollEvents(rightX: 32_767, rightY: 0)
         let horizontal = events.reduce(0) { $0 + $1.x }

@@ -58,6 +58,15 @@ cat > "$APP_DIR/Contents/Info.plist" <<'PLIST'
 </plist>
 PLIST
 
+# Which commit this bundle is. The app shows it, because a stale build once cost a round trip: the change
+# was committed, the tests passed, and the binary being tested was forty minutes older than the code.
+BUILD_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo unknown)
+if [ -n "$(git status --porcelain 2>/dev/null)" ]; then
+  BUILD_COMMIT="${BUILD_COMMIT}-dirty"
+fi
+/usr/libexec/PlistBuddy -c "Add :NaconBuildCommit string ${BUILD_COMMIT}" "$APP_DIR/Contents/Info.plist" >/dev/null
+echo "Sellado con el commit ${BUILD_COMMIT}."
+
 IDENTITY="NACON Local Signing"
 if security find-identity -v -p codesigning 2>/dev/null | grep -q "$IDENTITY"; then
     codesign --force --sign "$IDENTITY" --timestamp=none "$APP_DIR"

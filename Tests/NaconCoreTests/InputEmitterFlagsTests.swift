@@ -11,6 +11,24 @@ import XCTest
 /// ⇧ and read ⇧ as still down, so from then on everything claimed Shift was held. The pad is its own
 /// keyboard: it combines exactly the modifiers it holds itself.
 final class InputEmitterFlagsTests: XCTestCase {
+    /// The rule the wheel now depends on as well: a mouse event says which modifiers this app holds.
+    ///
+    /// Clicks and movements already read it; the wheel did not, which is why no scroll could carry ⌘ and
+    /// ⌘+scroll could not zoom. Pinning all five here means the three call sites cannot drift apart.
+    func testMouseFlagsCarryEveryModifierThePadCanHold() {
+        XCTAssertEqual(CGEventEmitter.mouseFlags(held: [.control]), .maskControl)
+        XCTAssertEqual(CGEventEmitter.mouseFlags(held: [.option]), .maskAlternate)
+        XCTAssertEqual(CGEventEmitter.mouseFlags(held: [.shift]), .maskShift)
+        XCTAssertEqual(CGEventEmitter.mouseFlags(held: [.command]), .maskCommand)
+        XCTAssertEqual(CGEventEmitter.mouseFlags(held: [.function]), .maskSecondaryFn)
+        XCTAssertEqual(
+            CGEventEmitter.mouseFlags(held: [.command, .shift]),
+            [.maskCommand, .maskShift],
+            "two held modifiers must arrive together, in either order"
+        )
+        XCTAssertEqual(CGEventEmitter.mouseFlags(held: []), [], "nothing held is nothing claimed")
+    }
+
     private let tab = KeyStroke(keyCode: 48, isDown: true, modifiers: [])
     private let controlDown = KeyStroke(keyCode: 59, isDown: true, modifiers: [.control])
     private let shiftDown = KeyStroke(keyCode: 56, isDown: true, modifiers: [.control, .shift])

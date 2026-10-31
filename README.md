@@ -102,6 +102,10 @@ La ventana incluye un interruptor **Emulación activa**, apagado por defecto.
 | Share / Options | Borrar / Espacio |
 | PS | **Activa y desactiva la emulación al instante** |
 
+Dos pulsaciones rápidas del mismo botón, sin mover el cursor, son un **doble clic** de verdad: en un
+texto, seleccionan la palabra. El umbral es el del doble clic del sistema, así que cambiarlo en los
+Ajustes del Sistema se aplica sin reiniciar la app.
+
 Reglas de seguridad que el código garantiza:
 
 - La emulación **nunca arranca activada**.

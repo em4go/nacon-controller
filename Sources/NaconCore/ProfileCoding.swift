@@ -69,6 +69,7 @@ extension MappedAction: Codable {
         case toggledMouseButton = "toggleMouseButton"
         case scrollLines
         case sequence
+        case precision
     }
 
     public init(from decoder: Decoder) throws {
@@ -107,6 +108,8 @@ extension MappedAction: Codable {
             // entry must not cost the user every other assignment in the file.
             let steps = (try? container.decodeIfPresent([KeyCombo].self, forKey: .steps)) ?? nil ?? []
             self = MappedAction.chained(steps)
+        case .precision:
+            self = .precision
         }
     }
 
@@ -130,6 +133,8 @@ extension MappedAction: Codable {
         case .sequence(let steps):
             try container.encode(Kind.sequence.rawValue, forKey: .kind)
             try container.encode(steps, forKey: .steps)
+        case .precision:
+            try container.encode(Kind.precision.rawValue, forKey: .kind)
         }
     }
 }
@@ -173,27 +178,42 @@ extension CursorSettings: Codable {
 }
 
 extension PrecisionSettings: Codable {
+    /// The file holds the factor and nothing else. The `key` of the old shape is read by
+    /// `LegacyPrecisionControl`, which is what turns it into a mapping.
     private enum CodingKeys: String, CodingKey {
-        case key
         case scale
     }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        let stored = try container.decodeIfPresent(String.self, forKey: .key)
-        let control = stored.flatMap(XInputControl.init(profileKey:))
-        // The eligibility rule holds in the model: a file cannot make PS the slow key.
-        let key = control.flatMap { MappingRules.isPrecisionKeyEligible($0) ? $0 : nil }
-        self.init(
-            key: key,
-            scale: try container.decodeIfPresent(Double.self, forKey: .scale) ?? Self.standardScale
-        )
+        self.init(scale: try container.decodeIfPresent(Double.self, forKey: .scale) ?? Self.standardScale)
     }
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encodeIfPresent(key.map { ControlFacts.of($0).profileKey }, forKey: .key)
         try container.encode(scale, forKey: .scale)
+    }
+}
+
+/// The old `precision: { key, scale }` shape, read only to migrate it.
+///
+/// The control it names becomes an assignment, so the file no longer carries it. The eligibility rule
+/// holds in the model: a file cannot make PS the control that slows the pointer.
+private struct LegacyPrecisionControl: Decodable {
+    let control: XInputControl?
+
+    private enum CodingKeys: String, CodingKey {
+        case key
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        // A key of the wrong type costs the migration and nothing else: the profile still opens with
+        // its scale and its mappings.
+        let stored = (try? container.decodeIfPresent(String.self, forKey: .key)) ?? nil
+        control = stored
+            .flatMap(XInputControl.init(profileKey:))
+            .flatMap { MappingRules.isPrecisionKeyEligible($0) ? $0 : nil }
     }
 }
 
@@ -249,7 +269,12 @@ extension InputProfile: Codable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let cursor = try container.decodeIfPresent(CursorSettings.self, forKey: .cursor) ?? .standard
-        let precision = try container.decodeIfPresent(PrecisionSettings.self, forKey: .precision) ?? .off
+        let precision = try container.decodeIfPresent(PrecisionSettings.self, forKey: .precision)
+            ?? .standard
+        // The control a file from the old shape named still means the same thing: the action that
+        // slows the pointer on that control, applied below to the mapping it lands on.
+        let legacyPrecisionControl = try container
+            .decodeIfPresent(LegacyPrecisionControl.self, forKey: .precision)?.control
         let keyRepeat = try container.decodeIfPresent(KeyRepeatSettings.self, forKey: .keyRepeat) ?? .standard
         let layer = try container.decodeIfPresent(ProfileLayer.self, forKey: .layer) ?? .empty
 
@@ -258,8 +283,10 @@ extension InputProfile: Codable {
             forKey: .mappings
         ) else {
             // An older file without mappings still opens with the standard assignment.
+            var mappings = InputProfile.standard.mappings
+            Self.migrate(legacyPrecisionControl, into: &mappings)
             self.init(
-                mappings: InputProfile.standard.mappings,
+                mappings: mappings,
                 layer: layer,
                 cursor: cursor,
                 keyRepeat: keyRepeat,
@@ -279,6 +306,7 @@ extension InputProfile: Codable {
             guard MappingRules.isRemappable(control) || action == .none else { continue }
             mappings[control] = action
         }
+        Self.migrate(legacyPrecisionControl, into: &mappings)
         self.init(
             mappings: mappings,
             layer: layer,
@@ -286,6 +314,20 @@ extension InputProfile: Codable {
             keyRepeat: keyRepeat,
             precision: precision
         )
+    }
+
+    /// Gives an older file's precision control the action that means the same thing today.
+    ///
+    /// Only when that control has no mapping of its own: an assignment the user made is theirs, and the
+    /// old setting then contributes nothing but its scale. `.none` counts as having none, because that
+    /// is exactly what "this control sends nothing" meant.
+    private static func migrate(
+        _ control: XInputControl?,
+        into mappings: inout [XInputControl: MappedAction]
+    ) {
+        guard let control, MappingRules.isRemappable(control) else { return }
+        guard case .none = mappings[control] ?? .none else { return }
+        mappings[control] = .precision
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -303,9 +345,10 @@ extension InputProfile: Codable {
         }
         try container.encode(cursor, forKey: .cursor)
         try container.encode(keyRepeat, forKey: .keyRepeat)
-        // Only written when it says something, like the layer: a profile without a precision key keeps
-        // the file it already had, byte for byte.
-        if precision.key != nil {
+        // Only written when it says something, like the layer: a profile with the standard factor keeps
+        // the file it already had, byte for byte. The control the old shape named here is gone for good:
+        // it lives in the mapping.
+        if precision != .standard {
             try container.encode(precision, forKey: .precision)
         }
     }

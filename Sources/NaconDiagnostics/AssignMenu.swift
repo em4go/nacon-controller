@@ -90,6 +90,14 @@ struct AssignMenuItems: View {
             }
         }
         Divider()
+        // Precision is a hold, like the modifier holds above and unlike a click: it is a claim on the
+        // speed of the pointer and the wheel, and it sends nothing by itself. It gets its own group so
+        // it is not read as one more click, and it is offered once because it means the same thing in
+        // both columns — in the MOD column it is «MOD + another button» without a special case.
+        Button(MappedAction.precision.displayName) {
+            onChoose(.precision)
+        }
+        Divider()
         Button(MappedAction.none.displayName) {
             onChoose(.none)
         }

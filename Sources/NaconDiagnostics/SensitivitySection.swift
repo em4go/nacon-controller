@@ -45,34 +45,20 @@ struct SensitivitySection: View {
         }
     }
 
-    /// The slow-speed control: which one, and how slow.
+    /// The precision factor of the profile being edited.
     ///
-    /// It is a control and not a key combination because the pad already has enough ways to send keys;
-    /// what the cursor needs is one button held down, like the MOD key chooses a mapping.
+    /// Which control slows the pointer is an assignment like any other, so it is chosen in the table
+    /// or in **Elegir…**, including in the MOD column; this row only owns the fraction it applies,
+    /// because a speed is a number of the profile and not of a control.
     private var precisionRow: some View {
         let precision = profiles.selectedPrecision
         return VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 10) {
-                Text(AppText.resolve("Precision key"))
-                Menu(precision.key.map { Localization.resolve(ControlFacts.of($0).label) } ?? AppText.resolve("None")) {
-                    Button(AppText.resolve("None")) {
-                        profiles.setPrecisionKey(nil as XInputControl?)
-                    }
-                    Divider()
-                    ForEach(MappingRules.remappableControls, id: \.self) { control in
-                        Button(Localization.resolve(ControlFacts.of(control).label)) {
-                            profiles.setPrecisionKey(control)
-                        }
-                    }
-                }
-                .menuStyle(.borderlessButton)
-                .controlSize(.small)
-                .fixedSize()
-                .disabled(emulation.isEnabled || profiles.selectedProfile == nil)
+            HStack {
+                Text(AppText.resolve("Precision factor"))
                 Spacer()
                 Text("\(Int((precision.scale * 100).rounded())) %")
                     .monospacedDigit()
-                    .foregroundStyle(precision.isActive ? Color.primary : Color.secondary)
+                    .foregroundStyle(.secondary)
             }
             Slider(
                 value: Binding<Double>(
@@ -81,10 +67,10 @@ struct SensitivitySection: View {
                 ),
                 in: PrecisionSettings.minimumScale...PrecisionSettings.maximumScale
             )
-            .disabled(emulation.isEnabled || !precision.isActive)
+            .disabled(emulation.isEnabled || profiles.selectedProfile == nil)
             Text(
                 AppText.resolve(
-                    "While you hold it, the cursor and the scroll move slower. The speed above is the normal one."
+                    "Assign “Precision (hold)” to a control — in the base column or in the MOD column — and the cursor and the scroll move at this fraction while you hold it."
                 )
             )
             .font(.caption)

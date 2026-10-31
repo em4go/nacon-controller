@@ -166,11 +166,13 @@ public final class EmulationEngine {
         // The layer is read from the report that presses the control, and the MOD key itself emits
         // nothing: it is a selector, not a "hold modifier". What a control already sent lives in
         // `performance`, so releasing the MOD key later never swaps the action under a button that is
-        // still down — the release is always the release of what was pressed. It is computed before
-        // the Guide branch because MOD+PS means "show the summary", even while stopped.
+        // still down — the release is always the release of what was pressed. Precision follows the
+        // same rule: held through the layer, it keeps slowing the pointer after the MOD key is up and
+        // ends when its own control is released, because a speed jump mid-movement is worse than a
+        // precision that ends a moment later. It is computed before the Guide branch because MOD+PS
+        // means "show the summary", even while stopped.
         let layerKey = profile.layer.key
         let layerHeld = layerKey.map { $0.isPressed(in: report) } ?? false
-        let precisionKey = profile.precision.key
 
         // S12: Guide toggles the emulation, so it is decided from the button itself and not from the
         // edge. One press means one toggle, whichever direction it went.
@@ -198,9 +200,10 @@ public final class EmulationEngine {
             effects.append(contentsOf: performance.release(control))
         }
         for control in transitions.pressed {
-            // A selector emits nothing: the MOD key chooses a reading and the precision key
-            // changes a speed. Neither of them is a keystroke.
-            guard control != layerKey, control != precisionKey else { continue }
+            // A selector emits nothing: the MOD key chooses a reading and sends no keystroke of its
+            // own. Precision is not a selector any more: it is an action, so it comes through here
+            // like any other and `PadPerformance` records the claim without emitting.
+            guard control != layerKey else { continue }
             // Held across a silence release: the user never let go, so pressing again would be a click
             // they did not make. It becomes normal once it is released.
             guard !suppressedUntilRelease.contains(control) else { continue }
@@ -247,20 +250,15 @@ public final class EmulationEngine {
 
     func tick(seconds: Double) {
         guard enabled, !isSilent else { return }
+        // Whether precision is held is not decided here: the performance knows what each held control
+        // claimed, and that is the only record that cannot disagree with what a release ends.
         emit(
             performance.advance(
                 seconds: seconds,
                 leftStick: leftStick,
-                rightStick: rightStick,
-                precisionActive: isPrecisionHeld
+                rightStick: rightStick
             )
         )
-    }
-
-    /// Whether the control that slows the pointer is down in the latest report.
-    private var isPrecisionHeld: Bool {
-        guard let key = profile.precision.key, let report = previousReport else { return false }
-        return key.isPressed(in: report)
     }
 
     /// One place that turns effects into emitter calls.

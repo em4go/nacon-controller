@@ -72,9 +72,10 @@ public final class CGEventEmitter: InputEmitter {
 
     public func press(_ action: MappedAction) {
         switch action {
-        case .none, .scrollLines, .sequence, .toggledMouseButton:
+        case .none, .precision, .scrollLines, .sequence, .toggledMouseButton:
             // A sequence never reaches the emitter: the performance expands it into steps, and each step is
-            // an ordinary key with its own press and release.
+            // an ordinary key with its own press and release. Precision puts nothing down: it is a claim
+            // on the speed, so there is no event to post for it either.
             return
         case .key(let combo):
             postKey(combo, isDown: true)
@@ -85,7 +86,7 @@ public final class CGEventEmitter: InputEmitter {
 
     public func release(_ action: MappedAction) {
         switch action {
-        case .none, .scrollLines, .sequence, .toggledMouseButton:
+        case .none, .precision, .scrollLines, .sequence, .toggledMouseButton:
             return
         case .key(let combo):
             postKey(combo, isDown: false)

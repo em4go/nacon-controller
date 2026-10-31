@@ -571,6 +571,16 @@
         }
       }
     },
+    "Precision (hold)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Precisión (mantener)"
+          }
+        }
+      }
+    },
     "Print": {
       "localizations": {
         "es": {

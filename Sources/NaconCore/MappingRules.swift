@@ -61,16 +61,19 @@ public enum MappingRules {
     }
 
     /// Whether a control can slow the pointer. The same rule as any assignment: PS stays the switch.
+    ///
+    /// The model no longer stores the control — precision is an ordinary action — so this rule is what
+    /// a file is held to when an older profile names one, in `ProfileCoding`.
     public static func isPrecisionKeyEligible(_ control: XInputControl) -> Bool {
         isRemappable(control)
     }
 
-    /// Whether a command can take one more step. A command is made of keystrokes, so a mouse button or
-    /// a scroll amount has nothing to chain.
+    /// Whether a command can take one more step. A command is made of keystrokes, so a mouse button, a
+    /// scroll amount or the precision claim has nothing to chain.
     public static func canAppendStep(to action: MappedAction) -> Bool {
         switch action {
         case .key, .sequence: return true
-        default: return false
+        case .none, .mouseButton, .toggledMouseButton, .scrollLines, .precision: return false
         }
     }
 
@@ -80,7 +83,8 @@ public enum MappingRules {
         switch action {
         case .key(let existing): return .chained([existing, combo])
         case .sequence(let steps): return .chained(steps + [combo])
-        default: return action
+        // Nothing to extend: the action is kept as it was, so an append never clears or rewrites it.
+        case .none, .mouseButton, .toggledMouseButton, .scrollLines, .precision: return action
         }
     }
 

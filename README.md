@@ -180,6 +180,12 @@ separados llegarían a la aplicación como dos gestos distintos y una diagonal s
 Cada eje lleva su propia fracción de píxel, de modo que ninguno pierde lo que el otro no usa, y la
 velocidad configurada vale para ambos. Solo el eje vertical se puede invertir, que es lo que el ajuste
 existente hace.
+
+La rueda lleva **los modificadores que el mando tiene pulsados**, igual que los clics y el movimiento del
+cursor: si asignas un botón a ⌘ y lo mantienes mientras desplazas, el desplazamiento llega con ⌘ y las
+aplicaciones que lo entienden —el tamaño de los iconos del Finder, el zoom de Safari— reaccionan. Un botón
+asignado a ⌘ no envía ⌘ hasta que lo pulsas, y los modificadores del teclado físico no se heredan: el mando
+es su propio teclado, y esa regla ya rige para las teclas.
 que un perfil de diseño y uno de juego pueden moverse distinto sin reajustar nada a mano. Los controles
 están en **Sensibilidad del cursor**, se aplican al arrancar la emulación y se bloquean mientras corre
 por la misma razón que el editor de mapeos. **Restablecer** devuelve los valores estándar sin tocar la

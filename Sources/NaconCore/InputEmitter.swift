@@ -182,7 +182,10 @@ public final class CGEventEmitter: InputEmitter {
             wheel2: deltas.x,
             wheel3: 0
         ) else { return }
-        event.flags = []
+        // The wheel carries the modifiers this app is holding, like clicks and movements do. A ⌘+scroll
+        // is a scroll whose event says ⌘: without it, holding ⌘ on the pad and scrolling did nothing,
+        // because a scroll that claims no modifiers is a plain scroll.
+        event.flags = Self.mouseFlags(held: heldByUs)
         event.post(tap: .cghidEventTap)
     }
 

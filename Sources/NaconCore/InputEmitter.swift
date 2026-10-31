@@ -1,3 +1,4 @@
+import AppKit
 import ApplicationServices
 import CoreGraphics
 import Foundation
@@ -56,8 +57,18 @@ public final class CGEventEmitter: InputEmitter {
     private var heldByUs: ModifierSet = []
     /// The mouse buttons this emitter has pressed and not released yet.
     private var pressedButtons: Set<MouseButton> = []
+    /// The click count of each gesture in progress, so a quick second press is a real double click.
+    /// The emitter only decides *whether* two presses belong to the same gesture and *when* the last
+    /// one happened, never what the gesture is worth: the interval comes from the system on every
+    /// press, so changing it in System Settings applies without restarting the app, and both the press
+    /// and its release carry the count, the way the events of a real mouse do.
+    private var clicks = ClickTracker()
+    /// The clock the tracker reads. Injected so a test could drive it; nothing else replaces it.
+    private let uptime: () -> TimeInterval
 
-    public init() {}
+    public init(uptime: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }) {
+        self.uptime = uptime
+    }
 
     public func press(_ action: MappedAction) {
         switch action {
@@ -91,6 +102,9 @@ public final class CGEventEmitter: InputEmitter {
         for button in pressedButtons {
             postMouse(button, isDown: false)
         }
+        // Releasing every button ends the gesture too: a press right after a stop must be a first
+        // click, not the third one of a double click that was in progress before.
+        clicks.reset()
     }
 
     public func releaseHeldModifiers() {
@@ -211,10 +225,26 @@ public final class CGEventEmitter: InputEmitter {
             type = isDown ? .otherMouseDown : .otherMouseUp
             cgButton = .center
         }
+        let location = Self.cursorLocation()
+        // The count is decided before the event exists, from the same position it will be posted at:
+        // a press that continued a gesture at another point would be a double click the system is
+        // right to reject.
+        let clickState: Int
+        if isDown {
+            clickState = clicks.press(
+                of: button,
+                x: Double(location.x),
+                y: Double(location.y),
+                now: uptime(),
+                interval: NSEvent.doubleClickInterval
+            )
+        } else {
+            clickState = clicks.releaseState()
+        }
         guard let event = CGEvent(
             mouseEventSource: source,
             mouseType: type,
-            mouseCursorPosition: Self.cursorLocation(),
+            mouseCursorPosition: location,
             mouseButton: cgButton
         ) else { return }
         // The click carries the modifiers this app is holding, like any other stroke: a view that
@@ -224,8 +254,9 @@ public final class CGEventEmitter: InputEmitter {
         // A real click says how many clicks it is, and a zero means "not a click": views that ask for
         // a click rather than a press ignored every press of this app until this was set. Confirmed on
         // hardware with a link in a formatted text and with a control that had never responded.
-        // Every click declares itself the first, so a double-click gesture is still not expressible.
-        event.setIntegerValueField(.mouseEventClickState, value: 1)
+        // The count is what makes a double click a double click: WindowServer does not pair presses
+        // up by itself, it reads this field.
+        event.setIntegerValueField(.mouseEventClickState, value: Int64(clickState))
         event.post(tap: .cghidEventTap)
         // Tracked so that movement while this button is down is published as a drag.
         if isDown {

@@ -48,6 +48,7 @@ El mando debe estar conectado y el permiso de Accesibilidad concedido.
 | 25 | Con la emulación en marcha y un clic fijado pendiente, desenchufar el mando; volver a enchufarlo | Aparece el aviso de que el mando dejó de enviar; el botón y las teclas pulsadas se sueltan solos; al reconectar no se pulsa nada por sí mismo y la emulación sigue activa |
 | 26 | **Sin mando**: elegir un perfil con **Tecla MOD: Ninguna** y mirar la sección de perfiles; pulsar **Ver mapeo** | Bajo el selector de la tecla MOD aparece el aviso de que sin tecla MOD no hay capa ni gesto MOD+PS en el mando, y de que PS sola enciende y apaga; el panel se abre igualmente y se queda abierto |
 | 27 | **Con el mando**, en ese perfil sin tecla MOD: pulsar PS estando apagada, y otra vez estando encendida | La primera pulsación enciende la emulación y la segunda la apaga; el resumen **no** aparece en ningún momento |
+| 28 | Con el mando, abrir un documento más ancho que la ventana (una hoja de Numbers o una imagen grande en Vista Previa) y empujar el stick derecho a la derecha; después en diagonal, y luego arriba y abajo | La derecha avanza el documento hacia la derecha; la diagonal avanza en ambos sentidos a la vez, sin escalones; arriba y abajo siguen funcionando como antes; si la derecha mueve el documento al revés, el signo del eje horizontal está invertido |
 
 ## Qué NO cubre
 

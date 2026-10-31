@@ -76,7 +76,7 @@ final class StickMotionTests: XCTestCase {
         var settings = CursorSettings.standard
         settings.invertVerticalAxis = true
         let upward = stick(normalizedX: 0, normalizedY: 1)
-        XCTAssertLessThan(StickMotion.scrollLinesPerSecond(stick: upward, settings: settings), 0)
+        XCTAssertLessThan(StickMotion.scrollVelocity(stick: upward, settings: settings).y, 0)
     }
 
     func testInversionDoesNotAffectHorizontalAxis() {
@@ -88,21 +88,21 @@ final class StickMotionTests: XCTestCase {
 
     func testScrollIsZeroInsideDeadzone() {
         let inside = stick(normalizedX: 0, normalizedY: settings.deadzone - 0.05)
-        XCTAssertEqual(StickMotion.scrollLinesPerSecond(stick: inside, settings: settings), 0)
+        XCTAssertEqual(StickMotion.scrollVelocity(stick: inside, settings: settings), .zero)
     }
 
     func testScrollDirectionFollowsStick() {
         let upward = stick(normalizedX: 0, normalizedY: 1)
         let downward = stick(normalizedX: 0, normalizedY: -1)
-        XCTAssertGreaterThan(StickMotion.scrollLinesPerSecond(stick: upward, settings: settings), 0)
-        XCTAssertLessThan(StickMotion.scrollLinesPerSecond(stick: downward, settings: settings), 0)
+        XCTAssertGreaterThan(StickMotion.scrollVelocity(stick: upward, settings: settings).y, 0)
+        XCTAssertLessThan(StickMotion.scrollVelocity(stick: downward, settings: settings).y, 0)
     }
 
     func testScrollAccumulatorKeepsRemainderBetweenTicks() {
         var accumulator = ScrollAccumulator()
-        XCTAssertEqual(accumulator.consume(pixelsPerSecond: 10, seconds: 0.05), 0)
-        XCTAssertEqual(accumulator.consume(pixelsPerSecond: 10, seconds: 0.06), 1)
+        XCTAssertEqual(accumulator.consume(pixelsPerSecondX: 0, pixelsPerSecondY: 10, seconds: 0.05).y, 0)
+        XCTAssertEqual(accumulator.consume(pixelsPerSecondX: 0, pixelsPerSecondY: 10, seconds: 0.06).y, 1)
         accumulator.reset()
-        XCTAssertEqual(accumulator.consume(pixelsPerSecond: 10, seconds: 0.05), 0)
+        XCTAssertEqual(accumulator.consume(pixelsPerSecondX: 0, pixelsPerSecondY: 10, seconds: 0.05).y, 0)
     }
 }

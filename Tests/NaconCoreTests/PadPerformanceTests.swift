@@ -74,7 +74,7 @@ final class PadPerformanceTests: XCTestCase {
 
         XCTAssertEqual(
             performance.press(.dpadUp, action: .scrollLines(2)),
-            [.scroll(pixels: Scroll.pixels(forLines: 2))]
+            [.scroll(pixels: ScrollPixels(x: 0, y: Scroll.pixels(forLines: 2)))]
         )
         XCTAssertEqual(performance.release(.dpadUp), [], "a press that only scrolled holds nothing")
         XCTAssertEqual(advance(&performance), [])
@@ -96,8 +96,8 @@ final class PadPerformanceTests: XCTestCase {
 
         // Same cadence the engine used: the fraction of a pixel is carried, not dropped, so slow
         // scrolling moves smoothly instead of stepping a whole line every few ticks.
-        XCTAssertEqual(first, [.scroll(pixels: 11)])
-        XCTAssertEqual(second, [.scroll(pixels: 11)])
+        XCTAssertEqual(first, [.scroll(pixels: ScrollPixels(x: 0, y: 11))])
+        XCTAssertEqual(second, [.scroll(pixels: ScrollPixels(x: 0, y: 11))])
     }
 
     // MARK: - Commands

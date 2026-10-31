@@ -3,7 +3,7 @@ import XCTest
 @testable import NaconCore
 
 /// Smooth scrolling is a unit problem: a line event can only carry whole lines, so at walking pace
-/// the view jumps once every few ticks. These pin the pixel path that replaced it.
+/// the view jumps once every few ticks. These pin the pixel path that replaced it, on both axes.
 final class ScrollTests: XCTestCase {
     func testALineIsAWholeNumberOfPixels() {
         XCTAssertEqual(Scroll.pixels(forLines: 1), 16)
@@ -15,34 +15,79 @@ final class ScrollTests: XCTestCase {
     func testTheAccumulatorCarriesTheFractionInPixels() {
         var accumulator = ScrollAccumulator()
         // Half a pixel per tick is the slowest a hand can ask for; it must still arrive.
-        XCTAssertEqual(accumulator.consume(pixelsPerSecond: 100, seconds: 0.005), 0)
-        XCTAssertEqual(accumulator.consume(pixelsPerSecond: 100, seconds: 0.005), 1)
+        XCTAssertEqual(accumulator.consume(pixelsPerSecondX: 0, pixelsPerSecondY: 100, seconds: 0.005).y, 0)
+        XCTAssertEqual(accumulator.consume(pixelsPerSecondX: 0, pixelsPerSecondY: 100, seconds: 0.005).y, 1)
+    }
+
+    func testTheAccumulatorKeepsOneFractionPerAxis() {
+        // A fraction belongs to its own axis: a sideways push must never pay for the vertical one.
+        var accumulator = ScrollAccumulator()
+        let first = accumulator.consume(pixelsPerSecondX: 100, pixelsPerSecondY: 0, seconds: 0.005)
+        XCTAssertEqual(first.x, 0)
+        XCTAssertEqual(first.y, 0)
+        let second = accumulator.consume(pixelsPerSecondX: 100, pixelsPerSecondY: 0, seconds: 0.005)
+        XCTAssertEqual(second.x, 1, "the horizontal half-pixel must arrive")
+        XCTAssertEqual(second.y, 0, "and must not appear on the vertical axis")
+    }
+
+    func testPushingTheRightStickRightScrollsHorizontally() {
+        let events = scrollEvents(rightX: 32_767, rightY: 0)
+        let horizontal = events.reduce(0) { $0 + $1.x }
+        let vertical = events.reduce(0) { $0 + $1.y }
+        XCTAssertGreaterThan(horizontal, 0, "pushing the stick right must scroll right")
+        XCTAssertEqual(vertical, 0, "a sideways push must not move the page vertically")
+    }
+
+    func testPushingTheRightStickDownStillScrollsVertically() {
+        // The axis that already worked. It is here so the new one cannot quietly take its place.
+        let events = scrollEvents(rightX: 0, rightY: 32_767)
+        let horizontal = events.reduce(0) { $0 + $1.x }
+        let vertical = events.reduce(0) { $0 + $1.y }
+        XCTAssertNotEqual(vertical, 0)
+        XCTAssertEqual(horizontal, 0, "a vertical push must not move the page sideways")
+    }
+
+    func testADiagonalPushArrivesInOneEventWithBothAxes() {
+        let events = scrollEvents(rightX: 32_767, rightY: 32_767)
+        XCTAssertGreaterThan(events.count, 0)
+        // One event carrying both axes, not two events: some views treat two wheel events as two
+        // separate gestures, and a diagonal would arrive as a stagger.
+        XCTAssertTrue(
+            events.contains { $0.x != 0 && $0.y != 0 },
+            "a diagonal push must reach the system as a single two-axis event"
+        )
+    }
+
+    func testInsideTheDeadzoneNeitherAxisScrolls() {
+        let inside = Int16(Double(Int16.max) * 0.05)
+        let events = scrollEvents(rightX: inside, rightY: inside)
+        XCTAssertEqual(events.count, 0, "a stick resting near the centre must not scroll at all")
     }
 
     func testTheSameDeflectionForTheSameSecondScrollsTheSameDistanceWhateverTheCadence() {
-        func travelled(cadence: Double) -> Int {
+        func travelled(cadence: Double) -> (x: Int, y: Int) {
             let recorder = RecordingEmitter()
             var now: TimeInterval = 0
             let engine = EmulationEngine(emitter: recorder, uptime: { now })
             engine.advance(now: 0)
             engine.setEnabledNow(true)
-            engine.handle(Self.fullDownReport)
+            let report = Self.report(rightX: 32_767, rightY: 32_767)
             let step = 1.0 / cadence
             for index in 1...Int(cadence) {
                 now = Double(index) * step
-                // Same reason as the cursor test: reports keep arriving while the stick is held.
-                engine.handle(Self.fullDownReport)
+                // A live pad reports continuously; without a report the engine freezes by design.
+                engine.handle(report)
                 engine.advance(now: now)
             }
-            return recorder.pixels
+            return (recorder.scrolledX, recorder.scrolledY)
         }
 
-        // Pushing the stick down reports a negative wheel delta, hence the magnitudes here.
-        let fast = abs(travelled(cadence: 60))
-        let slow = abs(travelled(cadence: 10))
+        let fast = travelled(cadence: 60)
+        let slow = travelled(cadence: 10)
 
-        XCTAssertGreaterThan(fast, 0, "the test must not pass on an engine that never scrolls")
-        XCTAssertEqual(slow, fast, accuracy: 4, "10 Hz must travel what 60 Hz travels")
+        XCTAssertGreaterThan(fast.x, 0, "the test must not pass on an engine that never scrolls")
+        XCTAssertEqual(slow.x, fast.x, accuracy: 4, "10 Hz must travel what 60 Hz travels horizontally")
+        XCTAssertEqual(slow.y, fast.y, accuracy: 4, "10 Hz must travel what 60 Hz travels vertically")
     }
 
     func testNoSingleEventIsBiggerThanALineAndTheyArriveOften() {
@@ -52,18 +97,19 @@ final class ScrollTests: XCTestCase {
         let engine = EmulationEngine(emitter: recorder, uptime: { now })
         engine.advance(now: 0)
         engine.setEnabledNow(true)
-        engine.handle(Self.fullDownReport)
+        let report = Self.report(rightX: 32_767, rightY: 32_767)
         for index in 1...60 {
             now = Double(index) / 60.0
             // A live pad reports every 4 ms; without a report the engine freezes by design.
-            engine.handle(Self.fullDownReport)
+            engine.handle(report)
             engine.advance(now: now)
         }
 
         XCTAssertGreaterThanOrEqual(recorder.events.count, 50, "one event per frame, not one per line")
         for event in recorder.events {
             if case .scroll(let pixels) = event {
-                XCTAssertLessThanOrEqual(abs(pixels), 16, "a single event must not jump a whole line")
+                XCTAssertLessThanOrEqual(abs(pixels.y), 16, "a single event must not jump a whole line")
+                XCTAssertLessThanOrEqual(abs(pixels.x), 16, "and not sideways either")
             }
         }
     }
@@ -74,14 +120,32 @@ final class ScrollTests: XCTestCase {
         XCTAssertEqual(CursorSensitivity.scrollSpeed.clamp(60), 60)
     }
 
-    private static var fullDownReport: XInputReport {
+    // MARK: - Helpers
+
+    /// Runs the engine for one second at 60 Hz with the right stick held at the given deflection.
+    private func scrollEvents(rightX: Int16, rightY: Int16) -> [ScrollPixels] {
+        let recorder = RecordingEmitter()
+        var now: TimeInterval = 0
+        let engine = EmulationEngine(emitter: recorder, uptime: { now })
+        engine.advance(now: 0)
+        engine.setEnabledNow(true)
+        let report = Self.report(rightX: rightX, rightY: rightY)
+        for index in 1...60 {
+            now = Double(index) / 60.0
+            engine.handle(report)
+            engine.advance(now: now)
+        }
+        return recorder.scrollPixels
+    }
+
+    private static func report(rightX: Int16, rightY: Int16) -> XInputReport {
         XInputReport(
             rawBytes: [],
             buttons: [],
             leftTrigger: 0,
             rightTrigger: 0,
             leftStick: .center,
-            rightStick: XInputStick(rawX: 0, rawY: 32_767)
+            rightStick: XInputStick(rawX: rightX, rawY: rightY)
         )
     }
 }

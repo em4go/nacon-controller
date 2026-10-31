@@ -4,7 +4,7 @@ Lo que ningún test automático puede comprobar en este proyecto: el mando real,
 sistema y el cableado de AppKit. Se ejecuta antes de dar por buena una entrega que toque esas zonas.
 
 Ejecutado el 2026-10-29 con resultado correcto en los pasos 1 a 21, y el 2026-10-31 en los pasos 22 a
-28. Ninguno pendiente. Repetir los pasos 2, 3 y 19 siempre que cambie el código de captura de pulsaciones, el 12 y
+29. Ninguno pendiente. Repetir los pasos 2, 3 y 19 siempre que cambie el código de captura de pulsaciones, el 12 y
 el 13 siempre que cambie la capa MOD, y el 21 siempre que cambie el catálogo de textos o la forma en que
 se resuelve el idioma.
 
@@ -49,6 +49,7 @@ El mando debe estar conectado y el permiso de Accesibilidad concedido.
 | 26 | **Sin mando**: elegir un perfil con **Tecla MOD: Ninguna** y mirar la sección de perfiles; pulsar **Ver mapeo** | Bajo el selector de la tecla MOD aparece el aviso de que sin tecla MOD no hay capa ni gesto MOD+PS en el mando, y de que PS sola enciende y apaga; el panel se abre igualmente y se queda abierto |
 | 27 | **Con el mando**, en ese perfil sin tecla MOD: pulsar PS estando apagada, y otra vez estando encendida | La primera pulsación enciende la emulación y la segunda la apaga; el resumen **no** aparece en ningún momento |
 | 28 | Con el mando, abrir un documento más ancho que la ventana (una hoja de Numbers o una imagen grande en Vista Previa) y empujar el stick derecho a la derecha; después en diagonal, y luego arriba y abajo | La derecha avanza el documento hacia la derecha; la diagonal avanza en ambos sentidos a la vez, sin escalones; arriba y abajo siguen funcionando como antes |
+| 29 | Con **más de un perfil**, pulsar **Eliminar** y luego **Cancelar**; después pulsar **Eliminar** otra vez y confirmar | El primer clic abre un diálogo con el nombre del perfil entre comillas; Cancelar lo deja todo igual; el segundo desaparece el perfil y queda seleccionado otro; con un solo perfil el botón está deshabilitado |
 
 ## Qué NO cubre
 

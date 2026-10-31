@@ -281,6 +281,16 @@
         }
       }
     },
+    "Delete profile?": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Eliminar el perfil?"
+          }
+        }
+      }
+    },
     "Detected controllers": {
       "localizations": {
         "es": {
@@ -1118,6 +1128,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "no disponible"
+          }
+        }
+      }
+    },
+    "“%@” and everything it holds — its mappings, the MOD layer and its sensitivity — will be deleted. This cannot be undone.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se eliminará «%@» con todo lo que contiene: los mapeos, la capa MOD y su sensibilidad. Esto no se puede deshacer."
           }
         }
       }

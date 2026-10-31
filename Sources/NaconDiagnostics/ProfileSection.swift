@@ -20,6 +20,9 @@ struct ProfileSection: View {
     @AppStorage("padViewMode") private var viewMode: PadViewMode = .graph
 
     @State private var isRenaming = false
+    /// Deleting takes the whole profile with it — mappings, layer, sensitivity — and nothing brings it
+    /// back, so it asks first: the button sits one click away from the picker.
+    @State private var isConfirmingDelete = false
     @State private var draftName = ""
 
     /// The one key capture of the section. Both views arm it, so whichever one is on screen has the
@@ -125,6 +128,27 @@ struct ProfileSection: View {
             }
         } message: {
             Text(AppText.resolve("The name cannot be empty."))
+        }
+        // A confirmation dialog and not a second alert: two `.alert` modifiers on the same view can
+        // shadow each other, and the rename alert is attached right above.
+        .confirmationDialog(
+            AppText.resolve("Delete profile?"),
+            isPresented: $isConfirmingDelete,
+            titleVisibility: .visible
+        ) {
+            Button(AppText.resolve("Delete"), role: .destructive) {
+                profiles.deleteSelectedProfile()
+            }
+            Button(AppText.resolve("Cancel"), role: .cancel) {}
+        } message: {
+            // The name is data, inserted through the hole: the sentence is one key, so a translator
+            // can move the name where their grammar needs it.
+            Text(
+                AppText.format(
+                    "“%@” and everything it holds — its mappings, the MOD layer and its sensitivity — will be deleted. This cannot be undone.",
+                    profiles.selectedProfile?.name ?? ""
+                )
+            )
         }
     }
 
@@ -286,7 +310,7 @@ struct ProfileSection: View {
             }
             .disabled(profiles.selectedProfile == nil)
             Button(AppText.resolve("Delete")) {
-                profiles.deleteSelectedProfile()
+                isConfirmingDelete = true
             }
             .disabled(!profiles.canDeleteProfile)
         }

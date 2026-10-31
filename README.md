@@ -271,8 +271,16 @@ cancela la captura y deja el mapeo como estaba.
 ### Resumen de mapeos
 
 Mantén la tecla MOD y pulsa PS: aparece un panel flotante con lo que envía cada control, en la base y
-—si el perfil tiene capa— con MOD. Se cierra con **Esc**, con un **clic fuera** del panel, volviendo a
-pulsar MOD+PS, solo a los ocho segundos, o al apagar la emulación.
+—si el perfil tiene capa— con MOD. También se abre con **Ver mapeo**, en la sección de perfiles, y desde
+el icono de la barra, que es la forma de consultarlo cuando el perfil no tiene tecla MOD o el mando no
+está en la mano.
+
+Se cierra con **Esc**, con un **clic fuera** del panel, volviendo a pulsar el mismo gesto, o al apagar la
+emulación. **No se cierra solo**: se queda hasta que lo cierres, porque leerlo exige mirar el mando y
+volver a la pantalla.
+
+En un perfil **sin tecla MOD** el gesto MOD+PS no existe, y PS sola enciende o apaga la emulación: el
+panel lo advierte junto al selector de la tecla MOD.
 
 Para Esc y el clic fuera se usan dos monitores de eventos, uno global y otro local, porque ninguno basta
 solo: el global solo ve lo que va a otras aplicaciones y el local solo lo que llega a la nuestra. Si no

@@ -158,12 +158,13 @@ public final class CGEventEmitter: InputEmitter {
         //
         // Both axes in one event, always: sending two axis-only events makes a diagonal arrive as
         // two separate wheel gestures, which some views handle as two different scrolls.
+        let deltas = Scroll.wheelDeltas(for: pixels)
         guard let event = CGEvent(
             scrollWheelEvent2Source: source,
             units: .pixel,
             wheelCount: 2,
-            wheel1: Int32(pixels.y),
-            wheel2: Int32(pixels.x),
+            wheel1: deltas.y,
+            wheel2: deltas.x,
             wheel3: 0
         ) else { return }
         event.flags = []

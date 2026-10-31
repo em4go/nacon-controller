@@ -385,9 +385,9 @@ odd/tasks/phase2-diagnostics.md           Especificación y registro de la tarea
 
 - El mando solo admite **un dueño a la vez**: si la app está abierta, otro programa no puede leerlo,
   y si otro programa lo captura, la app deja de recibir informes.
-- La emulación no se ha validado todavía de extremo a extremo: requiere que concedas el permiso de
-  Accesibilidad. La lógica está cubierta por 175 tests con un emisor simulado, pero el envío real de
-  eventos a otras aplicaciones solo se puede comprobar con el permiso concedido.
+- La emulación está validada de extremo a extremo con el permiso de Accesibilidad concedido: 399 tests
+  automáticos con un emisor simulado, y los pasos manuales de `docs/manual-acceptance.md` ejecutados con
+  el mando. Lo que sigue sin poder comprobarse sin hardware son los gestos concretos de cada aplicación.
 - `ControllerService.swift` supera las 400 líneas; conviene extraer el acceso al registro IOKit a su
   propio archivo cuando se toque de nuevo.
 
@@ -395,5 +395,14 @@ odd/tasks/phase2-diagnostics.md           Especificación y registro de la tarea
   necesitarían ampliar la tabla de identidades.
 - El significado de cada bit está fijado por el protocolo Xbox 360. Si una unidad concreta
   intercambiara botones, la tabla está en un único sitio (`XInputReport.swift`).
+- **El pellizco del trackpad no se puede imitar**, y es una pena porque sería el zoom ideal: funciona en
+  cualquier aplicación. No hay API pública para fabricarlo. `NSEvent.h` define `NSEventTypeMagnify` (tipo
+  30) y `CGEventTypes.h` define `CGGesturePhase`, pero **ninguno ofrece un campo público de `CGEvent`
+  donde escribir cuánto se amplía**: se puede publicar un evento con ese tipo —un testigo a nivel de
+  sistema lo ve— y aun así no hay gesto con cantidad, que es justo lo que el pellizco aporta. Los únicos
+  proyectos que lo consiguen inyectan datos multitáctiles crudos con `IOHIDEvent` y frameworks privados
+  (`TouchSynthesis`), y eso no entra aquí porque no sobrevive a una actualización del sistema.
+  Lo que sí funciona: **⌘+rueda o ⌃+rueda donde la aplicación lo acepte** (confirmado en Figma, y ⌃+rueda
+  es lo que macOS entrega a las aplicaciones web cuando pellizcas), y **⌘+ / ⌘−** en las nativas.
 - La luz y la vibración se controlan desde la app. La orden de parada de ambas se envía al terminar,
   así que un cierre forzado puede dejarlas en el estado anterior.

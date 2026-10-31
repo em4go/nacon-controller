@@ -30,6 +30,8 @@ final class ScrollTests: XCTestCase {
             let step = 1.0 / cadence
             for index in 1...Int(cadence) {
                 now = Double(index) * step
+                // Same reason as the cursor test: reports keep arriving while the stick is held.
+                engine.handle(Self.fullDownReport)
                 engine.advance(now: now)
             }
             return recorder.pixels
@@ -53,6 +55,8 @@ final class ScrollTests: XCTestCase {
         engine.handle(Self.fullDownReport)
         for index in 1...60 {
             now = Double(index) / 60.0
+            // A live pad reports every 4 ms; without a report the engine freezes by design.
+            engine.handle(Self.fullDownReport)
             engine.advance(now: now)
         }
 

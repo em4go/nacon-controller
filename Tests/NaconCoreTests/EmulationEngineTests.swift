@@ -371,6 +371,9 @@ final class EmulationEngineTests: XCTestCase {
             let step = 1.0 / cadence
             for index in 1...Int(cadence) {
                 now = Double(index) * step
+                // A live pad reports continuously; without a report the engine now freezes, which is
+                // the behaviour this test is not about but has to respect.
+                clocked.handle(report(left: stick(normalizedX: 1)))
                 clocked.advance(now: now)
             }
             return recorder.events.reduce(0) { total, event in

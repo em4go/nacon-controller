@@ -37,6 +37,10 @@ struct MenuBarContent: View {
 
         Divider()
 
+        Button(AppText.resolve("Show mapping")) {
+            emulation.toggleSummary()
+        }
+
         Button(AppText.resolve("Open window")) {
             openWindow(id: WindowID.main)
             NSApp.activate(ignoringOtherApps: true)

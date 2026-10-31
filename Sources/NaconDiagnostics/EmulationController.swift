@@ -10,6 +10,8 @@ final class EmulationController: ObservableObject {
     @Published private(set) var hasAccessibility = AccessibilityPermission.isGranted
     @Published private(set) var stoppedByPad = false
     @Published private(set) var startedByPad = false
+    /// The pad stopped sending. Nothing was disabled: a hub stall is not the user asking to stop.
+    @Published private(set) var padSilent = false
 
     private let engine = EmulationEngine(emitter: CGEventEmitter())
     /// Supplies the mapping to run. The app points it at the saved profiles, so a start uses the
@@ -44,15 +46,22 @@ final class EmulationController: ObservableObject {
         }
         // MOD+PS: the floating summary. Same hop as the other callbacks: the pad reports arrive on
         // the USB I/O queue, and the panel is main-thread only.
+        engine.onPadSilence = { [weak self] in
+            DispatchQueue.main.async { self?.padSilent = true }
+        }
+        engine.onPadResume = { [weak self] in
+            DispatchQueue.main.async { self?.padSilent = false }
+        }
         engine.onSummaryPress = { [weak self] in
             DispatchQueue.main.async {
-                self?.toggleSummaryFromPad()
+                self?.toggleSummary()
             }
         }
     }
 
-    /// Also reachable through the `--show-summary` launch argument, for screenshot checks.
-    func toggleSummaryFromPad() {
+    /// Opens or closes the mapping summary. One entry point for the pad gesture, the window button, the
+    /// menu bar item and the `--show-summary` launch argument, so the four cannot diverge.
+    func toggleSummary() {
         summary.toggle(with: summarySource())
     }
 
@@ -152,6 +161,7 @@ final class EmulationController: ObservableObject {
         permissionTimer = nil
         cancellables.removeAll()
         isEnabled = false
+        padSilent = false
     }
 
     func setEnabled(_ newValue: Bool) {
@@ -159,6 +169,7 @@ final class EmulationController: ObservableObject {
         startedByPad = false
         guard newValue else {
             isEnabled = false
+            padSilent = false
             engine.setEnabled(false)
             return
         }

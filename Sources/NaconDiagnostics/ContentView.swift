@@ -32,6 +32,9 @@ struct ContentView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 StatusBanner(state: service.state)
+                if emulation.padSilent {
+                    PadSilenceBanner()
+                }
                 DeviceListSection(devices: service.devices)
                 // S1, S4, S5, S8: the profiles live above the emulation settings they feed.
                 ProfileSection(profiles: profiles, feed: service.feed)
@@ -59,6 +62,26 @@ struct ContentView: View {
 }
 
 // MARK: - S2, S6: connection state
+
+/// What the window says when the pad went quiet: the engine has already let go of everything, so the
+/// message is about what happened and what to check, not about what to press.
+struct PadSilenceBanner: View {
+    var body: some View {
+        HStack(alignment: .top, spacing: 14) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(.orange)
+            Text(
+                AppText.resolve(
+                    "The pad stopped sending, so the keys and buttons it was holding were released. Check the cable; emulation resumes by itself when reports come back."
+                )
+            )
+            .font(.callout)
+            Spacer(minLength: 0)
+        }
+        .padding(12)
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color.orange.opacity(0.12)))
+    }
+}
 
 struct StatusBanner: View {
     let state: ConnectionState

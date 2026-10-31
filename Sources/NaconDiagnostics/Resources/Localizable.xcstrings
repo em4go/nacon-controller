@@ -812,6 +812,26 @@
         }
       }
     },
+    "Show mapping": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver mapeo"
+          }
+        }
+      }
+    },
+    "Shows what each control sends. It stays open until you close it.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muestra lo que envía cada control. Permanece abierto hasta que lo cierres."
+          }
+        }
+      }
+    },
     "Standard profile": {
       "localizations": {
         "es": {
@@ -918,6 +938,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Se asignará la próxima pulsación a %@."
+          }
+        }
+      }
+    },
+    "The pad stopped sending, so the keys and buttons it was holding were released. Check the cable; emulation resumes by itself when reports come back.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El mando dejó de enviar, así que se han soltado las teclas y los botones que tenía pulsados. Comprueba el cable; la emulación se reanuda sola cuando vuelven los informes."
           }
         }
       }
@@ -1058,6 +1088,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Con el indicador activado, la luz pequeña bajo el botón PS se enciende mientras la emulación está activa y se apaga al detenerla. Desactívalo para encender y apagar la luz a mano."
+          }
+        }
+      }
+    },
+    "Without a MOD key there is no layer and no MOD+PS on the pad: PS alone turns emulation on and off. Use “Show mapping” to see the map.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin tecla MOD no hay capa ni MOD+PS en el mando: PS solo enciende y apaga la emulación. Usa «Ver mapeo» para consultar el mapa."
           }
         }
       }

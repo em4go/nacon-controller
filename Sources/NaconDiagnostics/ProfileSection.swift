@@ -192,6 +192,13 @@ struct ProfileSection: View {
                 .help(
                     AppText.resolve("Removes the MOD key and all its assignments. The base does not change.")
                 )
+                Button(AppText.resolve("Show mapping")) {
+                    emulation.toggleSummary()
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                // Reading the map is allowed while emulating: it changes nothing.
+                .help(AppText.resolve("Shows what each control sends. It stays open until you close it."))
                 Spacer(minLength: 0)
             }
             // S7: the layer is frozen with the rest of the profile once emulation starts, so the
@@ -199,8 +206,14 @@ struct ProfileSection: View {
             .disabled(emulation.isEnabled)
             if layer.isActive {
                 Text(AppText.resolve("While you hold the MOD key down, the buttons send what the MOD column says; the MOD key itself sends nothing."))
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                // The gesture needs a layer to open. Saying it here is what stops someone pressing
+                // MOD+PS on a profile without one and turning the emulation off instead.
+                Text(AppText.resolve("Without a MOD key there is no layer and no MOD+PS on the pad: PS alone turns emulation on and off. Use “Show mapping” to see the map."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
     }

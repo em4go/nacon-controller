@@ -6,13 +6,13 @@ import SwiftUI
 ///
 /// It is a non-activating panel on purpose: like Spotlight, it must answer without stealing the
 /// focus or the clicks, because it is read while the user is working in another application. It
-/// ignores the mouse entirely, so it cannot be dragged or dismissed with a click — MOD+PS or
-/// stopping the emulation close it.
+/// ignores the mouse entirely, so it cannot be dragged. It stays up until the user closes it — Escape, a
+/// click anywhere, the same gesture again, or stopping the emulation — because a panel that hides itself
+/// is exactly wrong for someone who has to look down at the pad and back up.
 @MainActor
 final class MappingSummaryWindow {
     /// The visible panel, if any. Toggling replaces it, so a profile change while open is fine.
     private var panel: NSPanel?
-    private var autoHide: Timer?
     private var globalMonitor: Any?
     private var localMonitor: Any?
 
@@ -31,8 +31,6 @@ final class MappingSummaryWindow {
     }
 
     func hide() {
-        autoHide?.invalidate()
-        autoHide = nil
         removeClosingMonitors()
         panel?.orderOut(nil)
         panel = nil
@@ -107,11 +105,6 @@ final class MappingSummaryWindow {
         panel.orderFrontRegardless()
         self.panel = panel
 
-        // A summary read at a glance must not need a matching gesture to go away. Long enough to
-        // read two columns, short enough that forgetting it is harmless.
-        autoHide = Timer.scheduledTimer(withTimeInterval: 8, repeats: false) { [weak self] _ in
-            DispatchQueue.main.async { self?.hide() }
-        }
         installClosingMonitors()
     }
 }
@@ -134,15 +127,11 @@ private struct MappingSummaryView: View {
 
     private var rows: [Row] {
         MappingRules.remappableControls.compactMap { control in
+            // Every remappable control appears. Omitting the empty ones turned the panel into a list of
+            // what exists instead of a map of the pad, and a control that is missing reads as broken.
             let base = profile.action(for: control)
-            // Unassigned controls are absent: a summary is read at a glance, and empty rows are noise.
-            guard base != .none else { return nil }
             let mod = profile.layer.action(for: control)
-            return Row(
-                control: control,
-                base: base.displayName,
-                mod: mod.map(\.displayName)
-            )
+            return Row(control: control, base: base.displayName, mod: mod.map(\.displayName))
         }
     }
 

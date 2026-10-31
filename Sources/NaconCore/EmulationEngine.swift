@@ -14,6 +14,11 @@ public final class EmulationEngine {
     /// stop, and reporting it as well would toggle twice on a single press. The observer hops to the
     /// main thread, because this fires on the USB queue.
     public var onGuidePress: (() -> Void)?
+    /// The pad stopped sending. Reported once per silence so the window can say it out loud; nothing was
+    /// disabled, because a stall of the hub is not the user asking to stop.
+    public var onPadSilence: (() -> Void)?
+    /// Reports are arriving again after a silence release.
+    public var onPadResume: (() -> Void)?
     /// MOD held while PS was pressed: show the mapping summary instead of toggling. Reading the map
     /// must never stop the pad, so this path bypasses the toggle entirely.
     public var onSummaryPress: (() -> Void)?
@@ -49,6 +54,17 @@ public final class EmulationEngine {
     /// in the background, which is where the user actually is.
     private var activity: NSObjectProtocol?
     private var previousReport: XInputReport?
+    /// When the last report arrived, by the same clock the ticks use.
+    private var lastReportAt: TimeInterval?
+    /// Whether the silence-release already happened, so it happens once and not on every tick.
+    private var releasedForSilence = false
+    /// Controls that were down when the pad went silent. They must not be pressed again when it comes
+    /// back: the user never let go of them, so a fresh press would be a click they did not make.
+    private var suppressedUntilRelease: Set<XInputControl> = []
+    /// A stall shorter than this is not worth reacting to; a longer one stops acting on stale input.
+    static let silenceFreezeAfter: TimeInterval = 0.4
+    /// A silence this long means the pad is not coming back on its own: let go of everything.
+    static let silenceReleaseAfter: TimeInterval = 1.0
     /// S2, S3: what a press does over time — hold, repeat, command steps, scroll, cursor. It takes the
     /// seconds as an argument and answers with effects, so nothing here waits for a clock.
     private var performance: PadPerformance
@@ -137,6 +153,11 @@ public final class EmulationEngine {
     // MARK: - Synchronous core (also used directly by tests)
 
     func handle(_ report: XInputReport) {
+        lastReportAt = uptime()
+        if releasedForSilence {
+            releasedForSilence = false
+            onPadResume?()
+        }
         leftStick = report.leftStick
         rightStick = report.rightStick
         let transitions = ControlEdges.transitions(from: previousReport, to: report)
@@ -172,12 +193,17 @@ public final class EmulationEngine {
         // Release first so a control that swaps action can never leave the old one held.
         var effects: [PerformanceEffect] = []
         for control in transitions.released {
+            // Letting go ends the suppression: from here the control behaves as it always did.
+            suppressedUntilRelease.remove(control)
             effects.append(contentsOf: performance.release(control))
         }
         for control in transitions.pressed {
             // A selector emits nothing: the MOD key chooses a reading and the precision key
             // changes a speed. Neither of them is a keystroke.
             guard control != layerKey, control != precisionKey else { continue }
+            // Held across a silence release: the user never let go, so pressing again would be a click
+            // they did not make. It becomes normal once it is released.
+            guard !suppressedUntilRelease.contains(control) else { continue }
             let action = profile.action(for: control, layerActive: layerActive)
             guard action != .none else { continue }
             effects.append(contentsOf: performance.press(control, action: action))
@@ -193,8 +219,34 @@ public final class EmulationEngine {
         }
     }
 
+    /// Freezes on a short stall and lets go of everything on a long one.
+    ///
+    /// The sticks the engine moves with are the last ones it was told, however old: without this, a pad
+    /// that stops sending leaves the cursor sliding and a toggled button held, and nothing in the system
+    /// knows the user is no longer in control.
+    private func handleSilence(now: TimeInterval) {
+        guard enabled, let lastReportAt else { return }
+        let silence = now - lastReportAt
+        guard silence >= Self.silenceReleaseAfter, !releasedForSilence else { return }
+        releasedForSilence = true
+        if let report = previousReport {
+            suppressedUntilRelease.formUnion(XInputControl.allCases.filter { $0.isPressed(in: report) })
+        }
+        emit(performance.reset())
+        emitter.releaseAllMouseButtons()
+        emitter.releaseHeldModifiers()
+        onPadSilence?()
+    }
+
+    /// Whether the pad is too quiet to act on. A tick during this gap must emit nothing: a stale stick
+    /// would keep moving the pointer.
+    private var isSilent: Bool {
+        guard let lastReportAt else { return false }
+        return uptime() - lastReportAt >= Self.silenceFreezeAfter
+    }
+
     func tick(seconds: Double) {
-        guard enabled else { return }
+        guard enabled, !isSilent else { return }
         emit(
             performance.advance(
                 seconds: seconds,
@@ -245,6 +297,9 @@ public final class EmulationEngine {
         emitter.releaseAllMouseButtons()
         emitter.releaseHeldModifiers()
         previousReport = nil
+        lastReportAt = nil
+        releasedForSilence = false
+        suppressedUntilRelease.removeAll()
         if notify {
             DispatchQueue.main.async { [weak self] in
                 self?.onEmergencyStop?()
@@ -258,6 +313,7 @@ public final class EmulationEngine {
     /// keeping it separate from the timer is what makes the throttled case testable without waiting for
     /// macOS to throttle anything.
     func advance(now: TimeInterval) {
+        handleSilence(now: now)
         let elapsed = lastTick.map { now - $0 }
         lastTick = now
         tick(

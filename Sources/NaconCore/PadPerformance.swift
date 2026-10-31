@@ -16,8 +16,8 @@ enum PerformanceEffect: Equatable, Sendable {
     case toggleMouseButton(MouseButton)
     /// Move the pointer by a delta, in points.
     case moveCursor(deltaX: Double, deltaY: Double)
-    /// Turn the wheel by a number of pixels.
-    case scroll(pixels: Int)
+    /// Turn the wheel by a number of pixels, on each axis.
+    case scroll(pixels: ScrollPixels)
 }
 
 /// S2, S3: what one press does over time, with time as an argument.
@@ -74,7 +74,7 @@ struct PadPerformance {
     /// - Everything else: held, so it is pressed now and released with the control.
     mutating func press(_ control: XInputControl, action: MappedAction) -> [PerformanceEffect] {
         if case .scrollLines(let lines) = action {
-            return [.scroll(pixels: Scroll.pixels(forLines: lines))]
+            return [.scroll(pixels: ScrollPixels(x: 0, y: Scroll.pixels(forLines: lines)))]
         }
         if case .toggledMouseButton(let button) = action {
             // A toggle is a state that lives in the emitter, not a press to hold: storing it would
@@ -132,12 +132,13 @@ struct PadPerformance {
             )
         }
         effects.append(contentsOf: advanceCommands())
-        let rate = StickMotion.scrollLinesPerSecond(stick: rightStick, settings: settings)
+        let scrollVelocity = StickMotion.scrollVelocity(stick: rightStick, settings: settings)
         let pixels = scroll.consume(
-            pixelsPerSecond: rate * Scroll.pixelsPerLine * factor,
+            pixelsPerSecondX: scrollVelocity.x * Scroll.pixelsPerLine * factor,
+            pixelsPerSecondY: scrollVelocity.y * Scroll.pixelsPerLine * factor,
             seconds: seconds
         )
-        if pixels != 0 {
+        if !pixels.isZero {
             effects.append(.scroll(pixels: pixels))
         }
         effects.append(contentsOf: advanceKeyRepeats(seconds: seconds))

@@ -8,7 +8,7 @@ final class RecordingEmitter: InputEmitter {
         case press(MappedAction)
         case release(MappedAction)
         case move(deltaX: Double, deltaY: Double)
-        case scroll(Int)
+        case scroll(ScrollPixels)
         case repeatKey(MappedAction)
         case toggleMouseButton(MouseButton)
         case releaseAllMouseButtons
@@ -30,7 +30,7 @@ final class RecordingEmitter: InputEmitter {
         events.append(.move(deltaX: deltaX, deltaY: deltaY))
     }
 
-    func scroll(pixels: Int) {
+    func scroll(pixels: ScrollPixels) {
         events.append(.scroll(pixels))
     }
 
@@ -54,11 +54,15 @@ final class RecordingEmitter: InputEmitter {
         releasedHeldModifiers += 1
     }
 
-    /// Total pixels the engine asked to scroll, for tests that compare cadences.
-    var pixels: Int {
-        events.reduce(0) { total, event in
-            if case .scroll(let value) = event { return total + value }
-            return total
+    /// Every scroll the engine asked for, in order, for tests that inspect the two axes separately.
+    var scrollPixels: [ScrollPixels] {
+        events.compactMap { event in
+            if case .scroll(let value) = event { return value }
+            return nil
         }
     }
+
+    /// Total pixels per axis, for tests that compare cadences.
+    var scrolledX: Int { scrollPixels.reduce(0) { $0 + $1.x } }
+    var scrolledY: Int { scrollPixels.reduce(0) { $0 + $1.y } }
 }

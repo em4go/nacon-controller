@@ -256,9 +256,9 @@ final class EmulationEngineTests: XCTestCase {
         engine.setEnabledNow(true)
         engine.handle(report(right: stick(normalizedX: 0, normalizedY: 1)))
         engine.tick(seconds: 0.05)
-        XCTAssertEqual(emitter.events, [.scroll(11)])
+        XCTAssertEqual(emitter.events, [.scroll(ScrollPixels(x: 0, y: 11))])
         engine.tick(seconds: 0.05)
-        XCTAssertEqual(emitter.events, [.scroll(11), .scroll(11)])
+        XCTAssertEqual(emitter.events, [.scroll(ScrollPixels(x: 0, y: 11)), .scroll(ScrollPixels(x: 0, y: 11))])
     }
 
     func testAMappedScrollActionScrollsOnPress() {
@@ -270,7 +270,10 @@ final class EmulationEngineTests: XCTestCase {
         localEngine.handle(report())
         localEngine.handle(report(buttons: [.dpadDown]))
 
-        XCTAssertEqual(localEmitter.events, [.scroll(16), .scroll(-32)])
+        XCTAssertEqual(
+            localEmitter.events,
+            [.scroll(ScrollPixels(x: 0, y: 16)), .scroll(ScrollPixels(x: 0, y: -32))]
+        )
     }
 
     // MARK: - MOD layer

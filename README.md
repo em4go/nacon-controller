@@ -160,6 +160,13 @@ líneas: un evento de línea solo puede llevar líneas enteras, así que a poca 
 saltaba una línea cada varios ciclos. En píxeles la fracción se arrastra de un ciclo al siguiente y el
 movimiento es continuo. `Scroll.pixelsPerLine` (16) es el puente entre la unidad que ves y la que
 recibe el sistema, y es una estimación: macOS no fija cuántos píxeles mide una línea.
+
+El stick derecho desplaza en **los dos ejes**: arriba y abajo como siempre, y también a izquierda y
+derecha, que hasta ahora no hacía nada. Los dos ejes viajan en el mismo evento, porque dos eventos
+separados llegarían a la aplicación como dos gestos distintos y una diagonal se notaría escalonada.
+Cada eje lleva su propia fracción de píxel, de modo que ninguno pierde lo que el otro no usa, y la
+velocidad configurada vale para ambos. Solo el eje vertical se puede invertir, que es lo que el ajuste
+existente hace.
 que un perfil de diseño y uno de juego pueden moverse distinto sin reajustar nada a mano. Los controles
 están en **Sensibilidad del cursor**, se aplican al arrancar la emulación y se bloquean mientras corre
 por la misma razón que el editor de mapeos. **Restablecer** devuelve los valores estándar sin tocar la

@@ -16,7 +16,7 @@ final class PrecisionTests: XCTestCase {
     private func scrolled(_ effects: [PerformanceEffect]) -> Int {
         effects.reduce(0) { total, effect in
             guard case .scroll(let pixels) = effect else { return total }
-            return total + abs(pixels)
+            return total + abs(pixels.y)
         }
     }
 

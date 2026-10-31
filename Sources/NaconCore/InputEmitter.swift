@@ -21,7 +21,7 @@ public protocol InputEmitter: AnyObject {
     /// button held by a toggle would otherwise leave the system dragging until the user clicks.
     func releaseAllMouseButtons()
     func moveCursor(deltaX: Double, deltaY: Double)
-    func scroll(pixels: Int)
+    func scroll(pixels: ScrollPixels)
 }
 
 public extension InputEmitter {
@@ -151,16 +151,19 @@ public final class CGEventEmitter: InputEmitter {
         return .left
     }
 
-    public func scroll(pixels: Int) {
-        guard pixels != 0 else { return }
+    public func scroll(pixels: ScrollPixels) {
+        guard !pixels.isZero else { return }
         // Pixels, not lines: a line event carries a whole line and cannot express the fraction the
         // stick is asking for, which is what made slow scrolling move in visible steps.
+        //
+        // Both axes in one event, always: sending two axis-only events makes a diagonal arrive as
+        // two separate wheel gestures, which some views handle as two different scrolls.
         guard let event = CGEvent(
             scrollWheelEvent2Source: source,
             units: .pixel,
-            wheelCount: 1,
-            wheel1: Int32(pixels),
-            wheel2: 0,
+            wheelCount: 2,
+            wheel1: Int32(pixels.y),
+            wheel2: Int32(pixels.x),
             wheel3: 0
         ) else { return }
         event.flags = []

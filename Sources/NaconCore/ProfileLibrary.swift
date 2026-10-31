@@ -281,31 +281,6 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
     /// a whole set of assignments — `clearLayer` is the deliberate way to throw them away.
     /// - Returns: whether the library changed. A control that may not select the layer (PS) is
     ///   refused without touching anything.
-    @discardableResult
-    /// Sets the control that slows the pointer, or removes it with nil.
-    ///
-    /// It cannot be the control that opens the MOD layer: one control choosing a mapping and a speed at
-    /// the same time would make both harder to reason about, and refusing here keeps the profiles honest.
-    public mutating func setPrecisionKey(_ control: XInputControl?, for profileID: UUID) -> Bool {
-        guard let index = profiles.firstIndex(where: { $0.id == profileID }) else { return false }
-        if let control {
-            guard MappingRules.isPrecisionKeyEligible(control) else { return false }
-            guard control != profiles[index].profile.layer.key else { return false }
-        }
-        guard profiles[index].profile.precision.key != control else { return false }
-        profiles[index].profile.precision.key = control
-        return true
-    }
-
-    /// Changes the speed factor applied while the precision key is held.
-    public mutating func setPrecisionScale(_ scale: Double, for profileID: UUID) -> Bool {
-        guard let index = profiles.firstIndex(where: { $0.id == profileID }) else { return false }
-        let clamped = PrecisionSettings(key: nil, scale: scale).scale
-        guard profiles[index].profile.precision.scale != clamped else { return false }
-        profiles[index].profile.precision.scale = clamped
-        return true
-    }
-
     public mutating func setLayerKey(_ control: XInputControl?, for profileID: UUID) -> Bool {
         guard let index = profiles.firstIndex(where: { $0.id == profileID }) else { return false }
         if let control, !MappingRules.isLayerKeyEligible(control) {
@@ -313,6 +288,18 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
         }
         guard profiles[index].profile.layer.key != control else { return false }
         profiles[index].profile.layer.key = control
+        return true
+    }
+
+    /// Changes the factor applied while precision is held.
+    ///
+    /// Which control slows the pointer is an assignment, not a setting, so there is no key to choose
+    /// here: it goes through `setAction` like a key or a click, in the base map or in the layer.
+    public mutating func setPrecisionScale(_ scale: Double, for profileID: UUID) -> Bool {
+        guard let index = profiles.firstIndex(where: { $0.id == profileID }) else { return false }
+        let clamped = PrecisionSettings(scale: scale).scale
+        guard profiles[index].profile.precision.scale != clamped else { return false }
+        profiles[index].profile.precision.scale = clamped
         return true
     }
 

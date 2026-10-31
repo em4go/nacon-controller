@@ -66,6 +66,12 @@ public enum MappedAction: Hashable, Sendable {
     /// Several strokes in order: a custom command, such as ⌘A and then ⌘C. The performance runs one
     /// step per advance and a press runs the whole list once.
     case sequence([KeyCombo])
+    /// Slows the pointer and the wheel while the control is held, by the profile's precision scale.
+    ///
+    /// It is a claim on the speed and nothing else: no key, no click, no repeat, no scroll. Being an
+    /// ordinary action is what gives it a MOD-layer reading for free — the same button can slow the
+    /// cursor in the base and do something else with MOD held.
+    case precision
 
     /// A sequence only exists when there is something to chain: one stroke is a key and none is
     /// nothing. The editor and the decoder both come through here, so a degenerate sequence cannot
@@ -96,6 +102,8 @@ public enum MappedAction: Hashable, Sendable {
             return Localization.resolve("Unassigned", locale: locale)
         case .key(let combo):
             return combo.displayName(in: locale)
+        case .precision:
+            return Localization.resolve("Precision (hold)", locale: locale)
         case .mouseButton(.left):
             return Localization.resolve("Left click", locale: locale)
         case .mouseButton(.right):
@@ -161,19 +169,19 @@ public struct CursorSettings: Equatable, Sendable {
 }
 
 /// How a held key behaves, mirroring the system keyboard repeat.
-/// Slow cursor while a control is held.
+/// How much slower the pointer and the wheel move while precision is held.
 ///
 /// A profile whose cursor crosses the screen at full speed is hard to aim with, and lowering the speed
 /// for everything makes the rest of the work tedious. This is the compromise: the normal speed stays,
-/// and one control held down scales it.
+/// and a control whose action is `.precision` scales it.
+///
+/// Which control that is does not live here: it is an ordinary assignment, in the base map or in the
+/// layer, so this type is only the fraction and nothing has to be kept in step with a separate field.
 public struct PrecisionSettings: Equatable, Sendable {
-    /// The control that slows the pointer, or nil when the profile has none.
-    public var key: XInputControl?
-    /// Fraction of the normal speed while the key is held. 1 would do nothing, so the range starts lower.
+    /// Fraction of the normal speed while precision is held. 1 would do nothing, so the range starts lower.
     public var scale: Double
 
-    public init(key: XInputControl? = nil, scale: Double = PrecisionSettings.standardScale) {
-        self.key = key
+    public init(scale: Double = PrecisionSettings.standardScale) {
         self.scale = min(max(scale, Self.minimumScale), Self.maximumScale)
     }
 
@@ -181,15 +189,8 @@ public struct PrecisionSettings: Equatable, Sendable {
     public static let minimumScale = 0.1
     public static let maximumScale = 1.0
 
-    /// A profile without a precision key: the cursor has one speed.
-    public static let off = PrecisionSettings()
-
-    public var isActive: Bool { key != nil }
-
-    /// The factor applied to cursor and scroll speed right now.
-    public var factor: Double {
-        isActive ? scale : 1
-    }
+    /// The default fraction. It only applies once a control is assigned to `.precision`.
+    public static let standard = PrecisionSettings()
 }
 
 public struct KeyRepeatSettings: Equatable, Sendable {
@@ -218,7 +219,7 @@ public struct InputProfile: Equatable, Sendable {
         layer: ProfileLayer = .empty,
         cursor: CursorSettings = .standard,
         keyRepeat: KeyRepeatSettings = .standard,
-        precision: PrecisionSettings = .off
+        precision: PrecisionSettings = .standard
     ) {
         self.mappings = mappings
         self.layer = layer

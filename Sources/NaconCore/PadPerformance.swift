@@ -71,8 +71,20 @@ struct PadPerformance {
     /// - Scroll: one event, so there is nothing to hold and nothing to release.
     /// - Command: a run, not a hold. Nothing is released at the end and holding the control must not
     ///   repeat it, so it starts its steps and holds nothing.
+    /// - Precision: a claim on the speed. It sends nothing and holds nothing down, but the claim is
+    ///   recorded like any other action the control took: the release of a control is the release of
+    ///   what it claimed, so precision lasts until that control goes up — including after the MOD key
+    ///   that selected it is already released. Releasing the layer must not swap the action under a
+    ///   button that is still down, and a sudden speed jump mid-movement is worse than a precision
+    ///   that ends a moment later.
     /// - Everything else: held, so it is pressed now and released with the control.
     mutating func press(_ control: XInputControl, action: MappedAction) -> [PerformanceEffect] {
+        if case .precision = action {
+            // Nothing went down, so there is nothing to emit now and nothing to release later: the
+            // entry says what this control claimed while it stays held.
+            held[control] = Held(action: action, repeatState: nil)
+            return []
+        }
         if case .scrollLines(let lines) = action {
             return [.scroll(pixels: ScrollPixels(x: 0, y: Scroll.pixels(forLines: lines)))]
         }
@@ -108,7 +120,18 @@ struct PadPerformance {
         pendingCommands.removeValue(forKey: control)
         // One removal drops the action and its repeat clock together.
         guard let entry = held.removeValue(forKey: control) else { return [] }
+        // A precision claim put nothing down, so its removal is the whole release.
+        guard entry.action != .precision else { return [] }
         return [.release(entry.action)]
+    }
+
+    /// Whether a control is claiming precision right now.
+    ///
+    /// It reads the same record that decides what a release ends, so the speed and the release cannot
+    /// disagree: a claim through the MOD layer belongs to the control that made it, and survives the
+    /// release of the MOD key.
+    var isPrecisionHeld: Bool {
+        held.values.contains { $0.action == .precision }
     }
 
     /// Everything one slice of time produces, in the order the engine emits it: cursor, one step of
@@ -116,15 +139,14 @@ struct PadPerformance {
     mutating func advance(
         seconds: Double,
         leftStick: XInputStick,
-        rightStick: XInputStick,
-        precisionActive: Bool = false
+        rightStick: XInputStick
     ) -> [PerformanceEffect] {
         guard seconds > 0 else { return [] }
         var effects: [PerformanceEffect] = []
         let settings = profile.cursor
         // One factor for both axes and for the wheel: slowing the pointer but not the scroll would
-        // make the two disagree while the same control is held.
-        let factor = precisionActive ? profile.precision.factor : 1
+        // make the two disagree while the same control is held. Nothing is held, nothing is slower.
+        let factor = isPrecisionHeld ? profile.precision.scale : 1
         let velocity = StickMotion.cursorVelocity(stick: leftStick, settings: settings)
         if !velocity.isZero {
             effects.append(
@@ -149,7 +171,10 @@ struct PadPerformance {
     /// when the emulation stops: a key or a mouse button must never stay stuck down.
     mutating func reset() -> [PerformanceEffect] {
         scroll.reset()
-        let effects = held.values.map { PerformanceEffect.release($0.action) }
+        // A precision claim released nothing, so it produces no effect either.
+        let effects = held.values.compactMap { entry in
+            entry.action == .precision ? nil : PerformanceEffect.release(entry.action)
+        }
         held.removeAll()
         // A command stops with the emulation: its remaining steps would fire into whatever is in front
         // of the user after they asked it to stop.

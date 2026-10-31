@@ -121,6 +121,16 @@
         }
       }
     },
+    "Assign “Precision (hold)” to a control — in the base column or in the MOD column — and the cursor and the scroll move at this fraction while you hold it.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asigna «Precisión (mantener)» a un control —en la columna base o en la columna MOD— y, mientras lo mantengas pulsado, el cursor y el desplazamiento van a esta fracción."
+          }
+        }
+      }
+    },
     "Assign…": {
       "localizations": {
         "es": {
@@ -602,12 +612,12 @@
         }
       }
     },
-    "Precision key": {
+    "Precision factor": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tecla de precisión"
+            "value": "Factor de precisión"
           }
         }
       }
@@ -1058,16 +1068,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Qué se puede leer"
-          }
-        }
-      }
-    },
-    "While you hold it, the cursor and the scroll move slower. The speed above is the normal one.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mientras la mantengas pulsada, el cursor y el desplazamiento van más despacio. La velocidad de arriba es la normal."
           }
         }
       }

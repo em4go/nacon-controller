@@ -151,12 +151,19 @@ fijado no puede sobrevivir a la parada.
 
 ### Velocidad normal y velocidad precisa
 
-Junto a los ajustes del cursor hay una **tecla de precisión**: mientras la mantienes pulsada, el cursor y
-el desplazamiento van a la fracción que elijas (por defecto el 35 %). La velocidad normal no cambia, así
-que sirve para cruzar la pantalla rápido y para colocar el cursor al píxel sin tocar el perfil.
+La precisión es una acción más, no un ajuste aparte: en **Elegir…** aparece **Precisión (mantener)** y, al
+asignarla a un control —en la columna base o en la columna MOD—, el cursor y el desplazamiento van a la
+fracción que elijas (por defecto el 35 %) mientras lo mantengas pulsado. La velocidad normal no cambia,
+así que sirve para cruzar la pantalla rápido y para colocar el cursor al píxel sin tocar el perfil.
 
-Es un control del mando, no una combinación de teclas: no envía nada mientras se mantiene, igual que la
-tecla MOD.
+El control que la activa se elige como cualquier otra asignación, con su columna y su tecla MOD: asignarla
+en la columna MOD da «MOD + otro botón» sin ningún caso especial. Como el resto de acciones, la precisión
+pertenece al control que la reclamó al pulsarse: si la mantienes a través de la capa MOD y sueltas la tecla
+MOD, la precisión sigue hasta que sueltes el control, porque cambiar de velocidad a mitad de un movimiento
+se nota más que una precisión que termina un instante después.
+
+No envía nada mientras se mantiene, igual que la tecla MOD: solo cambia la velocidad. La fracción se ajusta
+en **Sensibilidad del cursor**, con el resto de los números del cursor, y es del perfil, no del control.
 
 ### Sensibilidad por perfil
 

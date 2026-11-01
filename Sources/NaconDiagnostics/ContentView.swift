@@ -3,7 +3,10 @@ import NaconCore
 import SwiftUI
 
 /// The panels fed by the pad: the button matrix, the sticks and the raw packet.
-private struct LiveReportSections: View {
+///
+/// Not private: the diagnostics destination of the shell places it, and it stays its own view there
+/// for the same reason it was one here — a report then rebuilds only this subtree.
+struct LiveReportSections: View {
     @ObservedObject var feed: ReportFeed
 
     var body: some View {
@@ -23,14 +26,15 @@ private struct LiveReportSections: View {
     }
 }
 
+/// The window: the shell's zones, plus the one line that must never scroll away.
 struct ContentView: View {
     @EnvironmentObject private var service: ControllerService
-    @EnvironmentObject private var emulation: EmulationController
-    @EnvironmentObject private var profiles: ProfileLibraryController
 
     var body: some View {
         VStack(spacing: 0) {
-            scrollingSections
+            // S1: navigating, working and adjusting live in their own zones. The shell owns them;
+            // this view owns what has to be true of the whole window.
+            ShellView()
             footer
         }
         .background(Color(nsColor: .windowBackgroundColor))
@@ -55,30 +59,6 @@ struct ContentView: View {
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 8)
-    }
-
-    private var scrollingSections: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                StatusBanner(state: service.state)
-                if emulation.padSilent {
-                    PadSilenceBanner()
-                }
-                DeviceListSection(devices: service.devices)
-                // S1, S4, S5, S8: the profiles live above the emulation settings they feed.
-                ProfileSection(profiles: profiles, feed: service.feed)
-                SensitivitySection(profiles: profiles)
-                EmulationSection(emulation: emulation)
-                LanguageSection()
-                if service.state.isConnected {
-                    // Their own view, so a report rebuilds only this subtree. The menus above it stay
-                    // put: an open menu rebuilt underneath itself flickers and closes its submenus.
-                    LiveReportSections(feed: service.feed)
-                }
-                LegendSection(devices: service.devices)
-            }
-            .padding(20)
-        }
     }
 }
 

@@ -38,7 +38,7 @@ S8. Cada tramo se entrega en un corte revisable de ~400 líneas como máximo, co
 
 | ID | Qué | Specs | Ruta | Commit |
 |---|---|---|---|---|
-| T1 | Esqueleto de tres zonas con lo existente recolocado: barra lateral con el mando, destino Mapeo con la sección de perfil entera, inspector vacío, ventana a 780 de ancho sin romperse | S1, S3, S6 | inline | |
+| T1 | Esqueleto de tres zonas con lo existente recolocado: barra lateral con el mando, destino Mapeo con la sección de perfil entera y la acción principal en la barra de herramientas | S1, S3, S6 | worker + correcciones inline | pendiente de anotar |
 | T2 | Lista de perfiles en la barra lateral, con su color; los cuatro botones a un menú de la barra de herramientas | S5, S6 | delegado | |
 | T3 | Inspector con color, perfil siguiente, tecla MOD, sensibilidad y precisión; plegado por ancho | S4, S6 | delegado | |
 | T4 | Destino Diagnóstico con los valores en vivo, la trama y la leyenda | S7 | delegado | |
@@ -70,3 +70,15 @@ conceder el permiso de Accesibilidad el conmutador de emulación queda fuera de 
 L5. Frontera de entrega: el commit de los prototipos (`17a13b3`) añade 1835 líneas, casi todas HTML de `design/`.
 No es un corte de código revisable y no se parte: se revisa como diseño, no como implementación. Los tramos T1 a T6
 sí se entregan en cortes de ~400 líneas (S8).
+
+L6. T1 entregado por un worker y corregido aquí antes de commitear. Tres correcciones suyas: los títulos de destino
+reutilizaban claves que decían otra cosa («Emulación de ratón y teclado» para Ajustes), así que se añadieron «Mapping»,
+«Diagnostics» y «Settings» al catálogo de la ventana; y —la de fondo— dejar el interruptor de emulación solo dentro de
+Ajustes convertía en regresión el único paso que un recién llegado necesita, así que la barra de herramientas lleva
+ahora la acción principal con la misma regla de permiso que la sección. El inspector se deja para T3, con su regla de
+plegado: una tercera columna vacía solo quitaría ancho al mapeo.
+
+L7. Al abrir el mapeo tras meter la barra lateral, las etiquetas largas se cortan («Precisión (ma…», «Alternar clic…»).
+El contenido pide 940 de ancho ideal, pero macOS restaura el marco guardado de la ventana anterior, así que la captura
+sigue mostrando el ancho viejo. Queda pendiente de verificación visual a 780 de ancho, y T3 es quien lo resuelve de
+verdad al agrupar el mapeo en una lista.

@@ -321,6 +321,16 @@
         }
       }
     },
+    "Diagnostics": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnóstico"
+          }
+        }
+      }
+    },
     "Duplicate": {
       "localizations": {
         "es": {
@@ -517,6 +527,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tecla MOD:"
+          }
+        }
+      }
+    },
+    "Mapping": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mapeo"
           }
         }
       }
@@ -872,6 +892,16 @@
         }
       }
     },
+    "Settings": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes"
+          }
+        }
+      }
+    },
     "Settings for the “%@” profile. Each profile keeps its own, so one for design and one for games can move differently.": {
       "localizations": {
         "es": {
@@ -912,12 +942,42 @@
         }
       }
     },
+    "Start emulation": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar emulación"
+          }
+        }
+      }
+    },
+    "Starts or stops sending what the pad does to the system.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arranca o detiene el envío al sistema de lo que hace el mando."
+          }
+        }
+      }
+    },
     "Sticks and triggers": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Sticks y gatillos"
+          }
+        }
+      }
+    },
+    "Stop emulation": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detener emulación"
           }
         }
       }

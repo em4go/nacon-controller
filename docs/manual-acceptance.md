@@ -4,8 +4,7 @@ Lo que ningún test automático puede comprobar en este proyecto: el mando real,
 sistema y el cableado de AppKit. Se ejecuta antes de dar por buena una entrega que toque esas zonas.
 
 Ejecutado el 2026-10-29 con resultado correcto en los pasos 1 a 21, el 2026-10-31 en los pasos 22 a 31 y
-el 2026-11-01 en los pasos 32 a 34. Los pasos 35 y 36 están escritos y pendientes de
-prueba con el mando. Repetir los pasos 2, 3 y 19 siempre que cambie el código de captura de pulsaciones, el 12 y
+el 2026-11-01 en los pasos 32 a 36. Ninguno pendiente. Repetir los pasos 2, 3 y 19 siempre que cambie el código de captura de pulsaciones, el 12 y
 el 13 siempre que cambie la capa MOD, y el 21 siempre que cambie el catálogo de textos o la forma en que
 se resuelve el idioma.
 

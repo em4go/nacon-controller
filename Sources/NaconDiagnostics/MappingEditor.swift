@@ -192,7 +192,8 @@ private struct MappingRow: View {
             Text(isWaitingInBase ? AppText.resolve("Press a key…") : action.displayName)
                 .font(.system(.callout, design: .monospaced))
                 .foregroundStyle(isWaitingInBase ? Color.accentColor : Color.primary)
-                .lineLimit(1)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
             Button(isWaitingInBase ? AppText.resolve("Cancel") : AppText.resolve("Capture")) {
                 capture.toggle(

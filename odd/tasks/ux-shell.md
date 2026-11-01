@@ -82,3 +82,7 @@ L7. Al abrir el mapeo tras meter la barra lateral, las etiquetas largas se corta
 El contenido pide 940 de ancho ideal, pero macOS restaura el marco guardado de la ventana anterior, así que la captura
 sigue mostrando el ancho viejo. Queda pendiente de verificación visual a 780 de ancho, y T3 es quien lo resuelve de
 verdad al agrupar el mapeo en una lista.
+
+L8. El truncado no venía del marco guardado (la ventana ya abría ancha y seguía cortando) sino de la tabla: la
+etiqueta de la acción estaba limitada a una línea. Ahora envuelve a dos, sin cambiar ningún texto, así que la
+información deja de perderse; el reparto de columnas se ordena de verdad en T3, con la lista agrupada.

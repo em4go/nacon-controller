@@ -31,8 +31,15 @@ their rules, so a surface cannot spell either its own way.
 
 | ID | Spec | Route | Commit |
 | --- | --- | --- | --- |
-| T1 | S3, S4, S7 | `Sources/NaconCore/MappingLine.swift` + `Tests/NaconCoreTests/MappingLineTests.swift` | — |
-| T2 | S5, S6 | `PadGraphView`, `MappingSummaryWindow`, `MappingEditor`, `ProfileSection` + one shared reserved row; both catalogs | — |
+| T1 | S3, S4, S7 | `Sources/NaconCore/MappingLine.swift` + `Tests/NaconCoreTests/MappingLineTests.swift` | `36cc3c9` |
+| T2 | S5, S6 | `PadGraphView`, `MappingSummaryWindow`, `MappingEditor`, `ProfileSection` + one shared reserved row; both catalogs | `36cc3c9` |
+| T3 | S1, S2 | this document and `architecture-review-2.md` | this commit |
+
+## Delivery
+
+One commit, 281 inserted and 83 deleted: the module, its eight tests, the shared reserved row and the
+three surfaces that stop deriving. The catalog move is part of it — a rule and the sentence it prints
+travel together, which is how the two reserved keys stopped being able to drift.
 
 ## Log
 
@@ -44,3 +51,14 @@ their rules, so a surface cannot spell either its own way.
   emulation at once.
 - **L3.** The module lives in `NaconCore` rather than in the app because the app target has no test
   target: a derivation that three surfaces depend on is worth more testable than convenient.
+- **L4.** Evidence: `swift build` clean, no new warnings; `swift test` → 474 tests, 0 failures
+  (434 at `origin/main`, plus the nine slices' new cases, of which nine are this module's). Outside
+  the tests and the catalogs, the reserved sentence and the MOD pattern appear only in
+  `Sources/NaconCore/MappingLine.swift`; both catalog files still parse; the three deleted app keys
+  have no reference left, and `AppCatalogCoverageTests` — the check that an app-side literal never
+  loses its entry — passes.
+- **L5.** The first version of these tests could not fail if `MappingLine.mod` dropped its
+  `layer.isActive` guard: every layered fixture had a key. A ninth case now uses a layer that keeps
+  an entry and has lost its key — a state «Ninguna» in the inspector really produces — and removing
+  that guard fails it twice. Checked by making the change, watching the two failures, and putting the
+  guard back.

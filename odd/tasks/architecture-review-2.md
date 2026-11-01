@@ -35,7 +35,7 @@ the engine's internals — into `NaconCore`. See `emulation-run.md`.
 27 one-line forwards over a `library` the controller already publishes. See
 `library-controller-seam.md`.
 
-### C4 — the Captura owns its own module → **worth doing, not scheduled**
+### C4 — the Captura owns its own module → **delivered** (`95cb3b7`, `odd/tasks/capture-module.md`)
 
 Evidence: `MappingCapture` lives in `MappingEditor.swift:350`, and `PadGraphView` reads
 `capture.session.isArmed`, `.armedControl` and `.intent` at `:97, :146, :244, :373` to re-derive
@@ -47,10 +47,10 @@ replace the published `session` with `armed(for:) -> MappingColumn?`, keep `KeyC
 private to the implementation. Two adapters are not needed — the solitaire is the pure session, which
 is already tested in `KeyCaptureSessionTests`.
 
-Why not now: it rewrites three app files that C2 and C3 also touch, and its value is review-time
-clarity rather than a bug class. It belongs in its own commit after this branch merges.
+It shipped after C1–C3 on the same branch, as its own commit, once the files it touches had stopped
+moving.
 
-### C5 — one renderer for "what a Control sends" → **worth doing, narrowed**
+### C5 — one renderer for "what a Control sends" → **delivered, narrowed** (`36cc3c9`, `odd/tasks/mapping-line.md`)
 
 Evidence: the reserved PS row is drawn twice (`ProfileSection.swift:153` and `MappingEditor.swift:150`),
 the drawing strip re-derives the same sentence at `PadGraphView.swift:355`, and the catalog carries two
@@ -61,7 +61,9 @@ Verdict: extract the *derivation* only — `(control, column, Perfil) -> text` p
 unify the row layouts: the table shows two columns with buttons, the strip shows one line, the summary
 shows a grid, and that difference is design, not duplication.
 
-Why not now: same reason as C4 — it touches the same three app files this branch is already editing.
+Delivered in the same shape: `MappingLine` in the core, layouts untouched, one sentence and one
+pattern instead of two keys each. The derivation went to `NaconCore` rather than the app precisely
+because the app has no test target, so the rule is now covered instead of merely relocated.
 
 ### C6 — split `ProfileLibrary` → **declined for now**
 

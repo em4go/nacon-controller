@@ -30,6 +30,9 @@ final class ProfileLibraryController: ObservableObject {
     /// applies the next time emulation is started.
     var runtimeProfile: InputProfile { library.runtimeProfile }
     /// S2: the vertical-axis value of the profile being edited, shown by the toggle.
+    /// The colour of the profile on screen, which is what the pad's light shows while it runs.
+    var selectedColor: ProfileColour { library.selectedColor }
+
     var selectedInvertVerticalAxis: Bool { library.selectedInvertVerticalAxis }
     /// The precision factor of the profile on screen, or the default when there is none.
     ///
@@ -76,6 +79,10 @@ final class ProfileLibraryController: ObservableObject {
     /// selected profile and saves it straight away like any other change.
     func setInvertVerticalAxis(_ newValue: Bool) {
         mutate { $0.setInvertVerticalAxis(newValue) }
+    }
+
+    func setColor(_ colour: ProfileColour) {
+        mutate { $0.setColor(colour) }
     }
 
     // MARK: - MOD layer (S3, S4, S5)

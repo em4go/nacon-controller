@@ -30,10 +30,37 @@ struct ProfileSection: View {
     /// cannot leave two captures alive.
     @StateObject private var capture = MappingCapture()
 
+    /// The colour the pad's light shows while this profile runs.
+    ///
+    /// It is deliberately not disabled during emulation, unlike the mapping editor: the colour is the
+    /// profile's only visible mark, and changing it live is how the user checks that the light is telling
+    /// the truth about which profile is running.
+    private var colourPicker: some View {
+        HStack(spacing: 8) {
+            Text(AppText.resolve("Light colour"))
+                .font(.callout)
+            Picker("", selection: Binding(
+                get: { profiles.selectedColor },
+                set: { profiles.setColor($0) }
+            )) {
+                ForEach(ProfileColour.allCases, id: \.self) { colour in
+                    Text(colour.label).tag(colour)
+                }
+            }
+            .labelsHidden()
+            .pickerStyle(.menu)
+            .fixedSize()
+            .disabled(profiles.selectedProfile == nil)
+            .help(AppText.resolve("It is the colour the pad's light shows while this profile is running."))
+            Spacer(minLength: 0)
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             SectionTitle(AppText.resolve("Profiles"))
             profilePicker
+            colourPicker
             actions
             viewPicker
             // S3: the view for the profile being edited, right below the picker that selects it.

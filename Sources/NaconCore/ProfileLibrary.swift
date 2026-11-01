@@ -244,6 +244,22 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
         selectedProfile?.profile.cursor.invertVerticalAxis ?? false
     }
 
+    /// The colour of the profile on screen: what the pad's light shows while it runs.
+    public var selectedColor: ProfileColour {
+        selectedProfile?.profile.color ?? .standard
+    }
+
+    /// Changes the colour of the profile on screen, leaving every sibling alone.
+    /// - Returns: whether the library changed.
+    @discardableResult
+    public mutating func setColor(_ colour: ProfileColour) -> Bool {
+        editSelectedProfile { profile in
+            guard profile.color != colour else { return false }
+            profile.color = colour
+            return true
+        }
+    }
+
     /// S2: flips the vertical direction on the profile being edited, leaving every sibling alone.
     /// - Returns: whether the library changed.
     @discardableResult

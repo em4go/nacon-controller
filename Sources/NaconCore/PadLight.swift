@@ -21,6 +21,9 @@ public struct PadLight: Equatable, Sendable {
         case manual
     }
 
+    /// The colour the light shows while it is on. It is the profile's, so the light says *which* profile is
+    /// running and not only that one is.
+    public var colour: ProfileColour
     /// Whether the light follows the emulation or the manual toggle.
     public var source: Source
     /// Mirrors `EmulationController.isEnabled`.
@@ -29,10 +32,12 @@ public struct PadLight: Equatable, Sendable {
     public var isManuallyOn: Bool
 
     public init(
+        colour: ProfileColour = .standard,
         source: Source = .emulation,
         isEmulationActive: Bool = false,
         isManuallyOn: Bool = false
     ) {
+        self.colour = colour
         self.source = source
         self.isEmulationActive = isEmulationActive
         self.isManuallyOn = isManuallyOn
@@ -48,7 +53,7 @@ public struct PadLight: Equatable, Sendable {
 
     /// The packet that expresses `isOn`. Repeating it is harmless, so no change tracking is needed.
     public var packet: [UInt8] {
-        XInputOutputReport.led(isOn ? .player1 : .off)
+        XInputOutputReport.led(isOn ? colour.pattern : .off)
     }
 
     /// The packet the app sends while terminating (`S5`).

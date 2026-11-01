@@ -37,6 +37,17 @@ final class MappingLineTests: XCTestCase {
         ])
     }
 
+    /// A layer that keeps its entry but has lost its key.
+    ///
+    /// «Ninguna» in the inspector closes the layer and keeps what it redefines, so this is a state a
+    /// saved profile really can be in — and the entry is inert, because nothing can hold the layer open.
+    private var closedLayer: InputProfile {
+        InputProfile(
+            mappings: [Self.redefined: .mouseButton(.left)],
+            layer: ProfileLayer(mappings: [Self.redefined: .mouseButton(.right)])
+        )
+    }
+
     func testTheReservedSentenceIsTheShortOneInBothLanguages() {
         let previous = Localization.language
         defer { Localization.language = previous }
@@ -88,6 +99,15 @@ final class MappingLineTests: XCTestCase {
         XCTAssertNil(MappingLine.mod(for: Self.untouched, in: layered))
         // The layer leaves this control alone, so the base is the whole line with MOD held.
         XCTAssertEqual(MappingLine.line(for: Self.untouched, in: layered), "Right click")
+    }
+
+    func testALayerWithoutAKeyAddsNothingEvenWhenItKeepsItsEntries() {
+        let previous = Localization.language
+        defer { Localization.language = previous }
+
+        Localization.language = .english
+        XCTAssertNil(MappingLine.mod(for: Self.redefined, in: closedLayer))
+        XCTAssertEqual(MappingLine.line(for: Self.redefined, in: closedLayer), "Left click")
     }
 
     func testTheModOfALayerThatRedefinesTheControlIsTheLayeredLabel() {

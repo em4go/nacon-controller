@@ -37,8 +37,8 @@ S8. Dos perfiles pueden compartir color. Es decisión del usuario y no se valida
 
 | ID | Qué | Specs | Ruta | Commit |
 | --- | --- | --- | --- | --- |
-| T1 | `ProfileColour` en el modelo, con su patrón, y `color` en `InputProfile` con decodificación por defecto | S1, S4 | inline | |
-| T2 | Motor y controlador: las dos acciones, el cambio atómico y la recarga del perfil | S5, S6 | worker | |
+| T1 | `ProfileColour` en el modelo, con su patrón, y `color` en `InputProfile` con decodificación por defecto | S1, S4 | inline | `b5ff634` |
+| T2 | Motor y controlador: las dos acciones, el cambio atómico y la recarga del perfil | S5, S6 | worker | `b5ff634` |
 | T3 | La luz toma el color del perfil activo y se apaga al parar | S4 | worker | |
 | T4 | Selector de color en la sección de perfiles y entradas de menú, en inglés y español | S2, S6 | worker | |
 | T5 | README y paso de aceptación | — | inline | |
@@ -59,3 +59,8 @@ L4. Decisión: se descarta la entidad «modos» del diseño inicial y se usa el 
 las dos acciones (siguiente y anterior) y se deja sin validar la unicidad de colores.
 
 L5. «adelante, pues vamos a por ello»
+
+L6. T1 y T2 se entregan juntos en `b5ff634`, 603 líneas. No se partió porque ambos tocan los mismos archivos
+(`InputProfile.swift` lleva el campo de color y la acción de cambio de perfil, `ProfileCoding.swift` los dos)
+y un corte por mitades dejaría un commit que no compila. Queda registrado como límite de entrega consciente,
+no como descuido: los tramos siguientes van separados —T3/T4 por un lado y documentación por otro—.

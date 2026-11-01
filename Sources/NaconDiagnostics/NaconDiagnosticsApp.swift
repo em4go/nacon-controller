@@ -8,6 +8,8 @@ struct NaconDiagnosticsApp: App {
     @StateObject private var service = ControllerService()
     @StateObject private var emulation = EmulationController()
     @StateObject private var profiles = ProfileLibraryController()
+    /// S11: the light and the rumble outlive any screen, so they belong to the app.
+    @StateObject private var padLightStore = PadLightStore()
     /// Read here as well as in the section that changes it, because the root view is rebuilt from it.
     @AppStorage(LanguagePreference.defaultsKey) private var storedLanguage = AppLanguage.system.rawValue
 
@@ -23,6 +25,10 @@ struct NaconDiagnosticsApp: App {
                 .environmentObject(service)
                 .environmentObject(emulation)
                 .environmentObject(profiles)
+                .environmentObject(padLightStore)
+                // Attached to the root, which exists while the app does: an LED packet that depends on
+                // a destination being on screen is a packet that stops being sent.
+                .modifier(PadLightBridge())
                 .frame(minWidth: 780, minHeight: 780)
                 .onAppear {
                     appDelegate.service = service

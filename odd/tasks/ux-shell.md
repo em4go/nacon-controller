@@ -34,6 +34,12 @@ trama USB, leyenda del protocolo— deja de estar en la vista principal.
 
 S8. Cada tramo se entrega en un corte revisable de ~400 líneas como máximo, con sus tests y su documentación.
 
+S9. El mapeo se lee agrupado por zonas del mando, y ningún botón de la tabla pierde letras por falta de ancho.
+
+S10. La luz del mando y el aviso de vibración son de la app, no de una pantalla: siguen a la emulación y al color del
+perfil esté la ventana en el destino que esté, porque un paquete que depende de que una vista esté montada es un paquete
+que deja de enviarse.
+
 ## Tasks
 
 | ID | Qué | Specs | Ruta | Commit |
@@ -171,3 +177,12 @@ L24. Cierre del tramo. La rama reúne 23 commits y unos 3689 líneas de autoría
 T6b van de 130 a 483 líneas cada uno, y el de T6 se justifica porque 250 de sus líneas son catálogo de localización.
 Suite final: 430. La aceptación manual de la reestructuración son los pasos 37 a 45, **pendientes de que el usuario los
 valide**: nada de esta rama se ha dado por bueno en hardware salvo lo que se cita con captura.
+
+L25. El usuario valida los pasos 37 a 45 y reporta, literal: «7 ok, pero la luz del mando no se enciende». Es una
+regresión de T1: la luz y el aviso de vibración eran `@State` de `EmulationSection`, y esa sección pasó a existir solo
+mientras «Ajustes» estaba en pantalla, de modo que arrancar la emulación desde la barra de herramientas —el camino que
+la propia ventana propone— no enviaba ningún paquete LED. Arreglo: `PadLightStore` nace en la app y un
+`PadLightBridge` enganchado a la raíz es el único punto que envía; la regla de qué debe decir la luz se movió a
+`PadLight.sync`, con cuatro tests que incluyen la excepción de la luz manual. La lección es de estructura: **el estado
+que sobrevive a las pantallas no puede vivir dentro de una pantalla**, y las tres cosas que se mudaron aquí (luz,
+vibración y su aviso) son la misma lección que ya se había aprendido con el cambio de perfil.

@@ -42,7 +42,7 @@ S8. Cada tramo se entrega en un corte revisable de ~400 líneas como máximo, co
 | T2 | Lista de perfiles en la barra lateral, con su color; los cuatro botones a un menú de la barra de herramientas | S5, S6 | delegado | fdedaaa |
 | T3 | Inspector con color, perfil siguiente, tecla MOD, sensibilidad y precisión; plegado por ancho | S4, S6 | delegado + correcciones inline | c4f5e60 |
 | T4 | Destino Diagnóstico con los valores en vivo, la trama y la leyenda | S7 | inline | 3871ba2 |
-| T5 | Destino Ajustes de la app: permiso, emulación, vibración, idioma; el porqué del botón apagado y la inversión del eje al inspector | S7, S6 | inline | pendiente |
+| T5 | Destino Ajustes de la app: permiso, emulación, vibración, idioma; el porqué del botón apagado y la inversión del eje al inspector | S7, S6 | inline | 40754ca |
 | T6 | Primer arranque (prototipo 04), encima de la estructura definitiva | S3 | delegado | |
 
 ## Log

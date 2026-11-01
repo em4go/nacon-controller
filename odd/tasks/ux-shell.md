@@ -186,3 +186,5 @@ la propia ventana propone— no enviaba ningún paquete LED. Arreglo: `PadLightS
 `PadLight.sync`, con cuatro tests que incluyen la excepción de la luz manual. La lección es de estructura: **el estado
 que sobrevive a las pantallas no puede vivir dentro de una pantalla**, y las tres cosas que se mudaron aquí (luz,
 vibración y su aviso) son la misma lección que ya se había aprendido con el cambio de perfil.
+
+L26. Commit del arreglo: 6102c55. Suite: 434.

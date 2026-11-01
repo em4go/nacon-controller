@@ -219,3 +219,7 @@ preparado —su cuerpo está redactado y no se usa— porque quien iba a revisar
 ya está verificado corte a corte. El merge sigue la convención de la historia (`Merge branch 'feature/…'`, como
 `profile-colour` y `mod-layer`), así que es `--no-ff` sobre `main`. Lo que **no** cambia: el push a `origin/main` sigue
 sin hacerse y sigue siendo decisión del usuario, y la rama `feature/ux-shell` se deja donde está en vez de borrarla.
+
+L31. El merge quedó en `ff39450` (`Merge branch 'feature/ux-shell'`, `--no-ff`). `main` verificado después: compila y
+pasa la suite con **434 tests, 0 fallos**. `main` local queda 31 commits por delante de `origin/main`; el push sigue sin
+hacerse y la rama `feature/ux-shell` se conserva apuntando a su punta.

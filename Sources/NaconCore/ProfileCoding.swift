@@ -60,6 +60,7 @@ extension MappedAction: Codable {
         case button
         case lines
         case steps
+        case profileStep
     }
 
     private enum Kind: String {
@@ -70,6 +71,7 @@ extension MappedAction: Codable {
         case scrollLines
         case sequence
         case precision
+        case profileStep
     }
 
     public init(from decoder: Decoder) throws {
@@ -110,6 +112,15 @@ extension MappedAction: Codable {
             self = MappedAction.chained(steps)
         case .precision:
             self = .precision
+        case .profileStep:
+            // An unreadable direction leaves the action empty instead of failing the whole profile,
+            // the same tolerance the rest of the format has.
+            let rawStep = (try? container.decodeIfPresent(String.self, forKey: .profileStep)) ?? nil
+            guard let step = rawStep.flatMap(ProfileStep.init(rawValue:)) else {
+                self = .none
+                return
+            }
+            self = .profileStep(step)
         }
     }
 
@@ -135,6 +146,9 @@ extension MappedAction: Codable {
             try container.encode(steps, forKey: .steps)
         case .precision:
             try container.encode(Kind.precision.rawValue, forKey: .kind)
+        case .profileStep(let step):
+            try container.encode(Kind.profileStep.rawValue, forKey: .kind)
+            try container.encode(step.rawValue, forKey: .profileStep)
         }
     }
 }
@@ -264,10 +278,14 @@ extension InputProfile: Codable {
         case cursor
         case keyRepeat
         case precision
+        case color
     }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        // A profile written before the light had colours loads as blue, which is the colour the app has
+        // always shown: nothing changes for anyone who never picks one.
+        let color = try container.decodeIfPresent(ProfileColour.self, forKey: .color) ?? .standard
         let cursor = try container.decodeIfPresent(CursorSettings.self, forKey: .cursor) ?? .standard
         let precision = try container.decodeIfPresent(PrecisionSettings.self, forKey: .precision)
             ?? .standard
@@ -290,7 +308,8 @@ extension InputProfile: Codable {
                 layer: layer,
                 cursor: cursor,
                 keyRepeat: keyRepeat,
-                precision: precision
+                precision: precision,
+                color: color
             )
             return
         }
@@ -312,7 +331,8 @@ extension InputProfile: Codable {
             layer: layer,
             cursor: cursor,
             keyRepeat: keyRepeat,
-            precision: precision
+            precision: precision,
+            color: color
         )
     }
 
@@ -342,6 +362,11 @@ extension InputProfile: Codable {
         // it already had, byte for byte.
         if !layer.isEmpty {
             try container.encode(layer, forKey: .layer)
+        }
+        // Only written when it says something: a profile that stays blue keeps the file it already had,
+        // byte for byte, like the layer and the precision factor.
+        if color != .standard {
+            try container.encode(color, forKey: .color)
         }
         try container.encode(cursor, forKey: .cursor)
         try container.encode(keyRepeat, forKey: .keyRepeat)

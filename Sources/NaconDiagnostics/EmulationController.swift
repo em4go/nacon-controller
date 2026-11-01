@@ -25,6 +25,9 @@ final class EmulationController: ObservableObject {
     private let summary = MappingSummaryWindow()
     private var cancellables: Set<AnyCancellable> = []
     private var permissionTimer: Timer?
+    /// The profile a step from the pad leads to, or `nil` when the selection did not change.
+    /// The library decides which profile that is; the controller only carries the answer across.
+    private var profileStepper: @MainActor (ProfileStep) -> InputProfile? = { _ in nil }
     private var terminationObserver: NSObjectProtocol?
     private var activationObserver: NSObjectProtocol?
     /// Whether the engine and its observers are already wired to a service.
@@ -57,6 +60,26 @@ final class EmulationController: ObservableObject {
                 self?.toggleSummary()
             }
         }
+        // S5, S6: a control assigned to a profile step. It arrives on the engine's queue like the rest
+        // of the report-driven callbacks, so the hop to the main queue comes first: the library and the
+        // published state are main-thread only.
+        engine.onProfileStep = { [weak self] step in
+            DispatchQueue.main.async {
+                self?.switchProfile(step)
+            }
+        }
+    }
+
+    /// S5, S6: makes the profile one step away the active one, without stopping the emulation.
+    ///
+    /// The library chooses which profile that is (S6) and the engine performs the atomic switch (S5):
+    /// it releases what the old profile claimed and only then applies the new one. Nothing here stops
+    /// or restarts the run, so a step in the middle of a movement does not even blink — and a step
+    /// while the emulation is stopped does nothing at all, because there is no mapping to switch.
+    private func switchProfile(_ step: ProfileStep) {
+        guard isEnabled else { return }
+        guard let profile = profileStepper(step) else { return }
+        engine.switchProfile(to: profile)
     }
 
     /// Opens or closes the mapping summary. One entry point for the pad gesture, the window button, the
@@ -89,6 +112,15 @@ final class EmulationController: ObservableObject {
                 title: profiles.selectedProfile?.name ?? AppText.resolve("Standard profile"),
                 profile: profiles.runtimeProfile
             )
+        }
+        // S6: the step is a step of the library selection, in list order with wraparound, and the new
+        // selection is saved like any other change so the picker and the next start agree with it.
+        // The library step is pure; persisting it goes through the controller's own selection seam.
+        profileStepper = { step in
+            var library = profiles.library
+            guard library.stepProfile(step), let id = library.selectedProfileID else { return nil }
+            profiles.select(id)
+            return profiles.runtimeProfile
         }
 
         // S6: stopping the emulation — from the pad, the button or an unplugged pad — closes the

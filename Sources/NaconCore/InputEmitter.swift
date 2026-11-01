@@ -72,10 +72,11 @@ public final class CGEventEmitter: InputEmitter {
 
     public func press(_ action: MappedAction) {
         switch action {
-        case .none, .precision, .scrollLines, .sequence, .toggledMouseButton:
+        case .none, .precision, .profileStep, .scrollLines, .sequence, .toggledMouseButton:
             // A sequence never reaches the emitter: the performance expands it into steps, and each step is
             // an ordinary key with its own press and release. Precision puts nothing down: it is a claim
-            // on the speed, so there is no event to post for it either.
+            // on the speed, so there is no event to post for it either. A profile step is a claim on which
+            // mapping runs, and the engine acts on it through its own callback.
             return
         case .key(let combo):
             postKey(combo, isDown: true)
@@ -86,7 +87,7 @@ public final class CGEventEmitter: InputEmitter {
 
     public func release(_ action: MappedAction) {
         switch action {
-        case .none, .precision, .scrollLines, .sequence, .toggledMouseButton:
+        case .none, .precision, .profileStep, .scrollLines, .sequence, .toggledMouseButton:
             return
         case .key(let combo):
             postKey(combo, isDown: false)

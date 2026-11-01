@@ -52,6 +52,16 @@ public enum MouseButton: String, Hashable, Sendable {
     case middle
 }
 
+/// Direction of a profile step asked for from the pad.
+///
+/// It lives beside the action because it is a part of it, not a setting: the two directions are the
+/// whole of what the pair of assignable actions can say. `String` raw values make the stored form
+/// readable in a profile file and stable across builds.
+public enum ProfileStep: String, Hashable, Sendable {
+    case next
+    case previous
+}
+
 /// What a physical control does when pressed.
 public enum MappedAction: Hashable, Sendable {
     case none
@@ -72,6 +82,14 @@ public enum MappedAction: Hashable, Sendable {
     /// ordinary action is what gives it a MOD-layer reading for free — the same button can slow the
     /// cursor in the base and do something else with MOD held.
     case precision
+    /// Makes another saved profile the active one. `next` and `previous` walk the library in list
+    /// order, wrapping at both ends.
+    ///
+    /// It is a claim on which mapping runs and nothing else: no key, no click, no repeat, no scroll. The
+    /// switch it asks for is atomic — everything the old profile held is released first — so the action
+    /// is safe to press with another control held down. Being an ordinary action is what gives it a
+    /// MOD-layer reading for free, exactly like precision.
+    case profileStep(ProfileStep)
 
     /// A sequence only exists when there is something to chain: one stroke is a key and none is
     /// nothing. The editor and the decoder both come through here, so a degenerate sequence cannot
@@ -104,6 +122,10 @@ public enum MappedAction: Hashable, Sendable {
             return combo.displayName(in: locale)
         case .precision:
             return Localization.resolve("Precision (hold)", locale: locale)
+        case .profileStep(.next):
+            return Localization.resolve("Next profile", locale: locale)
+        case .profileStep(.previous):
+            return Localization.resolve("Previous profile", locale: locale)
         case .mouseButton(.left):
             return Localization.resolve("Left click", locale: locale)
         case .mouseButton(.right):
@@ -213,19 +235,24 @@ public struct InputProfile: Equatable, Sendable {
     public var cursor: CursorSettings
     public var keyRepeat: KeyRepeatSettings
     public var precision: PrecisionSettings
+    /// The colour of the pad's light while this profile is the active one. It is the profile's only visible
+    /// mark, which is what lets the light say *which* profile is running instead of just that one is.
+    public var color: ProfileColour
 
     public init(
         mappings: [XInputControl: MappedAction],
         layer: ProfileLayer = .empty,
         cursor: CursorSettings = .standard,
         keyRepeat: KeyRepeatSettings = .standard,
-        precision: PrecisionSettings = .standard
+        precision: PrecisionSettings = .standard,
+        color: ProfileColour = .standard
     ) {
         self.mappings = mappings
         self.layer = layer
         self.cursor = cursor
         self.keyRepeat = keyRepeat
         self.precision = precision
+        self.color = color
     }
 
     /// Left stick moves the cursor, right stick scrolls, face buttons click, d-pad sends arrows.

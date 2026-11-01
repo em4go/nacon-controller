@@ -30,6 +30,7 @@ final class PadPerformanceTests: XCTestCase {
         case command
         case scroll
         case repeatKey
+        case profileStep
     }
 
     private func group(_ effect: PerformanceEffect) -> EffectGroup {
@@ -38,6 +39,7 @@ final class PadPerformanceTests: XCTestCase {
         case .press, .release, .toggleMouseButton: return .command
         case .scroll: return .scroll
         case .repeatKey: return .repeatKey
+        case .profileStep: return .profileStep
         }
     }
 

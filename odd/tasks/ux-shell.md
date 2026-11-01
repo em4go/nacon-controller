@@ -44,7 +44,7 @@ S8. Cada tramo se entrega en un corte revisable de ~400 líneas como máximo, co
 | T4 | Destino Diagnóstico con los valores en vivo, la trama y la leyenda | S7 | inline | 3871ba2 |
 | T5 | Destino Ajustes de la app: permiso, emulación, vibración, idioma; el porqué del botón apagado y la inversión del eje al inspector | S7, S6 | inline | 40754ca |
 | T6 | Primer arranque (prototipo 04), encima de la estructura definitiva | S2, S6 | inline | ba352bf |
-| T6b | Mapeo agrupado que retira el «Capt…» de la columna MOD | S9 | inline | pendiente |
+| T6b | Mapeo agrupado que retira el «Capt…» de la columna MOD | S9 | inline | 6e04182 |
 
 ## Log
 

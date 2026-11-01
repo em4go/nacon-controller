@@ -66,3 +66,7 @@ recomendaciones: inspector plegable, clic en perfil = activo, empezar por el esq
 L4. Diagnóstico del inventario que motiva el trabajo: la tabla de mapeo llega a 64 controles interactivos con capa
 MOD; el material técnico (matriz de valores, trama USB en hexadecimal, `tccutil`) vive en la ventana diaria; y tras
 conceder el permiso de Accesibilidad el conmutador de emulación queda fuera de pantalla a la altura mínima de ventana.
+
+L5. Frontera de entrega: el commit de los prototipos (`17a13b3`) añade 1835 líneas, casi todas HTML de `design/`.
+No es un corte de código revisable y no se parte: se revisa como diseño, no como implementación. Los tramos T1 a T6
+sí se entregan en cortes de ~400 líneas (S8).

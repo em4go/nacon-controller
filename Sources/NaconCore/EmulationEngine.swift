@@ -248,6 +248,17 @@ public final class EmulationEngine {
         }
     }
 
+    /// Waits for the work the engine already queued, so a test can observe the state after a call that is
+    /// asynchronous by design.
+    ///
+    /// `setEnabled`, `setProfile`, `switchProfile` and `ingest` hand their work to the engine's own queue
+    /// because that is the only place the state may change. The other internal seams (`setEnabledNow`,
+    /// `handle`, `tick`, `advance`) act on one moment without waiting; this one is their counterpart for the
+    /// callers that go through the public API, such as `EmulationRun`.
+    func drain() {
+        queue.sync {}
+    }
+
     /// The body of `switchProfile(to:)`, on the engine's own queue. Also the seam the tests drive, so
     /// the release-then-load order is asserted on the emitter instead of guessed at.
     func switchProfileNow(_ newProfile: InputProfile) {

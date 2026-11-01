@@ -881,6 +881,16 @@
         }
       }
     },
+    "Standard profile": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perfil estándar"
+          }
+        }
+      }
+    },
     "Stick travel that is ignored, so the hand can rest without moving the cursor.": {
       "localizations": {
         "es": {

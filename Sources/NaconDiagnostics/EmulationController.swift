@@ -3,145 +3,98 @@ import Combine
 import Foundation
 import NaconCore
 
-/// Owns the emulation engine and the UI state that protects it.
+/// The emulation, as the window needs it: the run in `NaconCore` plus the parts that are genuinely AppKit.
+///
+/// The rules — permission gate, Guide toggle, silence, profile step, the mapping summary's content — live
+/// in `EmulationRun`, where they are tested. What stays here is what needs a window or the system: the
+/// permission prompt and its poll, the two activation observers, the panel, and the quit flush.
 @MainActor
 final class EmulationController: ObservableObject {
-    @Published private(set) var isEnabled = false
+    /// The run's status, kept current by one sink instead of four restatements of its flags.
+    @Published private(set) var status = EmulationRun.Status()
     @Published private(set) var hasAccessibility = AccessibilityPermission.isGranted
-    @Published private(set) var stoppedByPad = false
-    @Published private(set) var startedByPad = false
-    /// The pad stopped sending. Nothing was disabled: a hub stall is not the user asking to stop.
-    @Published private(set) var padSilent = false
 
-    private let engine = EmulationEngine(emitter: CGEventEmitter())
-    /// Supplies the mapping to run. The app points it at the saved profiles, so a start uses the
-    /// selected one (S1, S8); the standard mapping keeps the controller usable on its own.
-    private var profileSource: @MainActor () -> InputProfile = { .standard }
-    /// What the summary shows. A separate source because it wants the profile's display name too,
-    /// which the engine does not carry.
-    private var summarySource: @MainActor () -> MappingSummaryWindow.Content = {
-        MappingSummaryWindow.Content(title: AppText.resolve("Standard profile"), profile: .standard)
-    }
+    /// The window asks these four; the run owns them, so the answer cannot drift from its state.
+    var isEnabled: Bool { status.isRunning }
+    var stoppedByPad: Bool { status.stoppedByPad }
+    var startedByPad: Bool { status.startedByPad }
+    /// The pad stopped sending. Nothing was disabled: a hub stall is not the user asking to stop.
+    var padSilent: Bool { status.padSilent }
+
+    private let run: EmulationRun
     private let summary = MappingSummaryWindow()
     private var cancellables: Set<AnyCancellable> = []
     private var permissionTimer: Timer?
-    /// The profile a step from the pad leads to, or `nil` when the selection did not change.
-    /// The library decides which profile that is; the controller only carries the answer across.
-    private var profileStepper: @MainActor (ProfileStep) -> InputProfile? = { _ in nil }
     private var terminationObserver: NSObjectProtocol?
     private var activationObserver: NSObjectProtocol?
-    /// Whether the engine and its observers are already wired to a service.
+    /// Whether the run and its observers are already wired to a service.
     private var isAttached = false
 
-    init() {
-        engine.onEmergencyStop = { [weak self] in
-            DispatchQueue.main.async {
-                self?.isEnabled = false
-                self?.stoppedByPad = true
-            }
-        }
-        // S12: the opposite direction. It also fires on the USB I/O queue, so the hop to the main
-        // queue comes first: the published state must not be touched from there.
-        engine.onGuidePress = { [weak self] in
-            DispatchQueue.main.async {
-                self?.startFromPad()
-            }
-        }
-        // MOD+PS: the floating summary. Same hop as the other callbacks: the pad reports arrive on
-        // the USB I/O queue, and the panel is main-thread only.
-        engine.onPadSilence = { [weak self] in
-            DispatchQueue.main.async { self?.padSilent = true }
-        }
-        engine.onPadResume = { [weak self] in
-            DispatchQueue.main.async { self?.padSilent = false }
-        }
-        engine.onSummaryPress = { [weak self] in
-            DispatchQueue.main.async {
-                self?.toggleSummary()
-            }
-        }
-        // S5, S6: a control assigned to a profile step. It arrives on the engine's queue like the rest
-        // of the report-driven callbacks, so the hop to the main queue comes first: the library and the
-        // published state are main-thread only.
-        engine.onProfileStep = { [weak self] step in
-            DispatchQueue.main.async {
-                self?.switchProfile(step)
-            }
-        }
-    }
-
-    /// S5, S6: makes the profile one step away the active one, without stopping the emulation.
-    ///
-    /// The library chooses which profile that is (S6) and the engine performs the atomic switch (S5):
-    /// it releases what the old profile claimed and only then applies the new one. Nothing here stops
-    /// or restarts the run, so a step in the middle of a movement does not even blink — and a step
-    /// while the emulation is stopped does nothing at all, because there is no mapping to switch.
-    private func switchProfile(_ step: ProfileStep) {
-        guard isEnabled else { return }
-        guard let profile = profileStepper(step) else { return }
-        engine.switchProfile(to: profile)
-    }
-
-    /// Switches to a profile chosen in the window while the emulation runs.
-    ///
-    /// It goes through `EmulationEngine.switchProfile(to:)`, the same path the pad's profile step uses,
-    /// so the atomic part — release everything the old profile claimed, then apply the new one — is not
-    /// reimplemented here. A call while emulation is stopped does nothing: there is no mapping to swap.
-    func switchToProfile(_ profile: InputProfile) {
-        guard isEnabled else { return }
-        engine.switchProfile(to: profile)
+    /// `run` is injectable so the composition can be driven without a pad; the app builds the one that
+    /// posts real events and reads the real profiles.
+    init(run: EmulationRun = EmulationRun(engine: EmulationEngine(emitter: CGEventEmitter()))) {
+        self.run = run
+        run.$status.assign(to: &$status)
     }
 
     /// Opens or closes the mapping summary. One entry point for the pad gesture, the window button, the
     /// menu bar item and the `--show-summary` launch argument, so the four cannot diverge.
     func toggleSummary() {
-        summary.toggle(with: summarySource())
+        // The content is the run's decision — the Perfil in force and its title, with the standard title
+        // when nothing is selected — and the panel only renders what it is given.
+        let shown = run.summary()
+        summary.toggle(with: MappingSummaryWindow.Content(title: shown.title, profile: shown.profile))
     }
 
-    /// S12: Guide asked to start the emulation.
-    ///
-    /// A denied Accessibility permission leaves everything untouched: starting without it would
-    /// inject nothing, and the pad would look ignored instead of blocked by a missing permission.
-    private func startFromPad() {
-        guard !isEnabled, GuideToggle.canStartFromPad(hasAccessibility: hasAccessibility) else { return }
-        setEnabled(true)
-        startedByPad = isEnabled
+    /// Switches to a profile chosen in the window while the emulation runs.
+    func switchToProfile(_ profile: InputProfile) {
+        run.switchToProfile(profile)
     }
 
     func attach(to service: ControllerService, profiles: ProfileLibraryController) {
-        // A second `onAppear` must not install a second timer, a second observer or a second report
-        // hook. `shutdown` clears the flag, so attaching again after a real teardown still works.
+        // A second `onAppear` must not install a second timer, a second observer or a second report hook.
+        // `shutdown` clears the flag, so attaching again after a real teardown still works.
         guard !isAttached else { return }
         isAttached = true
 
-        // S1, S8: the engine reads the library every time emulation starts, so the profile selected
-        // in the window — including the one restored from disk after a relaunch — is the one used.
-        profileSource = { profiles.library.runtimeProfile }
-        summarySource = {
-            MappingSummaryWindow.Content(
-                title: profiles.library.selectedProfile?.name ?? AppText.resolve("Standard profile"),
-                profile: profiles.library.runtimeProfile
-            )
-        }
+        // S1, S8: the run reads the library every time emulation starts, so the profile selected in the
+        // window — including the one restored from disk after a relaunch — is the one used. The title is a
+        // source of its own because the summary wants the profile's display name too, which the engine
+        // does not carry.
         // S6: the step is a step of the library selection, in list order with wraparound, and the new
-        // selection is saved like any other change so the picker and the next start agree with it.
-        // The step is pure inside `ProfileLibrary`; the seam that publishes and saves the result is
-        // the same one every other write in the window uses.
-        profileStepper = { step in
-            var stepped = false
-            profiles.edit { library in
-                stepped = library.stepProfile(step)
-            }
-            // A refused step leaves the library untouched and reports nothing to switch to.
-            return stepped ? profiles.library.runtimeProfile : nil
+        // selection is saved like any other change so the picker and the next start agree with it. The
+        // step is pure inside `ProfileLibrary`; the seam that publishes and saves the result is the same
+        // one every other write in the window uses.
+        run.attach(
+            profile: { profiles.library.runtimeProfile },
+            profileTitle: { profiles.library.selectedProfile?.name },
+            step: { step in
+                var stepped = false
+                profiles.edit { library in
+                    stepped = library.stepProfile(step)
+                }
+                // A refused step leaves the library untouched and reports nothing to switch to.
+                return stepped ? profiles.library.runtimeProfile : nil
+            },
+            // The system is asked, not the cached copy this window publishes: a start that trusts a stale
+            // flag either injects nothing or refuses a pad that is allowed to start.
+            hasAccessibility: { AccessibilityPermission.isGranted }
+        )
+
+        // The pad asked for the summary (MOD+PS). The callback is the run's; the panel is this window's.
+        run.onSummaryRequest = { [weak self] in
+            self?.toggleSummary()
         }
 
-        // S6: stopping the emulation — from the pad, the button or an unplugged pad — closes the
-        // summary along with everything else the run had open.
-        // dropFirst: the subscription delivers the current value as soon as it is installed, and at
-        // attach time the summary may be open from the `--show-summary` launch argument — closing it
-        // then would make the panel flicker away the instant the window appears.
-        $isEnabled.dropFirst()
+        // S6: stopping the emulation — from the pad, the button or an unplugged pad — closes the summary
+        // along with everything else the run had open.
+        // dropFirst: the subscription delivers the current value as soon as it is installed, and at attach
+        // time the summary may be open from the `--show-summary` launch argument — closing it then would
+        // make the panel flicker away the instant the window appears.
+        run.$status
+            .map(\.isRunning)
+            .removeDuplicates()
+            .dropFirst()
             .sink { [weak self] running in
                 if !running {
                     self?.summary.hide()
@@ -149,18 +102,19 @@ final class EmulationController: ObservableObject {
             }
             .store(in: &cancellables)
 
-        // Capture the engine, not self: this closure runs on the USB I/O queue.
-        let engine = self.engine
+        // Capture the run, not self: this closure runs on the USB I/O queue. Forwarding a report touches
+        // no published state — `ingest` only hands it to the engine's own queue.
+        let run = self.run
         service.reportObserver = { report in
-            engine.ingest(report)
+            run.ingest(report)
         }
-        engine.start()
+        run.start()
 
+        // S4: an unplugged pad stops the run. A run cannot outlive the thing it reads.
         service.$state
             .sink { [weak self] state in
-                guard let self, !state.isConnected, self.isEnabled else { return }
-                self.isEnabled = false
-                engine.setEnabled(false)
+                guard !state.isConnected else { return }
+                self?.run.padDisconnected()
             }
             .store(in: &cancellables)
 
@@ -192,7 +146,8 @@ final class EmulationController: ObservableObject {
     }
 
     func shutdown() {
-        engine.stop()
+        // The run stops synchronously: the key releases must be posted before the process ends.
+        run.shutdown()
         isAttached = false
         if let terminationObserver {
             NotificationCenter.default.removeObserver(terminationObserver)
@@ -205,32 +160,18 @@ final class EmulationController: ObservableObject {
         permissionTimer?.invalidate()
         permissionTimer = nil
         cancellables.removeAll()
-        isEnabled = false
-        padSilent = false
     }
 
     func setEnabled(_ newValue: Bool) {
-        stoppedByPad = false
-        startedByPad = false
-        guard newValue else {
-            isEnabled = false
-            padSilent = false
-            engine.setEnabled(false)
-            return
-        }
-        guard AccessibilityPermission.isGranted else {
+        guard run.setEnabled(newValue) else {
+            // Refused: the Accessibility permission is missing and nothing was started. The prompt is the
+            // app's, because it is a system sheet and this is the process that owns a window.
             hasAccessibility = AccessibilityPermission.requestPrompt()
-            isEnabled = false
-            engine.setEnabled(false)
             return
         }
-        hasAccessibility = true
-        // S1, S8: the profile in force is the one captured at start. Editing a mapping or switching
-        // profiles while emulation runs therefore cannot disturb an in-flight press: the next start
-        // reads the library again.
-        engine.setProfile(profileSource())
-        isEnabled = true
-        engine.setEnabled(true)
+        if newValue {
+            hasAccessibility = true
+        }
     }
 
     func requestAccessibility() {

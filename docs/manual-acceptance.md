@@ -58,7 +58,11 @@ El mando debe estar conectado y el permiso de Accesibilidad concedido.
 | 35 | Con los perfiles Ratón → Texto → Dibujo enlazados en ciclo, arrancar la emulación y pulsar MOD + L3 tres veces | Recorre exactamente esos tres y vuelve al primero, saltándose los demás perfiles de la lista; la luz sigue el color de cada uno |
 | 36 | Con el mismo ciclo, pulsar MOD + R3 desde Ratón | Va a Dibujo: el paso atrás es el enlace inverso, no la fila anterior de la lista |
 
-### Reestructuración de la ventana (2026-11-01) — pendiente de validación
+### Reestructuración de la ventana (2026-11-01) — validado el 2026-11-01
+
+Validado por el usuario: 37, 38, 39, 41, 42, 43, 44 y 45. El paso 40 (el aviso naranja del permiso) se saltó a
+propósito: obliga a retirar el permiso de Accesibilidad y volver a concederlo, así que **sigue sin comprobarse**. La luz
+del mando se comprobó aparte, con el arreglo del LED, en los tres casos del bloque siguiente.
 
 | # | Acción | Qué debe verse |
 |---|---|---|
@@ -71,6 +75,14 @@ El mando debe estar conectado y el permiso de Accesibilidad concedido.
 | 43 | Estrechar la ventana por debajo de 1240 puntos y pulsar el botón del inspector | La columna se pliega sola; el botón sigue abriéndola si se pulsa, y el mapeo no se corta |
 | 44 | Mirar la tabla del mapeo | Se lee en cinco secciones —Cruceta, Botones, Gatillos y palancas, Pulsación de sticks, Botones del sistema— y los botones dicen «Capturar» completo en las dos columnas |
 | 45 | Cambiar de perfil pulsando una fila de la barra lateral **con la emulación en marcha** | El mapeo cambia sin parar la emulación; si había un clic fijado o una tecla mantenida, se sueltan antes del cambio |
+
+### Luz del mando desde cualquier destino (2026-11-01) — validado el 2026-11-01
+
+| # | Acción | Qué debe verse |
+|---|---|---|
+| 46 | Abrir la app, quedarse en **Mapeo** y pulsar **Iniciar emulación** | La luz se enciende con el color del perfil activo, sin haber abierto Ajustes |
+| 47 | Sin cambiar de destino, pulsar otro perfil de la barra lateral | La luz toma el color del perfil nuevo |
+| 48 | Con la emulación en marcha, pulsar el botón asignado a **Perfil siguiente** | La luz sigue al perfil nuevo aunque no se toque la ventana |
 
 ## Qué NO cubre
 

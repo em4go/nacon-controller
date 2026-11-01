@@ -166,3 +166,8 @@ L23. Tres correcciones durante el tramo, dos del compilador y una mía: el tipo 
 ya declara, y hubo que renombrarlo a `MappingGroup`; los tests desestructuraban una tupla que ahora es `ControlSection`;
 y mi primer test afirmaba que el orden aplanado no cambia, cuando agrupar es exactamente cambiarlo — lo correcto es que
 el orden se conserve *dentro* de cada sección. Suite: 430.
+
+L24. Cierre del tramo. La rama reúne 23 commits y unos 3689 líneas de autoría desde `origin/main`; los cortes de T4 a
+T6b van de 130 a 483 líneas cada uno, y el de T6 se justifica porque 250 de sus líneas son catálogo de localización.
+Suite final: 430. La aceptación manual de la reestructuración son los pasos 37 a 45, **pendientes de que el usuario los
+valide**: nada de esta rama se ha dado por bueno en hardware salvo lo que se cita con captura.

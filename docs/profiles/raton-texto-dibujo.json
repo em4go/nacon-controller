@@ -1,0 +1,678 @@
+{
+  "profiles": [
+    {
+      "id": "453DC5EB-B938-4C4B-8463-D86522DEB95C",
+      "name": "Ratón",
+      "profile": {
+        "color": "blue",
+        "cursor": {
+          "curveExponent": 2,
+          "deadzone": 0.18,
+          "fullSpeedFraction": 0.85,
+          "invertVerticalAxis": false,
+          "maxSpeed": 1400,
+          "scrollLinesPerSecond": 14
+        },
+        "keyRepeat": {
+          "initialDelay": 0.35,
+          "interval": 0.05
+        },
+        "layer": {
+          "key": "leftTrigger",
+          "mappings": {
+            "back": {
+              "key": {
+                "keyCode": 6,
+                "modifiers": 9
+              },
+              "kind": "key"
+            },
+            "buttonA": {
+              "key": {
+                "keyCode": 8,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "buttonB": {
+              "key": {
+                "keyCode": 9,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "buttonX": {
+              "key": {
+                "keyCode": 7,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "buttonY": {
+              "key": {
+                "keyCode": 6,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "dpadDown": {
+              "key": {
+                "keyCode": 125,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "dpadLeft": {
+              "key": {
+                "keyCode": 123,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "dpadRight": {
+              "key": {
+                "keyCode": 124,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "dpadUp": {
+              "key": {
+                "keyCode": 126,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "guide": {
+              "kind": "none"
+            },
+            "leftBumper": {
+              "key": {
+                "keyCode": 3,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "leftThumb": {
+              "kind": "profileStep",
+              "profileStep": "next"
+            },
+            "leftTrigger": {
+              "kind": "none"
+            },
+            "rightBumper": {
+              "key": {
+                "keyCode": 1,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "rightThumb": {
+              "kind": "profileStep",
+              "profileStep": "previous"
+            },
+            "rightTrigger": {
+              "key": {
+                "keyCode": 56,
+                "modifiers": 0
+              },
+              "kind": "key"
+            },
+            "start": {
+              "key": {
+                "keyCode": 49,
+                "modifiers": 1
+              },
+              "kind": "key"
+            }
+          }
+        },
+        "mappings": {
+          "back": {
+            "key": {
+              "keyCode": 53,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "buttonA": {
+            "button": "left",
+            "kind": "mouseButton"
+          },
+          "buttonB": {
+            "button": "right",
+            "kind": "mouseButton"
+          },
+          "buttonX": {
+            "button": "middle",
+            "kind": "mouseButton"
+          },
+          "buttonY": {
+            "key": {
+              "keyCode": 36,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "dpadDown": {
+            "key": {
+              "keyCode": 125,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "dpadLeft": {
+            "key": {
+              "keyCode": 123,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "dpadRight": {
+            "key": {
+              "keyCode": 124,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "dpadUp": {
+            "key": {
+              "keyCode": 126,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "guide": {
+            "kind": "none"
+          },
+          "leftBumper": {
+            "kind": "precision"
+          },
+          "leftThumb": {
+            "kind": "none"
+          },
+          "leftTrigger": {
+            "kind": "none"
+          },
+          "rightBumper": {
+            "button": "left",
+            "kind": "toggleMouseButton"
+          },
+          "rightThumb": {
+            "kind": "none"
+          },
+          "rightTrigger": {
+            "key": {
+              "keyCode": 55,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "start": {
+            "key": {
+              "keyCode": 48,
+              "modifiers": 1
+            },
+            "kind": "key"
+          }
+        },
+        "precision": {
+          "scale": 0.35
+        }
+      }
+    },
+    {
+      "id": "4B83BBF9-7DB1-4B65-8AAE-82FF44DDE2A3",
+      "name": "Texto",
+      "profile": {
+        "color": "green",
+        "cursor": {
+          "curveExponent": 2,
+          "deadzone": 0.18,
+          "fullSpeedFraction": 0.85,
+          "invertVerticalAxis": false,
+          "maxSpeed": 1000,
+          "scrollLinesPerSecond": 18
+        },
+        "keyRepeat": {
+          "initialDelay": 0.35,
+          "interval": 0.05
+        },
+        "layer": {
+          "key": "leftTrigger",
+          "mappings": {
+            "back": {
+              "key": {
+                "keyCode": 0,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "buttonA": {
+              "key": {
+                "keyCode": 7,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "buttonB": {
+              "key": {
+                "keyCode": 8,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "buttonX": {
+              "key": {
+                "keyCode": 9,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "buttonY": {
+              "key": {
+                "keyCode": 6,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "dpadDown": {
+              "key": {
+                "keyCode": 125,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "dpadLeft": {
+              "key": {
+                "keyCode": 123,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "dpadRight": {
+              "key": {
+                "keyCode": 124,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "dpadUp": {
+              "key": {
+                "keyCode": 126,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "guide": {
+              "kind": "none"
+            },
+            "leftBumper": {
+              "key": {
+                "keyCode": 51,
+                "modifiers": 2
+              },
+              "kind": "key"
+            },
+            "leftThumb": {
+              "kind": "profileStep",
+              "profileStep": "next"
+            },
+            "leftTrigger": {
+              "kind": "none"
+            },
+            "rightBumper": {
+              "key": {
+                "keyCode": 13,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "rightThumb": {
+              "kind": "profileStep",
+              "profileStep": "previous"
+            },
+            "rightTrigger": {
+              "key": {
+                "keyCode": 6,
+                "modifiers": 9
+              },
+              "kind": "key"
+            },
+            "start": {
+              "key": {
+                "keyCode": 17,
+                "modifiers": 1
+              },
+              "kind": "key"
+            }
+          }
+        },
+        "mappings": {
+          "back": {
+            "key": {
+              "keyCode": 53,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "buttonA": {
+            "button": "left",
+            "kind": "mouseButton"
+          },
+          "buttonB": {
+            "button": "right",
+            "kind": "mouseButton"
+          },
+          "buttonX": {
+            "key": {
+              "keyCode": 55,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "buttonY": {
+            "key": {
+              "keyCode": 36,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "dpadDown": {
+            "key": {
+              "keyCode": 125,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "dpadLeft": {
+            "key": {
+              "keyCode": 123,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "dpadRight": {
+            "key": {
+              "keyCode": 124,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "dpadUp": {
+            "key": {
+              "keyCode": 126,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "guide": {
+            "kind": "none"
+          },
+          "leftBumper": {
+            "kind": "precision"
+          },
+          "leftThumb": {
+            "kind": "none"
+          },
+          "leftTrigger": {
+            "kind": "none"
+          },
+          "rightBumper": {
+            "button": "left",
+            "kind": "toggleMouseButton"
+          },
+          "rightThumb": {
+            "kind": "none"
+          },
+          "rightTrigger": {
+            "key": {
+              "keyCode": 56,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "start": {
+            "key": {
+              "keyCode": 3,
+              "modifiers": 1
+            },
+            "kind": "key"
+          }
+        },
+        "precision": {
+          "scale": 0.35
+        }
+      }
+    },
+    {
+      "id": "25D838BC-323B-4838-931B-D151A1155E75",
+      "name": "Dibujo",
+      "profile": {
+        "color": "purple",
+        "cursor": {
+          "curveExponent": 2,
+          "deadzone": 0.18,
+          "fullSpeedFraction": 0.85,
+          "invertVerticalAxis": false,
+          "maxSpeed": 700,
+          "scrollLinesPerSecond": 10
+        },
+        "keyRepeat": {
+          "initialDelay": 0.35,
+          "interval": 0.05
+        },
+        "layer": {
+          "key": "leftTrigger",
+          "mappings": {
+            "back": {
+              "key": {
+                "keyCode": 29,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "buttonA": {
+              "key": {
+                "keyCode": 8,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "buttonB": {
+              "key": {
+                "keyCode": 9,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "buttonX": {
+              "key": {
+                "keyCode": 2,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "buttonY": {
+              "key": {
+                "keyCode": 6,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "dpadDown": {
+              "key": {
+                "keyCode": 125,
+                "modifiers": 0
+              },
+              "kind": "key"
+            },
+            "dpadLeft": {
+              "key": {
+                "keyCode": 123,
+                "modifiers": 0
+              },
+              "kind": "key"
+            },
+            "dpadRight": {
+              "key": {
+                "keyCode": 124,
+                "modifiers": 0
+              },
+              "kind": "key"
+            },
+            "dpadUp": {
+              "key": {
+                "keyCode": 126,
+                "modifiers": 0
+              },
+              "kind": "key"
+            },
+            "guide": {
+              "kind": "none"
+            },
+            "leftBumper": {
+              "key": {
+                "keyCode": 6,
+                "modifiers": 9
+              },
+              "kind": "key"
+            },
+            "leftThumb": {
+              "kind": "profileStep",
+              "profileStep": "next"
+            },
+            "leftTrigger": {
+              "kind": "none"
+            },
+            "rightBumper": {
+              "key": {
+                "keyCode": 5,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "rightThumb": {
+              "kind": "profileStep",
+              "profileStep": "previous"
+            },
+            "rightTrigger": {
+              "key": {
+                "keyCode": 1,
+                "modifiers": 1
+              },
+              "kind": "key"
+            },
+            "start": {
+              "key": {
+                "keyCode": 49,
+                "modifiers": 1
+              },
+              "kind": "key"
+            }
+          }
+        },
+        "mappings": {
+          "back": {
+            "key": {
+              "keyCode": 53,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "buttonA": {
+            "button": "left",
+            "kind": "mouseButton"
+          },
+          "buttonB": {
+            "button": "right",
+            "kind": "mouseButton"
+          },
+          "buttonX": {
+            "button": "middle",
+            "kind": "mouseButton"
+          },
+          "buttonY": {
+            "key": {
+              "keyCode": 36,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "dpadDown": {
+            "key": {
+              "keyCode": 125,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "dpadLeft": {
+            "key": {
+              "keyCode": 123,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "dpadRight": {
+            "key": {
+              "keyCode": 124,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "dpadUp": {
+            "key": {
+              "keyCode": 126,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "guide": {
+            "kind": "none"
+          },
+          "leftBumper": {
+            "kind": "precision"
+          },
+          "leftThumb": {
+            "key": {
+              "keyCode": 58,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "leftTrigger": {
+            "kind": "none"
+          },
+          "rightBumper": {
+            "button": "left",
+            "kind": "toggleMouseButton"
+          },
+          "rightThumb": {
+            "key": {
+              "keyCode": 56,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "rightTrigger": {
+            "key": {
+              "keyCode": 55,
+              "modifiers": 0
+            },
+            "kind": "key"
+          },
+          "start": {
+            "key": {
+              "keyCode": 48,
+              "modifiers": 1
+            },
+            "kind": "key"
+          }
+        },
+        "precision": {
+          "scale": 0.25
+        }
+      }
+    }
+  ]
+}

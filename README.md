@@ -174,6 +174,9 @@ unidad asocia a esos colores, medidos con una sonda que los recorrió todos. Un 
 existiera el ajuste carga en azul, que es el que la app mostraba siempre.
 
 Dos acciones asignables —**Perfil siguiente** y **Perfil anterior**— cambian de perfil desde el propio mando,
+
+En `docs/profiles/` hay una propuesta de tres perfiles complementarios —Ratón, Texto y Dibujo— con la misma
+tecla MOD y el mismo gesto de cambio, para usar el ordenador sin la ventana delante.
 en la columna base o en la MOD. El cambio es atómico: antes de cargar el perfil nuevo se suelta todo lo que el
 anterior tenía pulsado —teclas, modificadores y botones fijados—, para que un clic que quedó fijado en un perfil
 no siga pulsado en el siguiente. La emulación no se detiene, y el botón que estabas manteniendo se suelta: no se

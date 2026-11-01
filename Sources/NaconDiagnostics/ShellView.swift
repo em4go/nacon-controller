@@ -91,8 +91,11 @@ struct ShellView: View {
             ToolbarItem(placement: .primaryAction) {
                 emulationButton
             }
-            ToolbarItem(placement: .primaryAction) {
-                inspectorButton
+            if destination == .mapping {
+                // No column, no button: a toggle that opens nothing is a promise the window breaks.
+                ToolbarItem(placement: .primaryAction) {
+                    inspectorButton
+                }
             }
         }
         // T2: the same questions, with the same text, the same buttons and the same destructive role,
@@ -263,7 +266,10 @@ struct ShellView: View {
     private var detailArea: some View {
         HStack(spacing: 0) {
             detail
-            if isInspectorVisible {
+            // The inspector is the profile's, and only the mapping destination is about that profile:
+            // showing it beside the packet dump would offer settings next to a screen that cannot use
+            // them, and pay for the width twice.
+            if isInspectorVisible, destination == .mapping {
                 Divider()
                 InspectorView(profiles: profiles)
                     .frame(width: Self.inspectorWidth)
@@ -313,13 +319,44 @@ struct ShellView: View {
     }
 
     /// S7: the technical material lives here from now on, out of the daily view.
+    /// S7: everything technical, and an explanation of why it is here, so the area does not read as a
+    /// leftover of the interface but as the place to come when something does not work.
     private var diagnosticsDestination: some View {
         VStack(alignment: .leading, spacing: 18) {
+            Text(
+                AppText.resolve(
+                    "What the pad sends, for when something does not work. Nothing here is needed to use it."
+                )
+            )
+            .font(.callout)
+            .foregroundStyle(.secondary)
+            diagnosticsPermissionHint
             if service.state.isConnected {
                 // Their own view, so a report rebuilds only this subtree and not the whole column.
                 LiveReportSections(feed: service.feed)
             }
             LegendSection(devices: service.devices)
+        }
+    }
+
+    /// The technical half of the permission problem lives here, not in the everyday view: the command
+    /// resets a system entry, and reading it is a troubleshooting step, not a setting.
+    @ViewBuilder
+    private var diagnosticsPermissionHint: some View {
+        if !emulation.hasAccessibility {
+            VStack(alignment: .leading, spacing: 6) {
+                SectionTitle(AppText.resolve("Accessibility, for when it refuses to work"))
+                Text(
+                    AppText.resolve(
+                        "If the app already appears as enabled in that list and the indicator is still orange, "
+                        + "the entry is stale: select it, remove it with the − button and add it again, or run "
+                        + "tccutil reset Accessibility dev.nacon.diagnostics and request the permission again."
+                    )
+                )
+                .font(.caption)
+                .foregroundStyle(.orange)
+                .textSelection(.enabled)
+            }
         }
     }
 

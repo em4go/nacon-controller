@@ -41,7 +41,7 @@ S8. Cada tramo se entrega en un corte revisable de ~400 líneas como máximo, co
 | T1 | Esqueleto de tres zonas con lo existente recolocado: barra lateral con el mando, destino Mapeo con la sección de perfil entera y la acción principal en la barra de herramientas | S1, S3, S6 | worker + correcciones inline | bb0f676 |
 | T2 | Lista de perfiles en la barra lateral, con su color; los cuatro botones a un menú de la barra de herramientas | S5, S6 | delegado | fdedaaa |
 | T3 | Inspector con color, perfil siguiente, tecla MOD, sensibilidad y precisión; plegado por ancho | S4, S6 | delegado + correcciones inline | c4f5e60 |
-| T4 | Destino Diagnóstico con los valores en vivo, la trama y la leyenda | S7 | delegado | |
+| T4 | Destino Diagnóstico con los valores en vivo, la trama y la leyenda | S7 | inline | pendiente |
 | T5 | Destino Ajustes de la app: permiso, emulación, vibración, idioma | S7 | delegado | |
 | T6 | Primer arranque (prototipo 04), encima de la estructura definitiva | S3 | delegado | |
 
@@ -127,3 +127,9 @@ agrupada prevista en T6.
 L15. Queda pendiente revisar el texto de la ayuda del inspector y el estado del permiso de Accesibilidad en el destino
 «Ajustes» (T5): hoy el botón de la barra de herramientas se deshabilita sin decir por qué, y ese «por qué» vive en otra
 pantalla.
+
+L16. T4 hecho en línea. Diagnóstico abre con una frase que dice para qué sirve, recoge la pista técnica del permiso
+—el comando `tccutil` estaba en Ajustes, entre los ajustes de uso diario— y conserva los valores en vivo, la trama y la
+leyenda. En Ajustes queda un puntero corto: «¿El permiso aparece concedido y aun así no pasa nada? El arreglo está en
+Diagnóstico». Además el inspector se limita al destino Mapeo: ofrecer los ajustes del perfil junto al volcado de paquetes
+era ruido y ancho pagado dos veces. Verificado en pantalla a 1420×860 con arranque temporal en Diagnóstico.

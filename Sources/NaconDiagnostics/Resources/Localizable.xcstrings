@@ -71,6 +71,16 @@
         }
       }
     },
+    "Accessibility, for when it refuses to work": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accesibilidad, para cuando se niega a funcionar"
+          }
+        }
+      }
+    },
     "Active profile": {
       "localizations": {
         "es": {
@@ -1102,6 +1112,16 @@
         }
       }
     },
+    "The permission looks granted and nothing happens? The fix is under Diagnostics.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿El permiso aparece concedido y aun así no pasa nada? El arreglo está en Diagnóstico."
+          }
+        }
+      }
+    },
     "The profiles could not be saved to %@. The changes are still on screen, but they will be lost when the app closes: %@": {
       "localizations": {
         "es": {
@@ -1188,6 +1208,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Qué se puede leer"
+          }
+        }
+      }
+    },
+    "What the pad sends, for when something does not work. Nothing here is needed to use it.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lo que envía el mando, para cuando algo no funciona. Nada de aquí hace falta para usarlo."
           }
         }
       }

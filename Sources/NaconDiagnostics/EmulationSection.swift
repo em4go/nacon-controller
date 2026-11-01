@@ -161,12 +161,12 @@ struct EmulationSection: View {
         }
     }
 
+    /// The command itself moved to the diagnostics destination: reading a shell command is a
+    /// troubleshooting step, and this section is what someone sees while trying to start the emulation.
     private var staleEntryHint: some View {
         Text(
             AppText.resolve(
-                "If the app already appears as enabled in that list and the indicator is still orange, "
-                + "the entry is stale: select it, remove it with the − button and add it again, or run "
-                + "tccutil reset Accessibility dev.nacon.diagnostics and request the permission again."
+                "The permission looks granted and nothing happens? The fix is under Diagnostics."
             )
         )
         .font(.caption)

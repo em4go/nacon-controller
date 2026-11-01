@@ -58,6 +58,20 @@ El mando debe estar conectado y el permiso de Accesibilidad concedido.
 | 35 | Con los perfiles Ratón → Texto → Dibujo enlazados en ciclo, arrancar la emulación y pulsar MOD + L3 tres veces | Recorre exactamente esos tres y vuelve al primero, saltándose los demás perfiles de la lista; la luz sigue el color de cada uno |
 | 36 | Con el mismo ciclo, pulsar MOD + R3 desde Ratón | Va a Dibujo: el paso atrás es el enlace inverso, no la fila anterior de la lista |
 
+### Reestructuración de la ventana (2026-11-01) — pendiente de validación
+
+| # | Acción | Qué debe verse |
+|---|---|---|
+| 37 | Abrir la app en un Mac donde no se haya visto la guía | Aparece una hoja con «Cuatro pasos», cada uno con su estado en vivo: mando detectado o no, permiso concedido o pendiente, emulación activa o detenida. «Empezar» la cierra |
+| 38 | Cerrar la app y volver a abrirla | La guía no aparece; la ventana abre en Mapeo |
+| 39 | Ajustes → **Ver la guía otra vez** | La guía se abre otra vez, con los estados del momento |
+| 40 | Conceder el permiso, luego `tccutil reset Accessibility dev.nacon.diagnostics` y relanzar | El botón de la barra deja de decir «Iniciar emulación» y pasa a «⚠ Falta el permiso de Accesibilidad», en naranja; al pulsarlo se abre Ajustes, donde está el botón que lo pide |
+| 41 | Recorrer los tres destinos | Diagnóstico contiene la matriz de botones, los sticks, la trama en hexadecimal y la leyenda; Mapeo y Ajustes no contienen nada de eso |
+| 42 | En Mapeo, con la ventana ancha, mirar la barra de herramientas; luego ir a Diagnóstico | El botón del inspector aparece en Mapeo y desaparece en Diagnóstico, donde la columna no se dibuja |
+| 43 | Estrechar la ventana por debajo de 1240 puntos y pulsar el botón del inspector | La columna se pliega sola; el botón sigue abriéndola si se pulsa, y el mapeo no se corta |
+| 44 | Mirar la tabla del mapeo | Se lee en cinco secciones —Cruceta, Botones, Gatillos y palancas, Pulsación de sticks, Botones del sistema— y los botones dicen «Capturar» completo en las dos columnas |
+| 45 | Cambiar de perfil pulsando una fila de la barra lateral **con la emulación en marcha** | El mapeo cambia sin parar la emulación; si había un clic fijado o una tecla mantenida, se sueltan antes del cambio |
+
 ## Qué NO cubre
 
 - La inyección en otras aplicaciones se comprueba a ojo en el paso 5; no hay aserción automática.

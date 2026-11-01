@@ -396,12 +396,11 @@ odd/tasks/phase2-diagnostics.md           Especificación y registro de la tarea
 - El significado de cada bit está fijado por el protocolo Xbox 360. Si una unidad concreta
   intercambiara botones, la tabla está en un único sitio (`XInputReport.swift`).
 - **El pellizco del trackpad no se puede imitar**, y es una pena porque sería el zoom ideal: funciona en
-  cualquier aplicación. No hay API pública para fabricarlo. `NSEvent.h` define `NSEventTypeMagnify` (tipo
-  30) y `CGEventTypes.h` define `CGGesturePhase`, pero **ninguno ofrece un campo público de `CGEvent`
-  donde escribir cuánto se amplía**: se puede publicar un evento con ese tipo —un testigo a nivel de
-  sistema lo ve— y aun así no hay gesto con cantidad, que es justo lo que el pellizco aporta. Los únicos
-  proyectos que lo consiguen inyectan datos multitáctiles crudos con `IOHIDEvent` y frameworks privados
-  (`TouchSynthesis`), y eso no entra aquí porque no sobrevive a una actualización del sistema.
+  cualquier aplicación y la magnitud la decidiría quien lo hace. Medido, no supuesto: se puede construir un
+  evento de gesto con su magnificación —un testigo del sistema lo lee correctamente— y aun así **el servidor
+  de ventanas lo descarta antes de que llegue a ninguna aplicación**, por cualquier vía probada. Ir más allá
+  exige falsificar el payload de dispositivo, que es binario indocumentado y cambia entre versiones de macOS.
+  El detalle completo, con la tabla de lo medido, está en [`docs/pinch-zoom.md`](docs/pinch-zoom.md).
   Lo que sí funciona: **⌘+rueda o ⌃+rueda donde la aplicación lo acepte** (confirmado en Figma, y ⌃+rueda
   es lo que macOS entrega a las aplicaciones web cuando pellizcas), y **⌘+ / ⌘−** en las nativas.
 - La luz y la vibración se controlan desde la app. La orden de parada de ambas se envía al terminar,

@@ -34,16 +34,23 @@ trama USB, leyenda del protocolo— deja de estar en la vista principal.
 
 S8. Cada tramo se entrega en un corte revisable de ~400 líneas como máximo, con sus tests y su documentación.
 
+S9. El mapeo se lee agrupado por zonas del mando, y ningún botón de la tabla pierde letras por falta de ancho.
+
+S10. La luz del mando y el aviso de vibración son de la app, no de una pantalla: siguen a la emulación y al color del
+perfil esté la ventana en el destino que esté, porque un paquete que depende de que una vista esté montada es un paquete
+que deja de enviarse.
+
 ## Tasks
 
 | ID | Qué | Specs | Ruta | Commit |
 |---|---|---|---|---|
-| T1 | Esqueleto de tres zonas con lo existente recolocado: barra lateral con el mando, destino Mapeo con la sección de perfil entera, inspector vacío, ventana a 780 de ancho sin romperse | S1, S3, S6 | inline | |
-| T2 | Lista de perfiles en la barra lateral, con su color; los cuatro botones a un menú de la barra de herramientas | S5, S6 | delegado | |
-| T3 | Inspector con color, perfil siguiente, tecla MOD, sensibilidad y precisión; plegado por ancho | S4, S6 | delegado | |
-| T4 | Destino Diagnóstico con los valores en vivo, la trama y la leyenda | S7 | delegado | |
-| T5 | Destino Ajustes de la app: permiso, emulación, vibración, idioma | S7 | delegado | |
-| T6 | Primer arranque (prototipo 04), encima de la estructura definitiva | S3 | delegado | |
+| T1 | Esqueleto de tres zonas con lo existente recolocado: barra lateral con el mando, destino Mapeo con la sección de perfil entera y la acción principal en la barra de herramientas | S1, S3, S6 | worker + correcciones inline | bb0f676 |
+| T2 | Lista de perfiles en la barra lateral, con su color; los cuatro botones a un menú de la barra de herramientas | S5, S6 | delegado | fdedaaa |
+| T3 | Inspector con color, perfil siguiente, tecla MOD, sensibilidad y precisión; plegado por ancho | S4, S6 | delegado + correcciones inline | c4f5e60 |
+| T4 | Destino Diagnóstico con los valores en vivo, la trama y la leyenda | S7 | inline | 3871ba2 |
+| T5 | Destino Ajustes de la app: permiso, emulación, vibración, idioma; el porqué del botón apagado y la inversión del eje al inspector | S7, S6 | inline | 40754ca |
+| T6 | Primer arranque (prototipo 04), encima de la estructura definitiva | S2, S6 | inline | ba352bf |
+| T6b | Mapeo agrupado que retira el «Capt…» de la columna MOD | S9 | inline | 6e04182 |
 
 ## Log
 
@@ -66,3 +73,149 @@ recomendaciones: inspector plegable, clic en perfil = activo, empezar por el esq
 L4. Diagnóstico del inventario que motiva el trabajo: la tabla de mapeo llega a 64 controles interactivos con capa
 MOD; el material técnico (matriz de valores, trama USB en hexadecimal, `tccutil`) vive en la ventana diaria; y tras
 conceder el permiso de Accesibilidad el conmutador de emulación queda fuera de pantalla a la altura mínima de ventana.
+
+L5. Frontera de entrega: el commit de los prototipos (`17a13b3`) añade 1835 líneas, casi todas HTML de `design/`.
+No es un corte de código revisable y no se parte: se revisa como diseño, no como implementación. Los tramos T1 a T6
+sí se entregan en cortes de ~400 líneas (S8).
+
+L6. T1 entregado por un worker y corregido aquí antes de commitear. Tres correcciones suyas: los títulos de destino
+reutilizaban claves que decían otra cosa («Emulación de ratón y teclado» para Ajustes), así que se añadieron «Mapping»,
+«Diagnostics» y «Settings» al catálogo de la ventana; y —la de fondo— dejar el interruptor de emulación solo dentro de
+Ajustes convertía en regresión el único paso que un recién llegado necesita, así que la barra de herramientas lleva
+ahora la acción principal con la misma regla de permiso que la sección. El inspector se deja para T3, con su regla de
+plegado: una tercera columna vacía solo quitaría ancho al mapeo.
+
+L7. Al abrir el mapeo tras meter la barra lateral, las etiquetas largas se cortan («Precisión (ma…», «Alternar clic…»).
+El contenido pide 940 de ancho ideal, pero macOS restaura el marco guardado de la ventana anterior, así que la captura
+sigue mostrando el ancho viejo. Queda pendiente de verificación visual a 780 de ancho, y T3 es quien lo resuelve de
+verdad al agrupar el mapeo en una lista.
+
+L8. El truncado no venía del marco guardado (la ventana ya abría ancha y seguía cortando) sino de la tabla: la
+etiqueta de la acción estaba limitada a una línea. Ahora envuelve a dos, sin cambiar ningún texto, así que la
+información deja de perderse; el reparto de columnas se ordena de verdad en T3, con la lista agrupada.
+
+L9. T2 entregado y verificado en pantalla: seis perfiles en la barra lateral con su punto de color y el activo marcado,
+los cuatro botones ahora en un menú de la barra, y la columna de contenido sin selector ni botones. Las dos preguntas
+delicadas —renombrar y eliminar— conservan su alerta y su diálogo destructivo y llaman a `renameSelectedProfile` y
+`deleteSelectedProfile`. El worker dejó una duda honesta: la lista se deshabilita al emular porque lo pide S5, y eso es
+un endurecimiento deliberado respecto del selector anterior, que no lo estaba. Queda abierto si conviene lo contrario:
+durante la emulación el mando ya puede cambiar de perfil, así que la ventana es más restrictiva que el propio mando.
+
+L10. Sobra la clave «Active profile» del catálogo de la ventana, que el selector viejo usaba y ahora nadie resuelve. No
+molesta y el test de cobertura no la vigila, porque solo comprueba claves usadas; se limpia cuando se toque el catálogo.
+
+L11. T3 llegó con la suite en rojo: el worker no podía tocar el catálogo y el botón del inspector resolvía dos claves
+que no existían («Show inspector» / «Hide inspector»). Es exactamente lo que el test de cobertura vigila, así que se
+añadieron con su traducción. Además se corrigieron tres decisiones suyas: el umbral de 1000 dejaba el mapeo por debajo
+del ancho usable (ahora 1240, que es la aritmética real: 240 de barra + 620 de contenido + 340 de inspector); el panel
+de 300 cortaba las etiquetas de sensibilidad a media palabra, así que mide 340; y por debajo del umbral los ajustes
+quedaban inalcanzables, así que el botón puede abrirlo aunque la ventana sea estrecha — una regla de maquetación no
+puede convertir un ajuste en inaccesible.
+
+L12. Dos límites de verificación, dichos como son. Primero: la geometría de la ventana la restaura macOS, y con
+`.windowResizability(.contentMinSize)` el `.defaultSize(1320×860)` no se aplica; la ventana abre a 900×832 y no puedo
+redimensionarla por script porque el proceso no tiene permiso de Accesibilidad. Está verificado que a 900 el inspector
+se pliega solo y no se corta nada; **no** está verificado a ojo el caso ancho con el inspector abierto. Segundo: al
+forzar el inspector por debajo del umbral el contenido desborda la ventana y se recorta por los dos lados, porque las
+tres columnas no caben; se dejó el contenido flexible para reducirlo, pero la solución de fondo es que el umbral no se
+fuerce, y eso lo decide quien use la app en pantallas pequeñas.
+
+L13. El usuario concede permiso de Accesibilidad para redimensionar y decide que **la ventana también pueda cambiar de
+perfil durante la emulación**. Se hizo con una pulsación que escribe la selección y, si el motor está en marcha, llama a
+`EmulationController.switchToProfile`, que delega en `EmulationEngine.switchProfile(to:)` — el mismo camino atómico del
+mando, sin reimplementar la liberación. Sin prueba propia: es una envoltura de dos líneas sobre un comportamiento que ya
+tiene su test en el motor, y añadir una prueba de la envoltura no probaría nada nuevo.
+
+L14. Verificado en pantalla con la ventana a 1420×860: las tres columnas caben, la tabla de mapeo se lee entera y el
+inspector muestra etiqueta y valor en los cinco ajustes del cursor. Queda un defecto menor y conocido: en la columna MOD
+el botón «Capturar» se abrevia a «Capt…» porque esa columna es más estrecha; desaparece cuando el mapeo pase a la lista
+agrupada prevista en T6.
+
+L15. Queda pendiente revisar el texto de la ayuda del inspector y el estado del permiso de Accesibilidad en el destino
+«Ajustes» (T5): hoy el botón de la barra de herramientas se deshabilita sin decir por qué, y ese «por qué» vive en otra
+pantalla.
+
+L16. T4 hecho en línea. Diagnóstico abre con una frase que dice para qué sirve, recoge la pista técnica del permiso
+—el comando `tccutil` estaba en Ajustes, entre los ajustes de uso diario— y conserva los valores en vivo, la trama y la
+leyenda. En Ajustes queda un puntero corto: «¿El permiso aparece concedido y aun así no pasa nada? El arreglo está en
+Diagnóstico». Además el inspector se limita al destino Mapeo: ofrecer los ajustes del perfil junto al volcado de paquetes
+era ruido y ancho pagado dos veces. Verificado en pantalla a 1420×860 con arranque temporal en Diagnóstico.
+
+L17. T5 hecho en línea. El botón de la barra de herramientas ya no se apaga en silencio: sin permiso se convierte en
+«⚠ Falta el permiso de Accesibilidad», en naranja, y al pulsarlo lleva a Ajustes, que es donde se concede. Se descubrió
+en la captura que la barra dibujaba solo el icono —un triángulo naranja sin palabras es una pista, no un motivo—, así que
+se fuerza `.titleAndIcon`. Además la inversión del eje vertical, que es un valor del perfil, se fue de Ajustes al
+inspector: era el último ajuste del perfil viviendo entre los de la app.
+
+L19. T6: la guía de primer arranque, en `FirstRunView.swift`, como hoja de 640×720. Cuatro pasos numerados con estado
+en vivo y el botón del permiso donde se explica; cierre con las dos ideas (perfil, luz, tecla MOD); se reabre desde
+Ajustes. El commit `ba352bf` lleva 483 líneas, por encima del corte de ~400: 250 son entradas del catálogo de
+localización, que son datos y no superficie de revisión; el Swift escrito a mano son unas 230.
+
+L20. Dos defectos que encontró la captura y no el código: la guía titulaba «Cuatro pasos» y dibujaba tres —faltaba el
+paso de comprobar que el mando responde, que ahora existe—, y al mover la inversión del eje vertical al inspector quedó
+en Ajustes su párrafo explicativo sin interruptor al que explicar. Corregidos y vueltos a capturar los dos.
+
+L21. Dos errores de procedimiento en el mismo commit, para que consten: asumí el texto de la fila T6 del documento en
+lugar de leerlo, así que la actualización del documento falló (el `assert` avisó, que es para lo que está), y encadené
+`git commit` dos veces sin mirar, dejando T6 partido en dos commits con el mismo mensaje. Se aplanaron con
+`git reset --soft` y un único commit. También corregí la referencia de specs: la guía es S2, no S8 —S8 es la regla de
+cortes—, en el código y en la tabla.
+
+L22. T6b: la tabla del mapeo se lee en cinco secciones —Cruceta, Botones, Gatillos y palancas, Pulsación de sticks,
+Botones del sistema— y los botones de captura piden el ancho que necesitan sus palabras, así que «Capt…» desaparece.
+El corte vive en `MappingRules.groupedRemappableControls` y no en la vista: un control que no pertenezca a ningún grupo
+desaparecería de la tabla sin que fallara nada, así que hay un test que exige que cada fila aparezca exactamente una
+vez y nombra las cinco secciones con sus controles.
+
+L23. Tres correcciones durante el tramo, dos del compilador y una mía: el tipo se llamaba `ControlGroup`, que SwiftUI
+ya declara, y hubo que renombrarlo a `MappingGroup`; los tests desestructuraban una tupla que ahora es `ControlSection`;
+y mi primer test afirmaba que el orden aplanado no cambia, cuando agrupar es exactamente cambiarlo — lo correcto es que
+el orden se conserve *dentro* de cada sección. Suite: 430.
+
+L24. Cierre del tramo. La rama reúne 23 commits y unos 3689 líneas de autoría desde `origin/main`; los cortes de T4 a
+T6b van de 130 a 483 líneas cada uno, y el de T6 se justifica porque 250 de sus líneas son catálogo de localización.
+Suite final: 430. La aceptación manual de la reestructuración son los pasos 37 a 45, **pendientes de que el usuario los
+valide**: nada de esta rama se ha dado por bueno en hardware salvo lo que se cita con captura.
+
+L25. El usuario valida los pasos 37 a 45 y reporta, literal: «7 ok, pero la luz del mando no se enciende». Es una
+regresión de T1: la luz y el aviso de vibración eran `@State` de `EmulationSection`, y esa sección pasó a existir solo
+mientras «Ajustes» estaba en pantalla, de modo que arrancar la emulación desde la barra de herramientas —el camino que
+la propia ventana propone— no enviaba ningún paquete LED. Arreglo: `PadLightStore` nace en la app y un
+`PadLightBridge` enganchado a la raíz es el único punto que envía; la regla de qué debe decir la luz se movió a
+`PadLight.sync`, con cuatro tests que incluyen la excepción de la luz manual. La lección es de estructura: **el estado
+que sobrevive a las pantallas no puede vivir dentro de una pantalla**, y las tres cosas que se mudaron aquí (luz,
+vibración y su aviso) son la misma lección que ya se había aprendido con el cambio de perfil.
+
+L26. Commit del arreglo: 6102c55. Suite: 434.
+
+L27. El arreglo de la luz se entregó con la app caída al arrancar: `PadLightBridge` leía sus cuatro objetos del entorno,
+y un `.modifier(...)` situado por encima de los `.environmentObject(...)` no ve lo que se inyecta por debajo. El informe
+`.ips` lo nombraba sin ambigüedad —`EnvironmentObject.error()` dentro de `PadLightBridge.body`—, pero no se leyó porque
+en ese turno capturé la pantalla tras reconstruir y **no abrí la captura**: el diálogo de «se ha cerrado
+inesperadamente» estaba dentro. Dos lecciones, una de ellas ya vieja: las dependencias de un modificador que vive en la
+raíz se pasan como argumentos; y una captura que no se lee no es una verificación, es un archivo.
+
+L28. Publicación preparada y **sin publicar**. `git fetch origin` deja `origin/main` en `30aab75`, ancestro de `main`
+local, que lleva cinco commits sin salir (el ciclo de perfiles y los prototipos); desde ahí, la rama suma 28 commits,
+33 archivos y 3621 líneas. Se comprobó en un worktree desechable que las once puntas en que el trabajo se puede leer
+—M1 a M3, S1 a S8— compilan y pasan la suite por separado (425 tests hasta S6, 430 desde S7, 434 en la punta): el
+trabajo se sostiene corte a corte aunque se entregue junto. El usuario eligió **un solo PR**, consciente del precio,
+que es la carga de lectura concentrada y un rollback que arrastra tres trabajos que no dependen entre sí. El cuerpo del
+PR está redactado fuera del control de versiones, en `.build/review/pr-ux-shell-body.md`; el remoto no se ha tocado y
+no hay PR abierto. Frontera de entrega, una sola: `origin/main` (`30aab75`) → la punta de la rama, en un único
+PR; no se definen cortes de publicación, y el precio de esa frontera está en el párrafo anterior.
+
+L29. Dos cosas quedan dichas y no arregladas, para que no sorprendan a quien revise. El paso 40 de aceptación manual
+sigue sin comprobar. Y `odd/tasks/profiles-and-shortcuts.md` marca T2 como «pendiente — en curso» cuando ese trabajo ya
+está en la historia publicada —`2501e85` y `326a58d` son ancestros de `origin/main`—, así que quien abra ese documento
+para entender el ciclo de perfiles leerá «pendiente» sobre código que existe; arreglarlo es una línea, pero pertenece a
+su propio corte de documentación. Además, la captura de hoy muestra un defecto menor que S9 no cubre porque habla de
+botones: en la columna MOD los nombres de acción se truncan («Perfil sigue…», «Perfil anteri…») mientras los botones
+«Capturar» ya se leen completos.
+
+L30. El usuario cambia la entrega: **la rama se mergea directamente en `main`**. Se cae el PR único que se había
+preparado —su cuerpo está redactado y no se usa— porque quien iba a revisarlo es el mismo que integraría, y el trabajo
+ya está verificado corte a corte. El merge sigue la convención de la historia (`Merge branch 'feature/…'`, como
+`profile-colour` y `mod-layer`), así que es `--no-ff` sobre `main`. Lo que **no** cambia: el push a `origin/main` sigue
+sin hacerse y sigue siendo decisión del usuario, y la rama `feature/ux-shell` se deja donde está en vez de borrarla.

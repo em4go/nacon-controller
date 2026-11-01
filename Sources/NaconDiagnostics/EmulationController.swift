@@ -82,6 +82,16 @@ final class EmulationController: ObservableObject {
         engine.switchProfile(to: profile)
     }
 
+    /// Switches to a profile chosen in the window while the emulation runs.
+    ///
+    /// It goes through `EmulationEngine.switchProfile(to:)`, the same path the pad's profile step uses,
+    /// so the atomic part — release everything the old profile claimed, then apply the new one — is not
+    /// reimplemented here. A call while emulation is stopped does nothing: there is no mapping to swap.
+    func switchToProfile(_ profile: InputProfile) {
+        guard isEnabled else { return }
+        engine.switchProfile(to: profile)
+    }
+
     /// Opens or closes the mapping summary. One entry point for the pad gesture, the window button, the
     /// menu bar item and the `--show-summary` launch argument, so the four cannot diverge.
     func toggleSummary() {

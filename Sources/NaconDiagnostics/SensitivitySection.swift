@@ -1,11 +1,14 @@
 import NaconCore
 import SwiftUI
 
-/// S9: the cursor numbers of the profile being edited, in the app window.
+/// S9: the cursor numbers of the profile being edited.
 ///
 /// The section renders what `ProfileLibrary` reports and forwards intents; the ranges, the clamping
 /// and the isolation between profiles live there and are covered by tests. Nothing here decides a
 /// value, which is why a slider can be dragged over its range without any risk of leaving it.
+///
+/// T3, S4: it is drawn in the inspector and no longer in the content column, so the mapping keeps the
+/// width the table needs and these sliders exist in one place only.
 struct SensitivitySection: View {
     @ObservedObject var profiles: ProfileLibraryController
     /// The numbers only reach the engine when emulation starts, so editing mid-run would silently do

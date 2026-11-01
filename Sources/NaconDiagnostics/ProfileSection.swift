@@ -1,11 +1,19 @@
 import NaconCore
 import SwiftUI
 
-/// S1, S3, S4, S5, S6, S8: the saved profiles and the mapping of the selected one, in the app window.
+/// S1, S3, S4, S5, S6, S8: the mapping of the profile on screen, in the app window.
 ///
 /// The section only renders state and forwards intents. Every rule (unique names, the standard
 /// mapping for a new profile, refusing to delete the last profile, which neighbour to select, which
 /// controls may be remapped) lives in `ProfileLibrary` and `MappingRules` and is covered by tests.
+///
+/// T2, S5: it no longer chooses or manages profiles. The list lives in the shell's sidebar and the
+/// four actions in its toolbar menu, so this section starts at the profile that is already active.
+///
+/// T3, S4: it no longer holds the profile's settings either. The light colour, the next profile and
+/// the MOD key moved to the inspector beside it, together with the cursor numbers; what stays here
+/// is what belongs to the mapping itself — how it is read, the assignment editor, the PS row and the
+/// footnotes that explain them.
 struct ProfileSection: View {
     @ObservedObject var profiles: ProfileLibraryController
     /// S3: the mapping editor has to be locked while emulation runs, so the section reads that state.
@@ -19,85 +27,16 @@ struct ProfileSection: View {
     /// preferences, because the choice is about how the window is read, not about this profile.
     @AppStorage("padViewMode") private var viewMode: PadViewMode = .graph
 
-    @State private var isRenaming = false
-    /// Deleting takes the whole profile with it — mappings, layer, sensitivity — and nothing brings it
-    /// back, so it asks first: the button sits one click away from the picker.
-    @State private var isConfirmingDelete = false
-    @State private var draftName = ""
-
     /// The one key capture of the section. Both views arm it, so whichever one is on screen has the
     /// same armed control, the same rules and the same event monitor -- and switching between them
     /// cannot leave two captures alive.
     @StateObject private var capture = MappingCapture()
 
-    /// Where the pad goes when it asks this profile for the next one.
-    ///
-    /// It is frozen with the rest of the profile while emulation runs, like every other structural
-    /// setting: the engine captured the profile it is running, so rewriting the chain mid-flight would
-    /// describe a step the pad cannot take yet.
-    private var nextProfilePicker: some View {
-        HStack(spacing: 8) {
-            Text(AppText.resolve("Next profile"))
-                .font(.callout)
-            Picker("", selection: Binding(
-                get: { profiles.selectedNextProfileID },
-                set: { profiles.setNextProfile($0) }
-            )) {
-                Text(AppText.resolve("Library order")).tag(UUID?.none)
-                ForEach(profiles.otherProfiles) { stored in
-                    Text(stored.name).tag(UUID?.some(stored.id))
-                }
-            }
-            .labelsHidden()
-            .pickerStyle(.menu)
-            .fixedSize()
-            .disabled(profiles.selectedProfile == nil || emulation.isEnabled)
-            .help(AppText.resolve("Where the pad goes on the next profile step. With no link it follows the list order."))
-            Spacer(minLength: 0)
-        }
-    }
-
-    /// The colour the pad's light shows while this profile runs.
-    ///
-    /// It is deliberately not disabled during emulation, unlike the mapping editor: the colour is the
-    /// profile's only visible mark, and changing it live is how the user checks that the light is telling
-    /// the truth about which profile is running.
-    private var colourPicker: some View {
-        HStack(spacing: 8) {
-            Text(AppText.resolve("Light colour"))
-                .font(.callout)
-            Picker("", selection: Binding(
-                get: { profiles.selectedColor },
-                set: { profiles.setColor($0) }
-            )) {
-                ForEach(ProfileColour.allCases, id: \.self) { colour in
-                    Text(colour.label).tag(colour)
-                }
-            }
-            .labelsHidden()
-            .pickerStyle(.menu)
-            .fixedSize()
-            .disabled(profiles.selectedProfile == nil)
-            .help(AppText.resolve("It is the colour the pad's light shows while this profile is running."))
-            Spacer(minLength: 0)
-        }
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionTitle(AppText.resolve("Profiles"))
-            profilePicker
-            colourPicker
-            nextProfilePicker
-            actions
+            SectionTitle(AppText.resolve("Mapping"))
             viewPicker
-            // S3: the view for the profile being edited, right below the picker that selects it.
             if let selected = profiles.selectedProfile {
-                Divider()
-                // S5: the key that opens the layer is chosen once, above whichever view is on screen.
-                // Both views read the same layer, so two selectors would sooner or later offer two
-                // different lists and the layer would depend on which view the user happened to open.
-                modKeyRow
                 Divider()
                 switch viewMode {
                 case .graph:
@@ -171,40 +110,6 @@ struct ProfileSection: View {
                 capture.end()
             }
         }
-        .alert(AppText.resolve("Rename profile"), isPresented: $isRenaming) {
-            TextField(AppText.resolve("Profile name"), text: $draftName)
-            Button(AppText.resolve("Cancel"), role: .cancel) {
-                draftName = ""
-            }
-            Button(AppText.resolve("Save")) {
-                // A blank name is refused by the library, so the profile keeps its old name.
-                profiles.renameSelectedProfile(to: draftName)
-                draftName = ""
-            }
-        } message: {
-            Text(AppText.resolve("The name cannot be empty."))
-        }
-        // A confirmation dialog and not a second alert: two `.alert` modifiers on the same view can
-        // shadow each other, and the rename alert is attached right above.
-        .confirmationDialog(
-            AppText.resolve("Delete profile?"),
-            isPresented: $isConfirmingDelete,
-            titleVisibility: .visible
-        ) {
-            Button(AppText.resolve("Delete"), role: .destructive) {
-                profiles.deleteSelectedProfile()
-            }
-            Button(AppText.resolve("Cancel"), role: .cancel) {}
-        } message: {
-            // The name is data, inserted through the hole: the sentence is one key, so a translator
-            // can move the name where their grammar needs it.
-            Text(
-                AppText.format(
-                    "“%@” and everything it holds — its mappings, the MOD layer and its sensitivity — will be deleted. This cannot be undone.",
-                    profiles.selectedProfile?.name ?? ""
-                )
-            )
-        }
     }
 
     /// Writes one action into one column of one control, through the one write seam.
@@ -222,95 +127,6 @@ struct ProfileSection: View {
         profiles.apply(
             .apply(profileID: profileID, control: control, column: column, action: action)
         )
-    }
-
-    /// S5: the control that opens the layer, and the one way to remove the layer entirely.
-    ///
-    /// The entries are not listed here: they belong to the rows of the view below, in the MOD column,
-    /// so the layer is edited where the controls are instead of in two places at once.
-    private var modKeyRow: some View {
-        let layer = profiles.selectedLayer
-        return VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
-                Text(AppText.resolve("MOD key:"))
-                    .font(.callout)
-                Text(layer.key.map { AppText.resolve(ControlFacts.of($0).label) } ?? AppText.resolve("None"))
-                    .font(.system(.callout, design: .monospaced))
-                    .foregroundStyle(layer.isActive ? Color.primary : Color.secondary)
-                    .lineLimit(1)
-                Menu {
-                    // «Ninguna» closes the layer but keeps its entries; «Quitar capa» is the one that
-                    // throws them away, so a slip of this menu cannot undo a whole set of assignments.
-                    Button(AppText.resolve("None")) {
-                        profiles.setLayerKey(nil)
-                    }
-                    Divider()
-                    // S5: PS is not in this list. It is the emergency stop, and as a selector it would
-                    // be spent choosing a layer instead of stopping the emulation.
-                    ForEach(
-                        XInputControl.allCases.filter { MappingRules.isLayerKeyEligible($0) },
-                        id: \.self
-                    ) { control in
-                        Button(ControlFacts.of(control).label) {
-                            profiles.setLayerKey(control)
-                        }
-                    }
-                } label: {
-                    Label(AppText.resolve("Choose…"), systemImage: "chevron.up.chevron.down")
-                        .labelStyle(.titleAndIcon)
-                }
-                .menuStyle(.borderlessButton)
-                .controlSize(.small)
-                .fixedSize()
-                Button(AppText.resolve("Remove layer")) {
-                    profiles.clearLayer()
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-                .disabled(layer.isEmpty)
-                .help(
-                    AppText.resolve("Removes the MOD key and all its assignments. The base does not change.")
-                )
-                Button(AppText.resolve("Show mapping")) {
-                    emulation.toggleSummary()
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-                // Reading the map is allowed while emulating: it changes nothing.
-                .help(AppText.resolve("Shows what each control sends. It stays open until you close it."))
-                Spacer(minLength: 0)
-            }
-            // S7: the layer is frozen with the rest of the profile once emulation starts, so the
-            // selector goes with the editor it belongs to instead of staying clickable.
-            .disabled(emulation.isEnabled)
-            if layer.isActive {
-                Text(AppText.resolve("While you hold the MOD key down, the buttons send what the MOD column says; the MOD key itself sends nothing."))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            } else {
-                // The gesture needs a layer to open. Saying it here is what stops someone pressing
-                // MOD+PS on a profile without one and turning the emulation off instead.
-                Text(AppText.resolve("Without a MOD key there is no layer and no MOD+PS on the pad: PS alone turns emulation on and off. Use “Show mapping” to see the map."))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
-
-    private var profilePicker: some View {
-        Picker(AppText.resolve("Active profile"), selection: Binding(
-            get: { profiles.selectedProfile?.id },
-            set: { id in
-                guard let id else { return }
-                profiles.select(id)
-            }
-        )) {
-            ForEach(profiles.profiles) { profile in
-                Text(profile.name).tag(Optional(profile.id))
-            }
-        }
-        .pickerStyle(.menu)
-        .frame(maxWidth: 320, alignment: .leading)
     }
 
     /// «Gráfica» or «Tabla», the two ways to look at the profile being edited.
@@ -348,27 +164,6 @@ struct ProfileSection: View {
         .padding(.horizontal, 8)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.06)))
-    }
-
-    private var actions: some View {
-        HStack(spacing: 8) {
-            Button(AppText.resolve("New profile")) {
-                profiles.addProfile()
-            }
-            Button(AppText.resolve("Duplicate")) {
-                profiles.duplicateSelectedProfile()
-            }
-            .disabled(profiles.selectedProfile == nil)
-            Button(AppText.resolve("Rename…")) {
-                draftName = profiles.selectedProfile?.name ?? ""
-                isRenaming = true
-            }
-            .disabled(profiles.selectedProfile == nil)
-            Button(AppText.resolve("Delete")) {
-                isConfirmingDelete = true
-            }
-            .disabled(!profiles.canDeleteProfile)
-        }
     }
 }
 

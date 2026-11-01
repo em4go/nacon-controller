@@ -91,6 +91,18 @@ su traducción. Faltar una traducción nunca deja un hueco: se lee el texto base
 
 ## Emulación de ratón y teclado
 
+La ventana se lee en tres zonas: una **barra lateral** con el mando y los perfiles, el **contenido** del destino
+elegido y un **inspector** con los ajustes del perfil, que se pliega solo cuando la ventana se estrecha. Hay tres
+destinos:
+
+- **Mapeo**: la tabla de lo que hace cada botón, en su columna base y en la columna MOD, agrupada por zonas del mando.
+- **Diagnóstico**: lo que el mando envía —matriz de botones, sticks, trama en hexadecimal— y la leyenda del protocolo.
+  Es donde se mira cuando algo no funciona, y por eso la pista del permiso también vive aquí.
+- **Ajustes**: emulación, luz, vibración, idioma y la guía.
+
+En el primer arranque aparece una **guía de cuatro pasos** que explica el mando, el permiso de Accesibilidad, el
+interruptor de emulación y cómo comprobar que todo responde. Se puede volver a abrir desde Ajustes.
+
 La ventana incluye un interruptor **Emulación activa**, apagado por defecto.
 
 | Control | Acción por defecto |

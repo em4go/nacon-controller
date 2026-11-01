@@ -64,3 +64,18 @@ public struct PadLight: Equatable, Sendable {
         XInputOutputReport.led(.off)
     }
 }
+
+extension PadLight {
+    /// S11: the light's state when a run starts, stops, or the profile changes.
+    ///
+    /// It exists because the caller no longer owns this decision: a screen used to compute it, and a
+    /// screen can be unmounted, which is how the light stopped following the emulation when the window
+    /// gained destinations. Keeping the rule here means the answer is the same wherever it is asked
+    /// from, and that the `.manual` exception below cannot be forgotten by a new caller.
+    ///
+    /// A manual light ignores the run: someone who set it by hand did not ask for an indicator.
+    public mutating func sync(colour: ProfileColour, isEmulationActive: Bool) {
+        self.colour = colour
+        self.isEmulationActive = isEmulationActive
+    }
+}

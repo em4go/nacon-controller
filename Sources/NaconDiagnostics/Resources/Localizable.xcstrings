@@ -41,6 +41,16 @@
         }
       }
     },
+    "A profile is what each button does. A «Mouse» profile turns the pad into a mouse; another can turn the same buttons into writing or shortcuts. Switching profile changes the whole table, not one row.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un perfil es lo que hace cada botón. Un perfil «Ratón» convierte el mando en un ratón; otro puede convertir esos mismos botones en escritura o atajos. Cambiar de perfil cambia toda la tabla, no una fila."
+          }
+        }
+      }
+    },
     "A short burst confirms that the pad rumbles. With the feedback on, the same burst is felt when emulation starts and stops. The app sends the stop command when it finishes, but a forced quit can leave the motors spinning: set the intensity to zero before you force it closed.": {
       "localizations": {
         "es": {
@@ -67,6 +77,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Falta el permiso de Accesibilidad"
+          }
+        }
+      }
+    },
+    "Accessibility, for when it refuses to work": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accesibilidad, para cuando se niega a funcionar"
           }
         }
       }
@@ -221,6 +241,16 @@
         }
       }
     },
+    "Check that it answers": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprueba que responde"
+          }
+        }
+      }
+    },
     "Choose what this control sends while the MOD key is held": {
       "localizations": {
         "es": {
@@ -247,6 +277,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Conecta el NACON por USB. Si ya está conectado, desconéctalo y vuelve a conectarlo sin pulsar botones."
+          }
+        }
+      }
+    },
+    "Connect the pad": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conecta el mando"
           }
         }
       }
@@ -321,6 +361,26 @@
         }
       }
     },
+    "Diagnostics": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnóstico"
+          }
+        }
+      }
+    },
+    "Directional pad": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cruceta"
+          }
+        }
+      }
+    },
     "Duplicate": {
       "localizations": {
         "es": {
@@ -371,6 +431,16 @@
         }
       }
     },
+    "Emulation stopped": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emulación detenida"
+          }
+        }
+      }
+    },
     "Emulation stopped from the pad.": {
       "localizations": {
         "es": {
@@ -381,12 +451,52 @@
         }
       }
     },
+    "Face buttons": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Botones"
+          }
+        }
+      }
+    },
+    "Four steps": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuatro pasos"
+          }
+        }
+      }
+    },
     "Graph": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Gráfica"
+          }
+        }
+      }
+    },
+    "Guide": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guía"
+          }
+        }
+      }
+    },
+    "Hide inspector": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar inspector"
           }
         }
       }
@@ -411,12 +521,32 @@
         }
       }
     },
+    "In Mapping, press a button and its row lights up. MOD+PS opens the summary of what every button does and closes it again.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En Mapeo, pulsa un botón y su fila se enciende. MOD+PS abre el resumen de lo que hace cada botón y lo vuelve a cerrar."
+          }
+        }
+      }
+    },
     "Invert vertical axis": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Invertir eje vertical"
+          }
+        }
+      }
+    },
+    "It is a macOS permission called Accessibility. Without it the pad moves the cursor, but clicks and keystrokes never leave this app.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es un permiso de macOS que se llama Accesibilidad. Sin él el mando mueve el cursor, pero los clics y las teclas no salen de esta app."
           }
         }
       }
@@ -457,6 +587,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Stick izquierdo"
+          }
+        }
+      }
+    },
+    "Let it send clicks and keys": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déjale enviar clics y teclas"
           }
         }
       }
@@ -517,6 +657,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tecla MOD:"
+          }
+        }
+      }
+    },
+    "Mapping": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mapeo"
           }
         }
       }
@@ -602,6 +752,16 @@
         }
       }
     },
+    "Nothing here changes what you configure: the guide only explains. You can reopen it from Settings.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nada de aquí cambia lo que configures: la guía solo explica. Puedes volver a abrirla desde Ajustes."
+          }
+        }
+      }
+    },
     "Nothing selected": {
       "localizations": {
         "es": {
@@ -612,12 +772,32 @@
         }
       }
     },
+    "Nothing to enable: it always answers, even stopped": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay nada que activar: responde siempre, incluso detenida"
+          }
+        }
+      }
+    },
     "Off": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Apagada"
+          }
+        }
+      }
+    },
+    "One button, L2 by default, works as a second layer: while you hold it, the other buttons send what the MOD column says.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un botón, L2 por omisión, funciona como segundo nivel: mientras lo mantienes, los demás botones envían lo que dice la columna MOD."
           }
         }
       }
@@ -642,12 +822,62 @@
         }
       }
     },
+    "Pad detected": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mando detectado"
+          }
+        }
+      }
+    },
+    "Pad not detected": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mando no detectado"
+          }
+        }
+      }
+    },
     "Pass the pointer over a button of the drawing: its own shape lights up, and the strip above says what it sends. Tap to assign a key to it. The printed glyph does not change when remapping, so the assignment is read in that strip and in the “Table” view.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Pasa el ratón por un botón del dibujo: se ilumina su propia forma, y la franja de arriba dice qué envía. Pulsa para asignarle una tecla. El glifo impreso no cambia al reasignar, así que la asignación se lee en esa franja y en la vista «Tabla»."
+          }
+        }
+      }
+    },
+    "Permission granted": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permiso concedido"
+          }
+        }
+      }
+    },
+    "Permission missing": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permiso pendiente"
+          }
+        }
+      }
+    },
+    "Plug it in with the cable and turn it on. It appears on its own; there is nothing to install.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conéctalo con el cable y enciéndelo. Aparece aquí solo; no hay nada que instalar."
           }
         }
       }
@@ -872,6 +1102,16 @@
         }
       }
     },
+    "Settings": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes"
+          }
+        }
+      }
+    },
     "Settings for the “%@” profile. Each profile keeps its own, so one for design and one for games can move differently.": {
       "localizations": {
         "es": {
@@ -882,12 +1122,42 @@
         }
       }
     },
+    "Shoulders and triggers": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gatillos y palancas"
+          }
+        }
+      }
+    },
+    "Show inspector": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar inspector"
+          }
+        }
+      }
+    },
     "Show mapping": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Ver mapeo"
+          }
+        }
+      }
+    },
+    "Show the guide again": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver la guía otra vez"
           }
         }
       }
@@ -912,12 +1182,72 @@
         }
       }
     },
+    "Start": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empezar"
+          }
+        }
+      }
+    },
+    "Start emulation": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar emulación"
+          }
+        }
+      }
+    },
+    "Starts or stops sending what the pad does to the system.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arranca o detiene el envío al sistema de lo que hace el mando."
+          }
+        }
+      }
+    },
+    "Stick clicks": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pulsación de sticks"
+          }
+        }
+      }
+    },
     "Sticks and triggers": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Sticks y gatillos"
+          }
+        }
+      }
+    },
+    "Stop emulation": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detener emulación"
+          }
+        }
+      }
+    },
+    "System buttons": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Botones del sistema"
           }
         }
       }
@@ -982,6 +1312,16 @@
         }
       }
     },
+    "The first-run guide explains the four steps and the two ideas behind the mapping.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La guía de primer arranque explica los cuatro pasos y las dos ideas que hay detrás del mapeo."
+          }
+        }
+      }
+    },
     "The left stick moves the cursor and the right stick scrolls. ✕/○/□ are the mouse buttons and the D-pad sends arrow keys. The PS button turns emulation on and off instantly.": {
       "localizations": {
         "es": {
@@ -1022,12 +1362,42 @@
         }
       }
     },
+    "The pad's light says which profile is active — blue, green, red or purple — so you know without opening the window.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La luz del mando dice qué perfil está activo —azul, verde, rojo o morado—, así lo sabes sin abrir la ventana."
+          }
+        }
+      }
+    },
+    "The permission looks granted and nothing happens? The fix is under Diagnostics.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿El permiso aparece concedido y aun así no pasa nada? El arreglo está en Diagnóstico."
+          }
+        }
+      }
+    },
     "The profiles could not be saved to %@. The changes are still on screen, but they will be lost when the app closes: %@": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "No se pudieron guardar los perfiles en %@. Los cambios siguen en pantalla, pero se perderán al cerrar la app: %@"
+          }
+        }
+      }
+    },
+    "The switch is in the toolbar, top right. While it is off the pad only shows what it reads; while it is on, it sends what the active profile says.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El interruptor está en la barra de herramientas, arriba a la derecha. Apagado, el mando solo muestra lo que lee; encendido, envía lo que dice el perfil activo."
           }
         }
       }
@@ -1092,6 +1462,26 @@
         }
       }
     },
+    "Turn the emulation on": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enciende la emulación"
+          }
+        }
+      }
+    },
+    "Two ideas and that is it": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dos ideas y ya está"
+          }
+        }
+      }
+    },
     "View": {
       "localizations": {
         "es": {
@@ -1108,6 +1498,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Qué se puede leer"
+          }
+        }
+      }
+    },
+    "What the pad sends, for when something does not work. Nothing here is needed to use it.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lo que envía el mando, para cuando algo no funciona. Nada de aquí hace falta para usarlo."
           }
         }
       }
@@ -1168,6 +1568,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sin tecla MOD no hay capa ni MOD+PS en el mando: PS solo enciende y apaga la emulación. Usa «Ver mapeo» para consultar el mapa."
+          }
+        }
+      }
+    },
+    "You can leave this at any time, and reopen it from Settings.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puedes salir en cualquier momento y volver a abrirla desde Ajustes."
           }
         }
       }

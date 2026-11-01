@@ -7,15 +7,11 @@ struct EmulationSection: View {
     /// S2: the vertical-axis setting belongs to the profile being edited, like the mapping does.
     @EnvironmentObject private var profiles: ProfileLibraryController
 
-    /// The pad light state owned by this section.
-    @State private var padLight = PadLight()
-    /// S10: the rumble strength. Runtime state like the light, not a profile setting: it is feedback,
-    /// not mapping, so it is not written to disk.
-    @State private var padRumble = PadRumble()
-    /// S10: whether starting and stopping the emulation should be felt.
-    @State private var rumbleFeedback = false
-    /// Runs the bursts, so the view owns no timing of its own.
-    @State private var burstPlayer = RumbleBurstPlayer()
+    /// S11: the light and the rumble are the app's, not this section's. They used to be `@State` here,
+    /// which worked only while this view was always on screen; when the window gained destinations the
+    /// light stopped following the emulation, because nothing was mounted to send the packet. This
+    /// section now edits a value it does not own.
+    @EnvironmentObject private var padLightStore: PadLightStore
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -32,25 +28,8 @@ struct EmulationSection: View {
             .disabled(!emulation.hasAccessibility)
             lightControls
             rumbleControls
-            // S2: the switch shows the value stored in the selected profile, not a leftover global
-            // flag, and flipping it edits that profile so two profiles can differ.
-            Toggle(AppText.resolve("Invert vertical axis"), isOn: Binding(
-                get: { profiles.selectedInvertVerticalAxis },
-                set: { profiles.setInvertVerticalAxis($0) }
-            ))
-            .toggleStyle(.switch)
-            // The value only reaches the engine when emulation starts, so flipping it mid-run would
-            // silently do nothing. Disabled while running, like the mapping editor.
-            .disabled(emulation.isEnabled)
-            Text(
-                AppText.resolve(
-                    "Turn it on if pushing the stick up moves the cursor down. It affects the cursor and "
-                    + "scrolling, not the on-screen stick indicator. It is saved in the active profile and "
-                    + "applied when emulation starts: stop it to change the setting."
-                )
-            )
-            .font(.caption)
-            .foregroundStyle(.secondary)
+            // The vertical-axis inversion left this section for the inspector, with its control and its
+            // explanation: a caption about a switch that is no longer here is worse than no caption.
             Text(
                 AppText.resolve(
                     "The left stick moves the cursor and the right stick scrolls. ✕/○/□ are the mouse "
@@ -71,30 +50,6 @@ struct EmulationSection: View {
                     .foregroundStyle(.green)
             }
         }
-        .onAppear {
-            padLight.isEmulationActive = emulation.isEnabled
-            padLight.colour = profiles.selectedColor
-        }
-        .onChange(of: profiles.selectedColor) { colour in
-            // The light is the profile's visible mark, so a colour change has to reach the pad even while it
-            // runs: a light that lags would be telling the user the wrong profile is active.
-            padLight.colour = colour
-            service.sendOutput(padLight.packet)
-        }
-        .onChange(of: emulation.isEnabled) { isEnabled in
-            padLight.isEmulationActive = isEnabled
-            padLight.colour = profiles.selectedColor
-            guard rumbleFeedback else { return }
-            burstPlayer.fire(padRumble) { service.sendOutput($0) }
-        }
-        .onDisappear {
-            // A burst must not outlive the section that started it.
-            burstPlayer.stop { service.sendOutput($0) }
-        }
-        .onChange(of: padLight.isOn) { _ in
-            // S1/S2/S4: one send point, driven only by the state; a missing pad is harmless.
-            service.sendOutput(padLight.packet)
-        }
     }
 
     // MARK: - S3, S4: the pad light
@@ -102,13 +57,13 @@ struct EmulationSection: View {
     private var lightControls: some View {
         VStack(alignment: .leading, spacing: 8) {
             Toggle(AppText.resolve("Light as emulation indicator"), isOn: Binding(
-                get: { padLight.source == .emulation },
-                set: { padLight.source = $0 ? .emulation : .manual }
+                get: { padLightStore.light.source == .emulation },
+                set: { padLightStore.light.source = $0 ? .emulation : .manual }
             ))
             .toggleStyle(.switch)
-            Toggle(AppText.resolve("Light on"), isOn: $padLight.isManuallyOn)
+            Toggle(AppText.resolve("Light on"), isOn: $padLightStore.light.isManuallyOn)
                 .toggleStyle(.switch)
-                .disabled(padLight.source == .emulation)
+                .disabled(padLightStore.light.source == .emulation)
             Text(
                 AppText.resolve(
                     "With the indicator on, the small light under the PS button comes on while "
@@ -125,28 +80,28 @@ struct EmulationSection: View {
 
     private var rumbleControls: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Toggle(AppText.resolve("Rumble when emulation starts and stops"), isOn: $rumbleFeedback)
+            Toggle(AppText.resolve("Rumble when emulation starts and stops"), isOn: $padLightStore.rumbleFeedback)
                 .toggleStyle(.switch)
             HStack(spacing: 10) {
                 Slider(
                     value: Binding(
-                        get: { padRumble.intensity },
-                        set: { padRumble.intensity = $0 }
+                        get: { padLightStore.rumble.intensity },
+                        set: { padLightStore.rumble.intensity = $0 }
                     ),
                     in: 0...1
                 )
                 Text(
-                    padRumble.isSilent
+                    padLightStore.rumble.isSilent
                         ? AppText.resolve("Off")
-                        : "\(Int((padRumble.intensity * 100).rounded())) %"
+                        : "\(Int((padLightStore.rumble.intensity * 100).rounded())) %"
                 )
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
                 .frame(width: 60, alignment: .trailing)
                 Button(AppText.resolve("Test")) {
-                    burstPlayer.fire(padRumble) { service.sendOutput($0) }
+                    padLightStore.burstPlayer.fire(padLightStore.rumble) { service.sendOutput($0) }
                 }
-                .disabled(padRumble.isSilent)
+                .disabled(padLightStore.rumble.isSilent)
             }
             Text(
                 AppText.resolve(
@@ -161,12 +116,12 @@ struct EmulationSection: View {
         }
     }
 
+    /// The command itself moved to the diagnostics destination: reading a shell command is a
+    /// troubleshooting step, and this section is what someone sees while trying to start the emulation.
     private var staleEntryHint: some View {
         Text(
             AppText.resolve(
-                "If the app already appears as enabled in that list and the indicator is still orange, "
-                + "the entry is stale: select it, remove it with the − button and add it again, or run "
-                + "tccutil reset Accessibility dev.nacon.diagnostics and request the permission again."
+                "The permission looks granted and nothing happens? The fix is under Diagnostics."
             )
         )
         .font(.caption)

@@ -27,6 +27,12 @@ final class PadReconnectTests: XCTestCase {
         XCTAssertEqual(action, .keepLink, "the threshold is inclusive, as the service had it")
     }
 
+    func testTheThresholdStaysTheTwoSecondsTheServiceHad() {
+        // S5: silence of two seconds was what the service treated as a dead link, and moving the rule
+        // must not quietly widen or narrow it.
+        XCTAssertEqual(PadReconnect.staleAfter, 2.0)
+    }
+
     // MARK: - A stale link is replaced in the same pass
 
     func testAQuietLinkPastTheThresholdIsReleasedBeforeConnectingTheNextDevice() {

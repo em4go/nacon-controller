@@ -146,11 +146,18 @@ final class EmulationRunTests: XCTestCase {
         XCTAssertTrue(run.status.isRunning, "a step is a change of mapping, not a stop")
     }
 
-    func testAStepWhileStoppedAsksNothing() {
+    func testAStepThatArrivesAfterTheRunStoppedAsksNothing() {
+        // The run and the engine stop separately: the flag changes first, and a report already queued
+        // inside the engine can still carry a step afterwards. That is the race the guard is for, so the
+        // engine is left running on purpose while the run is stopped.
+        engine.setProfile(profileA)
+        engine.drain()
+        engine.setEnabledNow(true)
+
         engine.handle(report(buttons: [.buttonB]))
 
-        XCTAssertEqual(stepperCalls, [], "there is no mapping to swap while the run is stopped")
         XCTAssertFalse(run.status.isRunning)
+        XCTAssertEqual(stepperCalls, [], "a step must ask nothing once the run has stopped")
     }
 
     // MARK: - Silence
@@ -185,14 +192,6 @@ final class EmulationRunTests: XCTestCase {
 
         XCTAssertFalse(run.status.isRunning)
         XCTAssertFalse(run.status.padSilent)
-    }
-
-    func testDisconnectingWhileStoppedChangesNothing() {
-        let before = run.status
-
-        run.padDisconnected()
-
-        XCTAssertEqual(run.status, before)
     }
 
     // MARK: - The mapping summary

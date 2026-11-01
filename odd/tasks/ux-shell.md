@@ -43,7 +43,8 @@ S8. Cada tramo se entrega en un corte revisable de ~400 líneas como máximo, co
 | T3 | Inspector con color, perfil siguiente, tecla MOD, sensibilidad y precisión; plegado por ancho | S4, S6 | delegado + correcciones inline | c4f5e60 |
 | T4 | Destino Diagnóstico con los valores en vivo, la trama y la leyenda | S7 | inline | 3871ba2 |
 | T5 | Destino Ajustes de la app: permiso, emulación, vibración, idioma; el porqué del botón apagado y la inversión del eje al inspector | S7, S6 | inline | 40754ca |
-| T6 | Primer arranque (prototipo 04), encima de la estructura definitiva | S3 | delegado | |
+| T6 | Primer arranque (prototipo 04), encima de la estructura definitiva | S2, S6 | inline | ba352bf |
+| T6b | Mapeo agrupado que retira el «Capt…» de la columna MOD | S9 | inline | |
 
 ## Log
 
@@ -139,3 +140,18 @@ L17. T5 hecho en línea. El botón de la barra de herramientas ya no se apaga en
 en la captura que la barra dibujaba solo el icono —un triángulo naranja sin palabras es una pista, no un motivo—, así que
 se fuerza `.titleAndIcon`. Además la inversión del eje vertical, que es un valor del perfil, se fue de Ajustes al
 inspector: era el último ajuste del perfil viviendo entre los de la app.
+
+L19. T6: la guía de primer arranque, en `FirstRunView.swift`, como hoja de 640×720. Cuatro pasos numerados con estado
+en vivo y el botón del permiso donde se explica; cierre con las dos ideas (perfil, luz, tecla MOD); se reabre desde
+Ajustes. El commit `ba352bf` lleva 483 líneas, por encima del corte de ~400: 250 son entradas del catálogo de
+localización, que son datos y no superficie de revisión; el Swift escrito a mano son unas 230.
+
+L20. Dos defectos que encontró la captura y no el código: la guía titulaba «Cuatro pasos» y dibujaba tres —faltaba el
+paso de comprobar que el mando responde, que ahora existe—, y al mover la inversión del eje vertical al inspector quedó
+en Ajustes su párrafo explicativo sin interruptor al que explicar. Corregidos y vueltos a capturar los dos.
+
+L21. Dos errores de procedimiento en el mismo commit, para que consten: asumí el texto de la fila T6 del documento en
+lugar de leerlo, así que la actualización del documento falló (el `assert` avisó, que es para lo que está), y encadené
+`git commit` dos veces sin mirar, dejando T6 partido en dos commits con el mismo mensaje. Se aplanaron con
+`git reset --soft` y un único commit. También corregí la referencia de specs: la guía es S2, no S8 —S8 es la regla de
+cortes—, en el código y en la tabla.

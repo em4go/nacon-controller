@@ -1172,16 +1172,6 @@
         }
       }
     },
-    "Standard profile": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Perfil estándar"
-          }
-        }
-      }
-    },
     "Start": {
       "localizations": {
         "es": {

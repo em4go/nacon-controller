@@ -256,6 +256,8 @@ public final class EmulationEngine {
     /// `handle`, `tick`, `advance`) act on one moment without waiting; this one is their counterpart for the
     /// callers that go through the public API, such as `EmulationRun`.
     func drain() {
+        // Same guard as `stop()`: a synchronous wait started from the engine's own queue would deadlock.
+        guard DispatchQueue.getSpecific(key: queueKey) == nil else { return }
         queue.sync {}
     }
 

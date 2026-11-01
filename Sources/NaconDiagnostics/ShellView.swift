@@ -47,6 +47,13 @@ struct ShellView: View {
     @State private var isConfirmingDelete = false
     @State private var draftName = ""
 
+    /// S2: whether this Mac has been shown the guide. It is a preference and not window state: it has
+    /// to survive the launch that first showed it, or every launch would be a first one.
+    @AppStorage("hasSeenFirstRunGuide") private var hasSeenFirstRunGuide = false
+    /// The sheet is driven by this, so the Settings button and the first launch open the same thing
+    /// instead of two sheets that could both be asked for at once.
+    @State private var showsGuide = false
+
     var body: some View {
         NavigationSplitView {
             sidebar
@@ -152,6 +159,23 @@ struct ShellView: View {
                     profiles.selectedProfile?.name ?? ""
                 )
             )
+        }
+        // S2: the guide appears once, and the flag that hides it is written on every way out of the
+        // sheet — the button, Escape and the click outside — because otherwise closing it with the
+        // wrong key would make the next launch a first one again.
+        .sheet(isPresented: $showsGuide) {
+            FirstRunView(
+                profiles: profiles,
+                isPadConnected: service.state.isConnected
+            ) {
+                showsGuide = false
+            }
+        }
+        .onChange(of: showsGuide) { presented in
+            if !presented { hasSeenFirstRunGuide = true }
+        }
+        .onAppear {
+            if !hasSeenFirstRunGuide { showsGuide = true }
         }
     }
 
@@ -382,6 +406,23 @@ struct ShellView: View {
         VStack(alignment: .leading, spacing: 18) {
             EmulationSection(emulation: emulation)
             LanguageSection()
+            guideSection
+        }
+    }
+
+    /// The guide is readable a second time, as the guide itself promises: it explains, and what it
+    /// explains is worth finding again without reinstalling anything.
+    private var guideSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SectionTitle(AppText.resolve("Guide"))
+            Text(
+                AppText.resolve(
+                    "The first-run guide explains the four steps and the two ideas behind the mapping."
+                )
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            Button(AppText.resolve("Show the guide again")) { showsGuide = true }
         }
     }
 }

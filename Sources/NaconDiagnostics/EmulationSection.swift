@@ -32,15 +32,8 @@ struct EmulationSection: View {
             .disabled(!emulation.hasAccessibility)
             lightControls
             rumbleControls
-            Text(
-                AppText.resolve(
-                    "Turn it on if pushing the stick up moves the cursor down. It affects the cursor and "
-                    + "scrolling, not the on-screen stick indicator. It is saved in the active profile and "
-                    + "applied when emulation starts: stop it to change the setting."
-                )
-            )
-            .font(.caption)
-            .foregroundStyle(.secondary)
+            // The vertical-axis inversion left this section for the inspector, with its control and its
+            // explanation: a caption about a switch that is no longer here is worse than no caption.
             Text(
                 AppText.resolve(
                     "The left stick moves the cursor and the right stick scrolls. ✕/○/□ are the mouse "

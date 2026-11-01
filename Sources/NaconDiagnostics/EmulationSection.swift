@@ -32,16 +32,6 @@ struct EmulationSection: View {
             .disabled(!emulation.hasAccessibility)
             lightControls
             rumbleControls
-            // S2: the switch shows the value stored in the selected profile, not a leftover global
-            // flag, and flipping it edits that profile so two profiles can differ.
-            Toggle(AppText.resolve("Invert vertical axis"), isOn: Binding(
-                get: { profiles.selectedInvertVerticalAxis },
-                set: { profiles.setInvertVerticalAxis($0) }
-            ))
-            .toggleStyle(.switch)
-            // The value only reaches the engine when emulation starts, so flipping it mid-run would
-            // silently do nothing. Disabled while running, like the mapping editor.
-            .disabled(emulation.isEnabled)
             Text(
                 AppText.resolve(
                     "Turn it on if pushing the stick up moves the cursor down. It affects the cursor and "

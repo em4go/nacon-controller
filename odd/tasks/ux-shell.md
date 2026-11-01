@@ -42,7 +42,7 @@ S8. Cada tramo se entrega en un corte revisable de ~400 líneas como máximo, co
 | T2 | Lista de perfiles en la barra lateral, con su color; los cuatro botones a un menú de la barra de herramientas | S5, S6 | delegado | fdedaaa |
 | T3 | Inspector con color, perfil siguiente, tecla MOD, sensibilidad y precisión; plegado por ancho | S4, S6 | delegado + correcciones inline | c4f5e60 |
 | T4 | Destino Diagnóstico con los valores en vivo, la trama y la leyenda | S7 | inline | 3871ba2 |
-| T5 | Destino Ajustes de la app: permiso, emulación, vibración, idioma | S7 | delegado | |
+| T5 | Destino Ajustes de la app: permiso, emulación, vibración, idioma; el porqué del botón apagado y la inversión del eje al inspector | S7, S6 | inline | pendiente |
 | T6 | Primer arranque (prototipo 04), encima de la estructura definitiva | S3 | delegado | |
 
 ## Log
@@ -133,3 +133,9 @@ L16. T4 hecho en línea. Diagnóstico abre con una frase que dice para qué sirv
 leyenda. En Ajustes queda un puntero corto: «¿El permiso aparece concedido y aun así no pasa nada? El arreglo está en
 Diagnóstico». Además el inspector se limita al destino Mapeo: ofrecer los ajustes del perfil junto al volcado de paquetes
 era ruido y ancho pagado dos veces. Verificado en pantalla a 1420×860 con arranque temporal en Diagnóstico.
+
+L17. T5 hecho en línea. El botón de la barra de herramientas ya no se apaga en silencio: sin permiso se convierte en
+«⚠ Falta el permiso de Accesibilidad», en naranja, y al pulsarlo lleva a Ajustes, que es donde se concede. Se descubrió
+en la captura que la barra dibujaba solo el icono —un triángulo naranja sin palabras es una pista, no un motivo—, así que
+se fuerza `.titleAndIcon`. Además la inversión del eje vertical, que es un valor del perfil, se fue de Ajustes al
+inspector: era el último ajuste del perfil viviendo entre los de la app.

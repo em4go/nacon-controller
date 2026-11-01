@@ -37,6 +37,8 @@ struct InspectorView: View {
                 Divider()
                 colourField
                 Divider()
+                invertField
+                Divider()
                 nextProfileField
                 Divider()
                 modKeyField
@@ -55,6 +57,30 @@ struct InspectorView: View {
     /// It is deliberately not disabled during emulation, unlike the mapping editor and the MOD row:
     /// the colour is the profile's only visible mark, and changing it live is how the user checks
     /// that the light is telling the truth about which profile is running.
+    /// S2: whether pushing the stick up moves the cursor down, stored in the profile.
+    ///
+    /// It belongs here and not among the app's settings: it is a value of the profile, and every
+    /// profile can answer it differently. It is frozen while the emulation runs because the value only
+    /// reaches the engine when a run starts.
+    private var invertField: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            SectionTitle(AppText.resolve("Invert vertical axis"))
+            Toggle(AppText.resolve("Invert vertical axis"), isOn: Binding(
+                get: { profiles.selectedInvertVerticalAxis },
+                set: { profiles.setInvertVerticalAxis($0) }
+            ))
+            .toggleStyle(.switch)
+            .disabled(emulation.isEnabled)
+            .help(
+                AppText.resolve(
+                    "Turn it on if pushing the stick up moves the cursor down. It affects the cursor and "
+                    + "scrolling, not the on-screen stick indicator. It is saved in the active profile and "
+                    + "applied when emulation starts: stop it to change the setting."
+                )
+            )
+        }
+    }
+
     private var colourField: some View {
         VStack(alignment: .leading, spacing: 6) {
             SectionTitle(AppText.resolve("Light colour"))

@@ -89,7 +89,25 @@ struct ShellView: View {
                 profileMenu
             }
             ToolbarItem(placement: .primaryAction) {
-                emulationButton
+                if emulation.hasAccessibility {
+                    emulationButton
+                } else {
+                    // A disabled button with no reason is a dead end, and the reason lives in another
+                    // destination. This one says the reason and takes the reader where it is fixed.
+                    Button {
+                        destination = .settings
+                    } label: {
+                        Label(
+                            AppText.resolve("Accessibility permission missing"),
+                            systemImage: "exclamationmark.triangle.fill"
+                        )
+                        // The bar would otherwise draw the icon alone, and an orange triangle without
+                        // words is a hint, not a reason.
+                        .labelStyle(.titleAndIcon)
+                        .foregroundStyle(.orange)
+                    }
+                    .help(AppText.resolve("Accessibility permission missing"))
+                }
             }
             if destination == .mapping {
                 // No column, no button: a toggle that opens nothing is a promise the window breaks.

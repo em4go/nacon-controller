@@ -112,3 +112,18 @@ se pliega solo y no se corta nada; **no** está verificado a ojo el caso ancho c
 forzar el inspector por debajo del umbral el contenido desborda la ventana y se recorta por los dos lados, porque las
 tres columnas no caben; se dejó el contenido flexible para reducirlo, pero la solución de fondo es que el umbral no se
 fuerce, y eso lo decide quien use la app en pantallas pequeñas.
+
+L13. El usuario concede permiso de Accesibilidad para redimensionar y decide que **la ventana también pueda cambiar de
+perfil durante la emulación**. Se hizo con una pulsación que escribe la selección y, si el motor está en marcha, llama a
+`EmulationController.switchToProfile`, que delega en `EmulationEngine.switchProfile(to:)` — el mismo camino atómico del
+mando, sin reimplementar la liberación. Sin prueba propia: es una envoltura de dos líneas sobre un comportamiento que ya
+tiene su test en el motor, y añadir una prueba de la envoltura no probaría nada nuevo.
+
+L14. Verificado en pantalla con la ventana a 1420×860: las tres columnas caben, la tabla de mapeo se lee entera y el
+inspector muestra etiqueta y valor en los cinco ajustes del cursor. Queda un defecto menor y conocido: en la columna MOD
+el botón «Capturar» se abrevia a «Capt…» porque esa columna es más estrecha; desaparece cuando el mapeo pase a la lista
+agrupada prevista en T6.
+
+L15. Queda pendiente revisar el texto de la ayuda del inspector y el estado del permiso de Accesibilidad en el destino
+«Ajustes» (T5): hoy el botón de la barra de herramientas se deshabilita sin decir por qué, y ese «por qué» vive en otra
+pantalla.

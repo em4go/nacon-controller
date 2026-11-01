@@ -231,13 +231,18 @@ struct ShellView: View {
     /// S5, S6: every stored profile, with the colour its light shows and a mark of which one is active.
     ///
     /// Pressing a row is the whole gesture: the library writes the selection, so the profile on screen
-    /// and the profile the pad will run are one concept and never a pair. While emulation runs the
-    /// rows do nothing, exactly as S5 asks: the profile is captured when emulation starts.
+    /// and the profile the pad will run are one concept and never a pair. If the emulation is running,
+    /// the press also swaps the mapping — through the engine's atomic switch, the same one the pad's
+    /// profile step uses — so the window is not more restricted than the pad it configures.
     private var profileRows: some View {
         ForEach(profiles.profiles) { stored in
             let isActive = stored.id == profiles.selectedProfile?.id
             Button {
                 profiles.select(stored.id)
+                // A no-op while the emulation is stopped, so one call covers both states.
+                if let profile = profiles.selectedProfile?.profile {
+                    emulation.switchToProfile(profile)
+                }
             } label: {
                 ProfileRow(profile: stored, isActive: isActive)
             }
@@ -247,7 +252,6 @@ struct ShellView: View {
             .accessibilityLabel(AppText.format("%@ — %@", stored.name, stored.profile.color.label))
             .accessibilityAddTraits(isActive ? [.isSelected] : [])
         }
-        .disabled(emulation.isEnabled)
     }
 
     /// S1, S4: the content column and, beside it, the inspector.

@@ -15,6 +15,29 @@ struct ShellView: View {
     /// and a launch never resumes somewhere the user did not choose.
     @State private var destination: ShellDestination = .mapping
 
+    /// S4: what the user asked the inspector to do. It is remembered while the window is narrow even
+    /// though the width overrules it, so narrowing and widening the window does not lose the answer.
+    @State private var showsInspector = true
+
+    /// The width the shell is drawn in, measured below. It starts at zero, so the first frame is the
+    /// narrow case: opening the window must never show a column that the width has not allowed yet.
+    @State private var shellWidth: CGFloat = 0
+
+    /// S4: below this many points of window width the inspector stays folded, whatever the button
+    /// says. The mapping is what the window is for, and at that width the three zones stop fitting
+    /// one beside the other without taking the width the table needs to be read.
+    /// The narrowest window that can hold the sidebar, the content and the inspector at once: about
+    /// 240 for the sidebar, 620 for a mapping row that still fits, 300 for the inspector and the
+    /// dividers. Below this the column could only exist by squeezing the table it is meant to serve.
+    private static let inspectorMinimumWindowWidth: CGFloat = 1240
+
+    /// The width of the inspector, taken from the prototype: a field label and a slider need a
+    /// width to be read at, and a column that stretched with the window would move under the pointer.
+    /// Wide enough for a slider row to show its label and its value at once: at 300 the two fought
+    /// and the label lost its last word («Velocidad de desplazamien»), which is how a measurement, not
+    /// a guess, set this number.
+    private static let inspectorWidth: CGFloat = 340
+
     /// S5: the two edits that ask before they act live with the menu that starts them, because the
     /// menu is what opens them. They stay window state and not section state: the section no longer
     /// has a picker or the four buttons, so it would have nothing to ask about.
@@ -31,9 +54,33 @@ struct ShellView: View {
                 // keeps for itself is a point the mapping does not have at the 780 minimum width.
                 .navigationSplitViewColumnWidth(min: 200, ideal: 240, max: 320)
         } detail: {
-            detail
+            detailArea
         }
         .navigationSplitViewStyle(.balanced)
+        // S4: the collapse rule reads the width from here, because this is the one view that sees the
+        // whole window. It measures in a background, which takes no part in layout, so the number
+        // cannot change because of the column it decides — a reader inside the detail area would
+        // shrink itself the moment the inspector took its space from the same column.
+        .background {
+            GeometryReader { proxy in
+                Color.clear
+                    .onAppear {
+                        shellWidth = proxy.size.width
+                        // A window restored narrower than the threshold opens with the column folded,
+                        // which is the state a fresh reader needs: the mapping, not the settings.
+                        showsInspector = proxy.size.width >= Self.inspectorMinimumWindowWidth
+                    }
+                    .onChange(of: proxy.size.width) { width in
+                        // One way only, on the crossing: forcing the column open on a small window is
+                        // a decision the user is allowed to keep.
+                        if shellWidth >= Self.inspectorMinimumWindowWidth,
+                           width < Self.inspectorMinimumWindowWidth {
+                            showsInspector = false
+                        }
+                        shellWidth = width
+                    }
+            }
+        }
         .toolbar {
             // S5: the profile actions stay next to the action the window exists for, in the bar and
             // not in the content column, so they are reachable from every destination without the
@@ -43,6 +90,9 @@ struct ShellView: View {
             }
             ToolbarItem(placement: .primaryAction) {
                 emulationButton
+            }
+            ToolbarItem(placement: .primaryAction) {
+                inspectorButton
             }
         }
         // T2: the same questions, with the same text, the same buttons and the same destructive role,
@@ -97,6 +147,20 @@ struct ShellView: View {
                 ? AppText.resolve("Starts or stops sending what the pad does to the system.")
                 : AppText.resolve("Accessibility permission missing")
         )
+    }
+
+    /// S4: the one way to the third zone, and its title says what the press does in the window the
+    /// user has.
+    ///
+    /// Below the threshold the column stays folded: the press writes the choice, which the window
+    /// obeys as soon as it is wide enough again, so pressing it here loses nothing and inventing a
+    /// disabled button would only ask the user to guess why.
+    private var inspectorButton: some View {
+        Button(isInspectorVisible ? AppText.resolve("Hide inspector") : AppText.resolve("Show inspector")) {
+            // The choice and not the state: pressing it while the window is too narrow still has to
+            // mean “I want it open”, or a change of width would silently undo the user's answer.
+            showsInspector = !isInspectorVisible
+        }
     }
 
     /// S5, S6: the four profile actions, collected in one menu beside the emulation switch.
@@ -186,16 +250,42 @@ struct ShellView: View {
         .disabled(emulation.isEnabled)
     }
 
+    /// S1, S4: the content column and, beside it, the inspector.
+    ///
+    /// A trailing column of the detail area and not `NavigationSplitView`'s `.inspector`: that API
+    /// arrived in macOS 14 and this package builds for macOS 13, and a column of our own keeps the
+    /// collapse rule in the shell — the one view that can see the window — instead of dividing it
+    /// between the split view and a modifier that only knows its own column.
+    private var detailArea: some View {
+        HStack(spacing: 0) {
+            detail
+            if isInspectorVisible {
+                Divider()
+                InspectorView(profiles: profiles)
+                    .frame(width: Self.inspectorWidth)
+            }
+        }
+    }
+
+    /// S4: the user's choice, with one automatic exception — the column folds by itself when the
+    /// window narrows past what it can hold. It is not hidden *because* the window is narrow: the
+    /// toolbar button brings it back, because a rule that made the settings unreachable on a small
+    /// screen would trade a layout problem for a functional one.
+    private var isInspectorVisible: Bool {
+        showsInspector
+    }
+
     /// Every destination scrolls its own column: the window has to be usable at its minimum size, where
     /// the sections are taller than the window, and scrolling keeps the window from clipping them.
     private var detail: some View {
         ScrollView {
             destinationContent
                 .padding(20)
-                // The mapping is a table of control, action and two buttons per row. It needs a width
-                // before it starts truncating labels, and a split view that opens narrower than that
-                // trades the reader's comprehension for a sidebar nobody asked to keep visible.
-                .frame(minWidth: 620, idealWidth: 940, maxWidth: .infinity, alignment: .leading)
+                // No width is demanded here. A column that asks for a width makes the whole window
+                // overflow when the inspector is forced open on a small screen, and overflow is not a
+                // layout: it is content clipped at the edge, sidebar included. The rows wrap, so the
+                // column is free to give way; how wide the window opens is the scene's business.
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -208,14 +298,13 @@ struct ShellView: View {
         }
     }
 
-    /// The mapping is what the window is for, so the device list and the per-profile sensitivity stay
-    /// beside it rather than becoming destinations of their own: both describe the profile being
-    /// mapped, and this slice does not decide where they belong for good.
+    /// The mapping is what the window is for, so the device list stays beside it rather than becoming
+    /// a destination of its own: it describes the pad being mapped, and this slice does not decide
+    /// where it belongs for good.
     private var mappingDestination: some View {
         VStack(alignment: .leading, spacing: 18) {
             DeviceListSection(devices: service.devices)
             ProfileSection(profiles: profiles, feed: service.feed)
-            SensitivitySection(profiles: profiles)
         }
     }
 

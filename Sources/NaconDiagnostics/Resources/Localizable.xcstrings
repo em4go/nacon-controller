@@ -401,6 +401,16 @@
         }
       }
     },
+    "Hide inspector": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar inspector"
+          }
+        }
+      }
+    },
     "Hold a modifier": {
       "localizations": {
         "es": {
@@ -908,6 +918,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ajustes del perfil «%@». Cada perfil guarda los suyos, así que uno de diseño y uno de juego pueden moverse distinto."
+          }
+        }
+      }
+    },
+    "Show inspector": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar inspector"
           }
         }
       }

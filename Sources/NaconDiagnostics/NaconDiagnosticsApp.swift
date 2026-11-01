@@ -50,6 +50,10 @@ struct NaconDiagnosticsApp: App {
                     service.stop()
                 }
         }
+        // Wide enough for the three columns at once: the sidebar, a mapping row that fits and the
+        // inspector. Narrower windows still work — the inspector folds — but the default should show
+        // the window as it is meant to be read.
+        .defaultSize(width: 1320, height: 860)
         .windowResizability(.contentMinSize)
 
         // El icono de la barra tiene que mostrarse sin depender de que la ventana exista.

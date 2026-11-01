@@ -40,7 +40,7 @@ S8. Cada tramo se entrega en un corte revisable de ~400 líneas como máximo, co
 |---|---|---|---|---|
 | T1 | Esqueleto de tres zonas con lo existente recolocado: barra lateral con el mando, destino Mapeo con la sección de perfil entera y la acción principal en la barra de herramientas | S1, S3, S6 | worker + correcciones inline | bb0f676 |
 | T2 | Lista de perfiles en la barra lateral, con su color; los cuatro botones a un menú de la barra de herramientas | S5, S6 | delegado | fdedaaa |
-| T3 | Inspector con color, perfil siguiente, tecla MOD, sensibilidad y precisión; plegado por ancho | S4, S6 | delegado | |
+| T3 | Inspector con color, perfil siguiente, tecla MOD, sensibilidad y precisión; plegado por ancho | S4, S6 | delegado + correcciones inline | pendiente |
 | T4 | Destino Diagnóstico con los valores en vivo, la trama y la leyenda | S7 | delegado | |
 | T5 | Destino Ajustes de la app: permiso, emulación, vibración, idioma | S7 | delegado | |
 | T6 | Primer arranque (prototipo 04), encima de la estructura definitiva | S3 | delegado | |
@@ -96,3 +96,19 @@ durante la emulación el mando ya puede cambiar de perfil, así que la ventana e
 
 L10. Sobra la clave «Active profile» del catálogo de la ventana, que el selector viejo usaba y ahora nadie resuelve. No
 molesta y el test de cobertura no la vigila, porque solo comprueba claves usadas; se limpia cuando se toque el catálogo.
+
+L11. T3 llegó con la suite en rojo: el worker no podía tocar el catálogo y el botón del inspector resolvía dos claves
+que no existían («Show inspector» / «Hide inspector»). Es exactamente lo que el test de cobertura vigila, así que se
+añadieron con su traducción. Además se corrigieron tres decisiones suyas: el umbral de 1000 dejaba el mapeo por debajo
+del ancho usable (ahora 1240, que es la aritmética real: 240 de barra + 620 de contenido + 340 de inspector); el panel
+de 300 cortaba las etiquetas de sensibilidad a media palabra, así que mide 340; y por debajo del umbral los ajustes
+quedaban inalcanzables, así que el botón puede abrirlo aunque la ventana sea estrecha — una regla de maquetación no
+puede convertir un ajuste en inaccesible.
+
+L12. Dos límites de verificación, dichos como son. Primero: la geometría de la ventana la restaura macOS, y con
+`.windowResizability(.contentMinSize)` el `.defaultSize(1320×860)` no se aplica; la ventana abre a 900×832 y no puedo
+redimensionarla por script porque el proceso no tiene permiso de Accesibilidad. Está verificado que a 900 el inspector
+se pliega solo y no se corta nada; **no** está verificado a ojo el caso ancho con el inspector abierto. Segundo: al
+forzar el inspector por debajo del umbral el contenido desborda la ventana y se recorta por los dos lados, porque las
+tres columnas no caben; se dejó el contenido flexible para reducirlo, pero la solución de fondo es que el umbral no se
+fuerce, y eso lo decide quien use la app en pantallas pequeñas.

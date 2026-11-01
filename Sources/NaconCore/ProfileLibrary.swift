@@ -185,6 +185,33 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
         }
     }
 
+    // MARK: - Stepping the selection from the pad (S6)
+
+    /// S6: moves the selection one profile forward or back in list order, wrapping at both ends.
+    ///
+    /// The step belongs to the library and not to the engine: the order of the profiles is the user's
+    /// arrangement of them, and «the next one» has no meaning without it. Wrapping is what makes two
+    /// buttons enough — a last profile that steps forward to the first is one less edge case to
+    /// explain than a button that stops working at the end of a list.
+    ///
+    /// It only moves the selection. Saving it and handing the new mapping to the engine are the
+    /// caller's job, in that order, because the switch itself must be atomic (S5).
+    /// - Returns: whether the selection changed. A library with one profile has nowhere to go, so it
+    ///   reports no change instead of selecting the same profile again.
+    @discardableResult
+    public mutating func stepProfile(_ step: ProfileStep) -> Bool {
+        guard profiles.count > 1 else { return false }
+        // The selection is resolved the same way the rest of the type reads it, so a dangling
+        // identifier steps from the first profile instead of from an index that does not exist.
+        guard let current = selectedIndex else { return false }
+        let target = switch step {
+        case .next: (current + 1) % profiles.count
+        case .previous: (current - 1 + profiles.count) % profiles.count
+        }
+        selectedProfileID = profiles[target].id
+        return true
+    }
+
     // MARK: - Cursor settings (S2)
 
     /// Position of the profile being edited, or `nil` when the library cannot resolve one.
@@ -215,6 +242,22 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
     /// always agrees with what would be used on the next start.
     public var selectedInvertVerticalAxis: Bool {
         selectedProfile?.profile.cursor.invertVerticalAxis ?? false
+    }
+
+    /// The colour of the profile on screen: what the pad's light shows while it runs.
+    public var selectedColor: ProfileColour {
+        selectedProfile?.profile.color ?? .standard
+    }
+
+    /// Changes the colour of the profile on screen, leaving every sibling alone.
+    /// - Returns: whether the library changed.
+    @discardableResult
+    public mutating func setColor(_ colour: ProfileColour) -> Bool {
+        editSelectedProfile { profile in
+            guard profile.color != colour else { return false }
+            profile.color = colour
+            return true
+        }
     }
 
     /// S2: flips the vertical direction on the profile being edited, leaving every sibling alone.

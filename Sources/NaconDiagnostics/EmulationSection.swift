@@ -73,9 +73,17 @@ struct EmulationSection: View {
         }
         .onAppear {
             padLight.isEmulationActive = emulation.isEnabled
+            padLight.colour = profiles.selectedColor
+        }
+        .onChange(of: profiles.selectedColor) { colour in
+            // The light is the profile's visible mark, so a colour change has to reach the pad even while it
+            // runs: a light that lags would be telling the user the wrong profile is active.
+            padLight.colour = colour
+            service.sendOutput(padLight.packet)
         }
         .onChange(of: emulation.isEnabled) { isEnabled in
             padLight.isEmulationActive = isEnabled
+            padLight.colour = profiles.selectedColor
             guard rumbleFeedback else { return }
             burstPlayer.fire(padRumble) { service.sendOutput($0) }
         }

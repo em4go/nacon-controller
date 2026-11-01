@@ -61,6 +61,16 @@
         }
       }
     },
+    "Blue": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Azul"
+          }
+        }
+      }
+    },
     "Bootloader": {
       "localizations": {
         "es": {
@@ -321,6 +331,16 @@
         }
       }
     },
+    "Green": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verde"
+          }
+        }
+      }
+    },
     "Help": {
       "localizations": {
         "es": {
@@ -471,6 +491,16 @@
         }
       }
     },
+    "Next profile": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perfil siguiente"
+          }
+        }
+      }
+    },
     "No scrolling": {
       "localizations": {
         "es": {
@@ -581,12 +611,32 @@
         }
       }
     },
+    "Previous profile": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perfil anterior"
+          }
+        }
+      }
+    },
     "Print": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Imprimir"
+          }
+        }
+      }
+    },
+    "Purple": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morado"
           }
         }
       }
@@ -627,6 +677,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "R3"
+          }
+        }
+      }
+    },
+    "Red": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rojo"
           }
         }
       }

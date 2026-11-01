@@ -22,6 +22,12 @@ public final class EmulationEngine {
     /// MOD held while PS was pressed: show the mapping summary instead of toggling. Reading the map
     /// must never stop the pad, so this path bypasses the toggle entirely.
     public var onSummaryPress: (() -> Void)?
+    /// A control assigned to `.profileStep` was pressed. Fired on the engine's own queue, like every
+    /// other callback that comes out of a report, so the listener hops to the main thread.
+    ///
+    /// The engine does not choose the profile: it does not know the library, only the mapping it runs.
+    /// The app asks the library for the next selection and answers with `switchProfile(to:)`.
+    public var onProfileStep: ((ProfileStep) -> Void)?
 
     /// Whether the current physical Guide press has already been acted on.
     ///
@@ -143,6 +149,26 @@ public final class EmulationEngine {
         }
     }
 
+    /// S5: makes another profile the active one without stopping the emulation.
+    ///
+    /// The order is the whole guarantee, and it is not interchangeable. Everything the *previous*
+    /// profile claimed is released first, with the actions that claimed it: the keys and clicks
+    /// `performance` is holding, then the mouse buttons a toggle left down and the modifiers the
+    /// emitter is holding — the same safety net the stop path uses. Only then is the new profile
+    /// applied, whole. The other order would let a claim outlive the mapping that can explain it: a
+    /// left button toggled by the old profile would stay down inside the new one, and the system would
+    /// be dragging with nobody able to say why. There is also nothing to re-press afterwards: the
+    /// release is final, and the pad reports what is physically held from here on.
+    ///
+    /// The emulation keeps running — this is a change of mapping, not a stop — and the profile the
+    /// editor shows is not consulted: the engine still runs the profile it was given, exactly like the
+    /// one captured at start.
+    public func switchProfile(to newProfile: InputProfile) {
+        queue.async { [weak self] in
+            self?.switchProfileNow(newProfile)
+        }
+    }
+
     /// Feeds one input report. Called for every report, before any UI throttling.
     public func ingest(_ report: XInputReport) {
         queue.async { [weak self] in
@@ -222,6 +248,20 @@ public final class EmulationEngine {
         }
     }
 
+    /// The body of `switchProfile(to:)`, on the engine's own queue. Also the seam the tests drive, so
+    /// the release-then-load order is asserted on the emitter instead of guessed at.
+    func switchProfileNow(_ newProfile: InputProfile) {
+        // S5: let go of everything the old profile claimed, then apply the new one. The report is left
+        // as it is: a control still physically held stays down, so it is not pressed again — the pad
+        // will press it once the user releases it and presses it anew.
+        emit(performance.reset())
+        // The same two safety nets as the stop path: a toggle lives in the emitter rather than in the
+        // performance, and a held modifier lives in the emitter too.
+        emitter.releaseAllMouseButtons()
+        emitter.releaseHeldModifiers()
+        profile = newProfile
+    }
+
     /// Freezes on a short stall and lets go of everything on a long one.
     ///
     /// The sticks the engine moves with are the last ones it was told, however old: without this, a pad
@@ -280,6 +320,10 @@ public final class EmulationEngine {
                 emitter.toggleMouseButton(button)
             case .scroll(let pixels):
                 emitter.scroll(pixels: pixels)
+            case .profileStep(let step):
+                // S6: the step is a request for another mapping, not an event for the system. The
+                // engine reports it; whoever owns the library decides what the next profile is.
+                onProfileStep?(step)
             }
         }
     }

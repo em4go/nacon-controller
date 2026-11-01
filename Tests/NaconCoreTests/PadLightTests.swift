@@ -17,6 +17,39 @@ private final class RecordingOutput {
 }
 
 final class PadLightTests: XCTestCase {
+    /// The colour is the profile's mark, so each colour must reach the pad as a different pattern and the
+    /// light must still turn off with one packet whatever colour it was carrying.
+    func testALitLightSendsThePatternOfItsColour() {
+        var sent: Set<[UInt8]> = []
+        for colour in ProfileColour.allCases {
+            var light = PadLight(source: .manual, isManuallyOn: true)
+            light.colour = colour
+            XCTAssertEqual(light.packet, XInputOutputReport.led(colour.pattern), "\(colour)")
+            sent.insert(light.packet)
+        }
+        XCTAssertEqual(sent.count, ProfileColour.allCases.count, "two colours send the same packet")
+    }
+
+    func testAnUnlitLightSendsTheOffPatternWhateverColourItCarries() {
+        for colour in ProfileColour.allCases {
+            var light = PadLight(source: .manual, isManuallyOn: false)
+            light.colour = colour
+            XCTAssertEqual(light.packet, XInputOutputReport.led(.off), "\(colour) did not go dark")
+        }
+    }
+
+    func testTheColourBelongsToTheProfileAndNothingElse() {
+        let first = StoredProfile(name: "Primero", profile: InputProfile(mappings: [:], color: .blue))
+        let second = StoredProfile(name: "Segundo", profile: InputProfile(mappings: [:], color: .green))
+        var library = ProfileLibrary(profiles: [first, second], selectedProfileID: first.id)
+
+        XCTAssertTrue(library.setColor(.purple))
+        XCTAssertEqual(library.selectedProfile?.profile.color, .purple)
+        XCTAssertEqual(library.profiles.first(where: { $0.id == second.id })?.profile.color, .green,
+                       "the other profile must not change")
+        XCTAssertFalse(library.setColor(.purple), "setting the same colour reports no change")
+    }
+
     private let onPacket = XInputOutputReport.led(.player1)
     private let offPacket = XInputOutputReport.led(.off)
 

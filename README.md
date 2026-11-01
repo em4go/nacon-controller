@@ -165,6 +165,20 @@ se nota más que una precisión que termina un instante después.
 No envía nada mientras se mantiene, igual que la tecla MOD: solo cambia la velocidad. La fracción se ajusta
 en **Sensibilidad del cursor**, con el resto de los números del cursor, y es del perfil, no del control.
 
+### Color del perfil y cambio desde el mando
+
+Cada perfil tiene un **color**, y ese color es el que muestra la luz del mando mientras el perfil está en
+marcha: azul, rojo, verde o morado. No es decoración, es la respuesta a «¿qué perfil tengo puesto?» sin abrir
+la ventana. El protocolo del mando no transporta color, transporta un patrón; estos cuatro son los que esta
+unidad asocia a esos colores, medidos con una sonda que los recorrió todos. Un perfil guardado antes de que
+existiera el ajuste carga en azul, que es el que la app mostraba siempre.
+
+Dos acciones asignables —**Perfil siguiente** y **Perfil anterior**— cambian de perfil desde el propio mando,
+en la columna base o en la MOD. El cambio es atómico: antes de cargar el perfil nuevo se suelta todo lo que el
+anterior tenía pulsado —teclas, modificadores y botones fijados—, para que un clic que quedó fijado en un perfil
+no siga pulsado en el siguiente. La emulación no se detiene, y el botón que estabas manteniendo se suelta: no se
+vuelve a pulsar hasta que lo sueltes y lo aprietes otra vez.
+
 ### Sensibilidad por perfil
 
 Cada perfil guarda su propia velocidad máxima, zona muerta, curva y velocidad de desplazamiento, así

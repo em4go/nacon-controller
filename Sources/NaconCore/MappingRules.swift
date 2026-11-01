@@ -69,11 +69,11 @@ public enum MappingRules {
     }
 
     /// Whether a command can take one more step. A command is made of keystrokes, so a mouse button, a
-    /// scroll amount or the precision claim has nothing to chain.
+    /// scroll amount, the precision claim or a profile step has nothing to chain.
     public static func canAppendStep(to action: MappedAction) -> Bool {
         switch action {
         case .key, .sequence: return true
-        case .none, .mouseButton, .toggledMouseButton, .scrollLines, .precision: return false
+        case .none, .mouseButton, .toggledMouseButton, .profileStep, .scrollLines, .precision: return false
         }
     }
 
@@ -84,7 +84,7 @@ public enum MappingRules {
         case .key(let existing): return .chained([existing, combo])
         case .sequence(let steps): return .chained(steps + [combo])
         // Nothing to extend: the action is kept as it was, so an append never clears or rewrites it.
-        case .none, .mouseButton, .toggledMouseButton, .scrollLines, .precision: return action
+        case .none, .mouseButton, .toggledMouseButton, .profileStep, .scrollLines, .precision: return action
         }
     }
 

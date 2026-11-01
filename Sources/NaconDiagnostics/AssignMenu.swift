@@ -98,6 +98,16 @@ struct AssignMenuItems: View {
             onChoose(.precision)
         }
         Divider()
+        // S6: the two directions of the profile step get a group of their own. They are the only actions
+        // that change what every other control means, and «previous» exists so a wrong step from the pad
+        // never forces reaching for the mouse.
+        Button(MappedAction.profileStep(.next).displayName) {
+            onChoose(.profileStep(.next))
+        }
+        Button(MappedAction.profileStep(.previous).displayName) {
+            onChoose(.profileStep(.previous))
+        }
+        Divider()
         Button(MappedAction.none.displayName) {
             onChoose(.none)
         }

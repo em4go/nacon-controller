@@ -18,6 +18,9 @@ enum PerformanceEffect: Equatable, Sendable {
     case moveCursor(deltaX: Double, deltaY: Double)
     /// Turn the wheel by a number of pixels, on each axis.
     case scroll(pixels: ScrollPixels)
+    /// Make another saved profile the active one. The engine is the only place that can carry it out,
+    /// because it owns the running mapping and holds what the old profile claimed.
+    case profileStep(ProfileStep)
 }
 
 /// S2, S3: what one press does over time, with time as an argument.
@@ -77,8 +80,14 @@ struct PadPerformance {
     ///   that selected it is already released. Releasing the layer must not swap the action under a
     ///   button that is still down, and a sudden speed jump mid-movement is worse than a precision
     ///   that ends a moment later.
+    /// - Profile step: one effect and no claim at all. Nothing is recorded and nothing is held, so the
+    ///   release of the control is silent by construction: the control asked for a switch, it did not
+    ///   go down as anything.
     /// - Everything else: held, so it is pressed now and released with the control.
     mutating func press(_ control: XInputControl, action: MappedAction) -> [PerformanceEffect] {
+        if case .profileStep(let step) = action {
+            return [.profileStep(step)]
+        }
         if case .precision = action {
             // Nothing went down, so there is nothing to emit now and nothing to release later: the
             // entry says what this control claimed while it stays held.

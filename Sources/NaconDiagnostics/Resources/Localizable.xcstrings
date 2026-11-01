@@ -421,6 +421,16 @@
         }
       }
     },
+    "It is the colour the pad's light shows while this profile is running.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es el color que muestra la luz del mando mientras este perfil está en marcha."
+          }
+        }
+      }
+    },
     "Language": {
       "localizations": {
         "es": {
@@ -457,6 +467,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Luz como indicador de emulación"
+          }
+        }
+      }
+    },
+    "Light colour": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Color de la luz"
           }
         }
       }

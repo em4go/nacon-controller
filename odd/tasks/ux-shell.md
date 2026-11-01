@@ -39,7 +39,7 @@ S8. Cada tramo se entrega en un corte revisable de ~400 líneas como máximo, co
 | ID | Qué | Specs | Ruta | Commit |
 |---|---|---|---|---|
 | T1 | Esqueleto de tres zonas con lo existente recolocado: barra lateral con el mando, destino Mapeo con la sección de perfil entera y la acción principal en la barra de herramientas | S1, S3, S6 | worker + correcciones inline | bb0f676 |
-| T2 | Lista de perfiles en la barra lateral, con su color; los cuatro botones a un menú de la barra de herramientas | S5, S6 | delegado | |
+| T2 | Lista de perfiles en la barra lateral, con su color; los cuatro botones a un menú de la barra de herramientas | S5, S6 | delegado | pendiente |
 | T3 | Inspector con color, perfil siguiente, tecla MOD, sensibilidad y precisión; plegado por ancho | S4, S6 | delegado | |
 | T4 | Destino Diagnóstico con los valores en vivo, la trama y la leyenda | S7 | delegado | |
 | T5 | Destino Ajustes de la app: permiso, emulación, vibración, idioma | S7 | delegado | |
@@ -86,3 +86,13 @@ verdad al agrupar el mapeo en una lista.
 L8. El truncado no venía del marco guardado (la ventana ya abría ancha y seguía cortando) sino de la tabla: la
 etiqueta de la acción estaba limitada a una línea. Ahora envuelve a dos, sin cambiar ningún texto, así que la
 información deja de perderse; el reparto de columnas se ordena de verdad en T3, con la lista agrupada.
+
+L9. T2 entregado y verificado en pantalla: seis perfiles en la barra lateral con su punto de color y el activo marcado,
+los cuatro botones ahora en un menú de la barra, y la columna de contenido sin selector ni botones. Las dos preguntas
+delicadas —renombrar y eliminar— conservan su alerta y su diálogo destructivo y llaman a `renameSelectedProfile` y
+`deleteSelectedProfile`. El worker dejó una duda honesta: la lista se deshabilita al emular porque lo pide S5, y eso es
+un endurecimiento deliberado respecto del selector anterior, que no lo estaba. Queda abierto si conviene lo contrario:
+durante la emulación el mando ya puede cambiar de perfil, así que la ventana es más restrictiva que el propio mando.
+
+L10. Sobra la clave «Active profile» del catálogo de la ventana, que el selector viejo usaba y ahora nadie resuelve. No
+molesta y el test de cobertura no la vigila, porque solo comprueba claves usadas; se limpia cuando se toque el catálogo.

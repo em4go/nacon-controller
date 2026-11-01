@@ -59,7 +59,11 @@ struct MappingEditor: View {
                 if showsLayer {
                     columnHeader
                 }
-                ForEach(MappingRules.remappableControls, id: \.self) { control in
+                // S9: the rows arrive in named sections. Seventeen identical lines made a reader
+                // scan for «the D-pad»; a header says where the D-pad starts.
+                ForEach(MappingRules.groupedRemappableControls) { section in
+                    groupHeader(section.group)
+                    ForEach(section.controls, id: \.self) { control in
                     MappingRow(
                         control: control,
                         action: profile.action(for: control),
@@ -74,6 +78,7 @@ struct MappingEditor: View {
                         isEmulationRunning: isEmulationEnabled,
                         onWrite: { column, action in onWrite(profileID, control, column, action) }
                     )
+                    }
                 }
                 reservedRow
             }
@@ -120,6 +125,16 @@ struct MappingEditor: View {
         .font(.caption.weight(.semibold))
         .foregroundStyle(.secondary)
         .padding(.horizontal, 8)
+    }
+
+    /// The name of a section, drawn above its first row.
+    private func groupHeader(_ group: MappingGroup) -> some View {
+        Text(AppText.resolve(group.title))
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 8)
+            .padding(.top, 6)
     }
 
     private var lockedCaption: some View {
@@ -205,6 +220,9 @@ private struct MappingRow: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
+            // The button was drawn in whatever width was left, and «Capturar» arrived as «Capt…».
+            // A control that names its action asks for the width its words need.
+            .fixedSize()
             Menu {
                 alternatives
             } label: {
@@ -255,6 +273,7 @@ private struct MappingRow: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
+            .fixedSize()
             // The same list as the base, aimed at the column: a capture armed here writes into the
             // layer because that is the intent the arming menu declares, not a property of capture.
             Menu {

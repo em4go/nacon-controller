@@ -44,7 +44,7 @@ S8. Cada tramo se entrega en un corte revisable de ~400 líneas como máximo, co
 | T4 | Destino Diagnóstico con los valores en vivo, la trama y la leyenda | S7 | inline | 3871ba2 |
 | T5 | Destino Ajustes de la app: permiso, emulación, vibración, idioma; el porqué del botón apagado y la inversión del eje al inspector | S7, S6 | inline | 40754ca |
 | T6 | Primer arranque (prototipo 04), encima de la estructura definitiva | S2, S6 | inline | ba352bf |
-| T6b | Mapeo agrupado que retira el «Capt…» de la columna MOD | S9 | inline | |
+| T6b | Mapeo agrupado que retira el «Capt…» de la columna MOD | S9 | inline | pendiente |
 
 ## Log
 
@@ -155,3 +155,14 @@ lugar de leerlo, así que la actualización del documento falló (el `assert` av
 `git commit` dos veces sin mirar, dejando T6 partido en dos commits con el mismo mensaje. Se aplanaron con
 `git reset --soft` y un único commit. También corregí la referencia de specs: la guía es S2, no S8 —S8 es la regla de
 cortes—, en el código y en la tabla.
+
+L22. T6b: la tabla del mapeo se lee en cinco secciones —Cruceta, Botones, Gatillos y palancas, Pulsación de sticks,
+Botones del sistema— y los botones de captura piden el ancho que necesitan sus palabras, así que «Capt…» desaparece.
+El corte vive en `MappingRules.groupedRemappableControls` y no en la vista: un control que no pertenezca a ningún grupo
+desaparecería de la tabla sin que fallara nada, así que hay un test que exige que cada fila aparezca exactamente una
+vez y nombra las cinco secciones con sus controles.
+
+L23. Tres correcciones durante el tramo, dos del compilador y una mía: el tipo se llamaba `ControlGroup`, que SwiftUI
+ya declara, y hubo que renombrarlo a `MappingGroup`; los tests desestructuraban una tupla que ahora es `ControlSection`;
+y mi primer test afirmaba que el orden aplanado no cambia, cuando agrupar es exactamente cambiarlo — lo correcto es que
+el orden se conserve *dentro* de cada sección. Suite: 430.

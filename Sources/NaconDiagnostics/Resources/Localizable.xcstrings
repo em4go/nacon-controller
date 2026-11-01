@@ -371,6 +371,16 @@
         }
       }
     },
+    "Directional pad": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cruceta"
+          }
+        }
+      }
+    },
     "Duplicate": {
       "localizations": {
         "es": {
@@ -437,6 +447,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Emulación detenida desde el mando."
+          }
+        }
+      }
+    },
+    "Face buttons": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Botones"
           }
         }
       }
@@ -1102,6 +1122,16 @@
         }
       }
     },
+    "Shoulders and triggers": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gatillos y palancas"
+          }
+        }
+      }
+    },
     "Show inspector": {
       "localizations": {
         "es": {
@@ -1182,6 +1212,16 @@
         }
       }
     },
+    "Stick clicks": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pulsación de sticks"
+          }
+        }
+      }
+    },
     "Sticks and triggers": {
       "localizations": {
         "es": {
@@ -1198,6 +1238,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Detener emulación"
+          }
+        }
+      }
+    },
+    "System buttons": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Botones del sistema"
           }
         }
       }

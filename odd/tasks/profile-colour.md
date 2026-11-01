@@ -64,3 +64,9 @@ L6. T1 y T2 se entregan juntos en `b5ff634`, 603 líneas. No se partió porque a
 (`InputProfile.swift` lleva el campo de color y la acción de cambio de perfil, `ProfileCoding.swift` los dos)
 y un corte por mitades dejaría un commit que no compila. Queda registrado como límite de entrega consciente,
 no como descuido: los tramos siguientes van separados —T3/T4 por un lado y documentación por otro—.
+
+L7. T3 y T4 en `d415a33`. La feature completa suma 743 líneas en tres commits (`b5ff634` modelo y cambio de
+perfil, `b95d3dd` el registro del límite, `d415a33` la luz y el selector). Se sube la rama `feature/profile-colour`
+en lugar de partir más: los tres commits compilan y pasan la suite por separado, y el corte de revisión ya está
+identificado en L6. Queda pendiente la prueba con el mando —pasos 32 a 34— y la fusión a `main`, que decide el
+usuario.

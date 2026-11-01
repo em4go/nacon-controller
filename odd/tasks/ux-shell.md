@@ -195,3 +195,21 @@ y un `.modifier(...)` situado por encima de los `.environmentObject(...)` no ve 
 en ese turno capturé la pantalla tras reconstruir y **no abrí la captura**: el diálogo de «se ha cerrado
 inesperadamente» estaba dentro. Dos lecciones, una de ellas ya vieja: las dependencias de un modificador que vive en la
 raíz se pasan como argumentos; y una captura que no se lee no es una verificación, es un archivo.
+
+L28. Publicación preparada y **sin publicar**. `git fetch origin` deja `origin/main` en `30aab75`, ancestro de `main`
+local, que lleva cinco commits sin salir (el ciclo de perfiles y los prototipos); desde ahí, la rama suma 28 commits,
+33 archivos y 3621 líneas. Se comprobó en un worktree desechable que las once puntas en que el trabajo se puede leer
+—M1 a M3, S1 a S8— compilan y pasan la suite por separado (425 tests hasta S6, 430 desde S7, 434 en la punta): el
+trabajo se sostiene corte a corte aunque se entregue junto. El usuario eligió **un solo PR**, consciente del precio,
+que es la carga de lectura concentrada y un rollback que arrastra tres trabajos que no dependen entre sí. El cuerpo del
+PR está redactado fuera del control de versiones, en `.build/review/pr-ux-shell-body.md`; el remoto no se ha tocado y
+no hay PR abierto. Frontera de entrega, una sola: `origin/main` (`30aab75`) → la punta de la rama, en un único
+PR; no se definen cortes de publicación, y el precio de esa frontera está en el párrafo anterior.
+
+L29. Dos cosas quedan dichas y no arregladas, para que no sorprendan a quien revise. El paso 40 de aceptación manual
+sigue sin comprobar. Y `odd/tasks/profiles-and-shortcuts.md` marca T2 como «pendiente — en curso» cuando ese trabajo ya
+está en la historia publicada —`2501e85` y `326a58d` son ancestros de `origin/main`—, así que quien abra ese documento
+para entender el ciclo de perfiles leerá «pendiente» sobre código que existe; arreglarlo es una línea, pero pertenece a
+su propio corte de documentación. Además, la captura de hoy muestra un defecto menor que S9 no cubre porque habla de
+botones: en la columna MOD los nombres de acción se truncan («Perfil sigue…», «Perfil anteri…») mientras los botones
+«Capturar» ya se leen completos.

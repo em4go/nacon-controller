@@ -213,3 +213,9 @@ para entender el ciclo de perfiles leerá «pendiente» sobre código que existe
 su propio corte de documentación. Además, la captura de hoy muestra un defecto menor que S9 no cubre porque habla de
 botones: en la columna MOD los nombres de acción se truncan («Perfil sigue…», «Perfil anteri…») mientras los botones
 «Capturar» ya se leen completos.
+
+L30. El usuario cambia la entrega: **la rama se mergea directamente en `main`**. Se cae el PR único que se había
+preparado —su cuerpo está redactado y no se usa— porque quien iba a revisarlo es el mismo que integraría, y el trabajo
+ya está verificado corte a corte. El merge sigue la convención de la historia (`Merge branch 'feature/…'`, como
+`profile-colour` y `mod-layer`), así que es `--no-ff` sobre `main`. Lo que **no** cambia: el push a `origin/main` sigue
+sin hacerse y sigue siendo decisión del usuario, y la rama `feature/ux-shell` se deja donde está en vez de borrarla.

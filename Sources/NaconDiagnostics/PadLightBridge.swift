@@ -1,16 +1,20 @@
 import NaconCore
 import SwiftUI
 
-/// S11: keeps the pad's light in step with the emulation, wherever the window happens to be.
+/// S10: keeps the pad's light in step with the emulation, wherever the window happens to be.
 ///
 /// This modifier is attached to the root view, which exists for as long as the app does, and it is the
 /// only place that sends the LED packet. Attaching it to a screen is what broke the light once: a
 /// screen can be unmounted, and an unmounted screen sends nothing.
+///
+/// The dependencies arrive as arguments and not from the environment on purpose. `.modifier(...)` sits
+/// above the `.environmentObject(...)` calls in the app's chain, and a modifier does not see objects
+/// injected below itself — the first version asked the environment for them and crashed on launch.
 struct PadLightBridge: ViewModifier {
-    @EnvironmentObject private var service: ControllerService
-    @EnvironmentObject private var emulation: EmulationController
-    @EnvironmentObject private var profiles: ProfileLibraryController
-    @EnvironmentObject private var store: PadLightStore
+    @ObservedObject var service: ControllerService
+    @ObservedObject var emulation: EmulationController
+    @ObservedObject var profiles: ProfileLibraryController
+    @ObservedObject var store: PadLightStore
 
     func body(content: Content) -> some View {
         content

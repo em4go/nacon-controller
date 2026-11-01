@@ -188,3 +188,10 @@ que sobrevive a las pantallas no puede vivir dentro de una pantalla**, y las tre
 vibración y su aviso) son la misma lección que ya se había aprendido con el cambio de perfil.
 
 L26. Commit del arreglo: 6102c55. Suite: 434.
+
+L27. El arreglo de la luz se entregó con la app caída al arrancar: `PadLightBridge` leía sus cuatro objetos del entorno,
+y un `.modifier(...)` situado por encima de los `.environmentObject(...)` no ve lo que se inyecta por debajo. El informe
+`.ips` lo nombraba sin ambigüedad —`EnvironmentObject.error()` dentro de `PadLightBridge.body`—, pero no se leyó porque
+en ese turno capturé la pantalla tras reconstruir y **no abrí la captura**: el diálogo de «se ha cerrado
+inesperadamente» estaba dentro. Dos lecciones, una de ellas ya vieja: las dependencias de un modificador que vive en la
+raíz se pasan como argumentos; y una captura que no se lee no es una verificación, es un archivo.

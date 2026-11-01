@@ -27,8 +27,14 @@ struct NaconDiagnosticsApp: App {
                 .environmentObject(profiles)
                 .environmentObject(padLightStore)
                 // Attached to the root, which exists while the app does: an LED packet that depends on
-                // a destination being on screen is a packet that stops being sent.
-                .modifier(PadLightBridge())
+                // a destination being on screen is a packet that stops being sent. The dependencies are
+                // passed, not inherited: this modifier sits above the injections and cannot see them.
+                .modifier(PadLightBridge(
+                    service: service,
+                    emulation: emulation,
+                    profiles: profiles,
+                    store: padLightStore
+                ))
                 .frame(minWidth: 780, minHeight: 780)
                 .onAppear {
                     appDelegate.service = service

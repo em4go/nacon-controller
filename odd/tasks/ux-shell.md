@@ -223,3 +223,8 @@ sin hacerse y sigue siendo decisión del usuario, y la rama `feature/ux-shell` s
 L31. El merge quedó en `ff39450` (`Merge branch 'feature/ux-shell'`, `--no-ff`). `main` verificado después: compila y
 pasa la suite con **434 tests, 0 fallos**. `main` local queda 31 commits por delante de `origin/main`; el push sigue sin
 hacerse y la rama `feature/ux-shell` se conserva apuntando a su punta.
+
+L32. Publicado. `git push origin main` sube `30aab75..05b2e70`: los cinco commits que esperaban en `main` local (el
+ciclo de perfiles y los prototipos), la reestructuración entera con su merge y el registro de la entrega. `origin/main`
+y `main` quedan en el mismo commit, sin ramas remotas de feature. Lo único que sigue sin comprobar en pantalla es el
+paso 40 de `docs/manual-acceptance.md`.

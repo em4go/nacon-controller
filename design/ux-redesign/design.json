@@ -1,0 +1,41 @@
+{
+  "title": "NACON Diagnostics — rediseño de la interfaz",
+  "brief": "Cinco prototipos para una app de macOS que convierte un mando USB en ratón y teclado. El problema no es el aspecto sino el arranque: al abrirla hay unos cuarenta controles, palabras técnicas y ningún primer paso evidente. Los prototipos separan tres direcciones para la ventana principal y abordan las dos partes con más fricción: el primer arranque y la tabla de mapeo.",
+  "artboards": [
+    {
+      "file": "01-split-view.html",
+      "title": "Panel lateral + inspector",
+      "tradeoff": "Nativo y escalable; ocupa más espacio y añade un panel que hay que descubrir",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "02-task-tabs.html",
+      "title": "Tres tareas",
+      "tradeoff": "Un solo camino claro para empezar; el detalle queda a un clic de distancia",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "03-disclosure-cards.html",
+      "title": "Tarjetas con divulgación progresiva",
+      "tradeoff": "Lo más cercano a lo que ya existe; sigue siendo una lista larga cuando se abre todo",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "04-first-run.html",
+      "title": "Primer arranque",
+      "tradeoff": "Resuelve el arranque en frío; añade una pantalla antes de usar la app",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "05-mapping-editor.html",
+      "title": "Editor de mapeo",
+      "tradeoff": "Menos ruido y más rápido de escanear; exige agrupar y ordenar los controles",
+      "width": 1440,
+      "height": 900
+    }
+  ]
+}

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Dirección 01 — Panel lateral + inspector</title>
+<style>
+  :root {
+    --bg: #1b1b1d; --surface: #232326; --surface-2: #2b2b30; --line: #3a3a40;
+    --text: #f2f2f4; --muted: #a6a6ae; --accent: #4c8dff; --green: #35c76b;
+    --blue: #4c8dff; --red: #ff5f57; --green2: #35c76b; --purple: #bf5af2;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 1440px; height: 900px; overflow: hidden;
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, "SF Pro Text", "Helvetica Neue", sans-serif;
+    font-size: 13px; line-height: 1.45;
+  }
+  .caption {
+    height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 16px;
+    background: #141416; border-bottom: 1px solid var(--line);
+    font-size: 11.5px; color: var(--muted); letter-spacing: .01em;
+  }
+  .caption b { color: var(--text); font-weight: 600; }
+  .window { height: 866px; display: flex; flex-direction: column; }
+  .titlebar {
+    height: 44px; display: flex; align-items: center; gap: 14px; padding: 0 16px;
+    background: #202023; border-bottom: 1px solid var(--line);
+  }
+  .lights { display: flex; gap: 8px; }
+  .lights i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+  .lights i:nth-child(1) { background: #ff5f57; }
+  .lights i:nth-child(2) { background: #febc2e; }
+  .lights i:nth-child(3) { background: #28c840; }
+  .title { font-weight: 600; font-size: 13px; }
+  .body { flex: 1; display: grid; grid-template-columns: 236px 1fr 300px; min-height: 0; }
+
+  /* sidebar */
+  .sidebar { background: #1e1e21; border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 12px 10px; }
+  .device { display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: 9px; background: var(--surface); }
+  .device .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex: 0 0 auto; }
+  .device .name { font-weight: 600; font-size: 12.5px; }
+  .device .meta { font-size: 11px; color: var(--muted); }
+  .sidebar h2 {
+    margin: 18px 8px 6px; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600;
+  }
+  .plist { display: flex; flex-direction: column; gap: 2px; }
+  .plist button {
+    display: flex; align-items: center; gap: 9px; width: 100%; text-align: left;
+    padding: 7px 9px; border: 0; border-radius: 7px; background: transparent;
+    color: var(--text); font: inherit; cursor: pointer;
+  }
+  .plist button:hover { background: var(--surface-2); }
+  .plist button[aria-current="true"] { background: #2f4a7a; }
+  .plist .swatch { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+  .plist .count { margin-left: auto; font-size: 11px; color: var(--muted); }
+  .sidebar .foot { margin-top: auto; padding-top: 10px; border-top: 1px solid var(--line); }
+  .sidebar .foot button {
+    width: 100%; display: flex; align-items: center; gap: 8px; padding: 7px 9px; border: 0;
+    border-radius: 7px; background: transparent; color: var(--muted); font: inherit; cursor: pointer;
+  }
+  .sidebar .foot button:hover { background: var(--surface-2); color: var(--text); }
+
+  /* main */
+  .main { display: flex; flex-direction: column; min-height: 0; }
+  .toolbar { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  .search {
+    flex: 1; display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 7px; color: var(--muted);
+  }
+  .search input { border: 0; background: transparent; color: var(--text); font: inherit; width: 100%; outline: none; }
+  .pill { display: inline-flex; align-items: center; gap: 7px; padding: 5px 10px; border-radius: 999px; background: #2a2a2e; color: var(--muted); font-size: 11.5px; }
+  .pill i { width: 7px; height: 7px; border-radius: 50%; background: #8e8e96; }
+  .primary {
+    padding: 6px 14px; border: 0; border-radius: 7px; background: var(--accent); color: #fff;
+    font: inherit; font-weight: 600; cursor: pointer;
+  }
+  .primary:hover { background: #3d7ef0; }
+  .segmented { display: inline-flex; background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 2px; }
+  .segmented button { border: 0; background: transparent; color: var(--muted); font: inherit; padding: 4px 12px; border-radius: 5px; cursor: pointer; }
+  .segmented button[aria-pressed="true"] { background: var(--surface-2); color: var(--text); font-weight: 600; }
+  .subbar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+  .hint { color: var(--muted); font-size: 11.5px; }
+  .rows { overflow: hidden; padding: 6px 16px 16px; }
+  .group h3 { margin: 14px 0 6px; font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+  .row {
+    display: grid; grid-template-columns: 150px 1fr 84px; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 8px; background: var(--surface); margin-bottom: 4px;
+  }
+  .row .control { display: flex; align-items: center; gap: 9px; font-weight: 600; }
+  .glyph {
+    width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%;
+    background: var(--surface-2); font-size: 11px; color: var(--muted);
+  }
+  .chip { display: inline-block; padding: 3px 9px; border-radius: 6px; background: #33333a; font-size: 12px; }
+  .chip.empty { color: var(--muted); font-style: italic; background: transparent; border: 1px dashed var(--line); }
+  .row .change { border: 1px solid var(--line); background: transparent; color: var(--text); font: inherit; font-size: 11.5px; padding: 4px 10px; border-radius: 6px; cursor: pointer; }
+  .row .change:hover { background: var(--surface-2); }
+  .unassigned { margin-top: 10px; color: var(--muted); font-size: 12px; }
+
+  /* inspector */
+  .inspector { background: #1e1e21; border-left: 1px solid var(--line); padding: 14px 16px; overflow: hidden; }
+  .inspector h2 { margin: 0 0 4px; font-size: 15px; }
+  .inspector .sub { color: var(--muted); font-size: 11.5px; margin-bottom: 14px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .swatches { display: flex; gap: 8px; }
+  .swatches button { width: 26px; height: 26px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
+  .swatches button[aria-pressed="true"] { border-color: var(--text); }
+  .values { display: flex; align-items: center; gap: 8px; }
+  .values select {
+    appearance: none; background: var(--surface); color: var(--text); border: 1px solid var(--line);
+    border-radius: 7px; padding: 6px 10px; font: inherit; width: 100%;
+  }
+  .slider { margin-bottom: 11px; }
+  .slider .lab { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; }
+  .slider .lab span:last-child { color: var(--muted); }
+  .track { height: 4px; border-radius: 3px; background: var(--surface-2); position: relative; }
+  .track i { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 3px; }
+  .track b { position: absolute; top: 50%; width: 13px; height: 13px; border-radius: 50%; background: #fff; transform: translate(-50%, -50%); }
+  .note { margin-top: 16px; padding: 10px; border-radius: 8px; background: #26262b; color: var(--muted); font-size: 11.5px; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="caption"><b>Dirección 01 · Panel lateral + inspector</b> — Nativo y escalable; ocupa más espacio y añade un panel que hay que descubrir</div>
+<div class="window">
+  <div class="titlebar"><div class="lights"><i></i><i></i><i></i></div><div class="title">NACON Diagnostics</div></div>
+  <div class="body">
+    <aside class="sidebar" aria-label="Navegación">
+      <div class="device"><span class="dot"></span><div><div class="name">PC Compact Controller</div><div class="meta">Conectado · XInput</div></div></div>
+      <h2>Perfiles</h2>
+      <nav class="plist" aria-label="Perfiles">
+        <button aria-current="true"><span class="swatch" style="background:var(--blue)"></span>Ratón<span class="count">16</span></button>
+        <button><span class="swatch" style="background:var(--green2)"></span>Texto<span class="count">16</span></button>
+        <button><span class="swatch" style="background:var(--purple)"></span>Dibujo<span class="count">16</span></button>
+        <button><span class="swatch" style="background:var(--blue)"></span>Estándar<span class="count">12</span></button>
+        <button><span class="swatch" style="background:var(--purple)"></span>Programming<span class="count">9</span></button>
+        <button><span class="swatch" style="background:var(--purple)"></span>Lucia<span class="count">7</span></button>
+      </nav>
+      <div class="foot">
+        <button>+ Nuevo perfil</button>
+        <button>◎ Diagnóstico</button>
+      </div>
+    </aside>
+
+    <main class="main" aria-label="Mapeo de Ratón">
+      <div class="toolbar">
+        <div class="search">⌕<input type="search" placeholder="Buscar control o tecla…" aria-label="Buscar control o tecla"></div>
+        <span class="pill"><i></i>Emulación detenida</span>
+        <button class="primary">Iniciar emulación</button>
+      </div>
+      <div class="subbar">
+        <div class="segmented" role="group" aria-label="Capa"><button aria-pressed="true">Base</button><button aria-pressed="false">MOD (L2)</button></div>
+        <span class="hint">Mantén L2 y pulsa L3 para pasar al perfil siguiente.</span>
+      </div>
+      <div class="rows">
+        <section class="group">
+          <h3>Botones</h3>
+          <div class="row"><div class="control"><span class="glyph">✕</span>Cruz</div><span class="chip">Clic izquierdo</span><button class="change">Cambiar</button></div>
+          <div class="row"><div class="control"><span class="glyph">○</span>Círculo</div><span class="chip">Clic derecho</span><button class="change">Cambiar</button></div>
+          <div class="row"><div class="control"><span class="glyph">□</span>Cuadrado</div><span class="chip">Clic central</span><button class="change">Cambiar</button></div>
+          <div class="row"><div class="control"><span class="glyph">△</span>Triángulo</div><span class="chip">↩</span><button class="change">Cambiar</button></div>
+        </section>
+        <section class="group">
+          <h3>Gatillos y palancas</h3>
+          <div class="row"><div class="control"><span class="glyph">L1</span>L1</div><span class="chip">Precisión (mantener)</span><button class="change">Cambiar</button></div>
+          <div class="row"><div class="control"><span class="glyph">R1</span>R1</div><span class="chip">Alternar clic izquierdo</span><button class="change">Cambiar</button></div>
+          <div class="row"><div class="control"><span class="glyph">R2</span>R2</div><span class="chip">⌘ (mantener)</span><button class="change">Cambiar</button></div>
+          <div class="row"><div class="control"><span class="glyph">L2</span>L2</div><span class="chip empty">Tecla MOD del perfil</span><button class="change">Cambiar</button></div>
+        </section>
+        <section class="group">
+          <h3>Cruceta</h3>
+          <div class="row"><div class="control"><span class="glyph">↑</span>Cruceta arriba</div><span class="chip">↑</span><button class="change">Cambiar</button></div>
+          <div class="row"><div class="control"><span class="glyph">↓</span>Cruceta abajo</div><span class="chip">↓</span><button class="change">Cambiar</button></div>
+          <div class="row"><div class="control"><span class="glyph">←</span>Cruceta izquierda</div><span class="chip">←</span><button class="change">Cambiar</button></div>
+        </section>
+        <p class="unassigned">3 controles sin asignar · Mostrar</p>
+      </div>
+    </main>
+
+    <aside class="inspector" aria-label="Ajustes del perfil">
+      <h2>Ratón</h2>
+      <p class="sub">Perfil activo · el mando muestra este nombre en la luz</p>
+      <div class="field">
+        <label>Color de la luz</label>
+        <div class="swatches" role="group" aria-label="Color de la luz">
+          <button style="background:var(--blue)" aria-pressed="true" aria-label="Azul"></button>
+          <button style="background:#ff5f57" aria-pressed="false" aria-label="Rojo"></button>
+          <button style="background:var(--green2)" aria-pressed="false" aria-label="Verde"></button>
+          <button style="background:var(--purple)" aria-pressed="false" aria-label="Morado"></button>
+        </div>
+      </div>
+      <div class="field"><label>Perfil siguiente</label><div class="values"><select aria-label="Perfil siguiente"><option>Texto</option><option>Dibujo</option><option>Orden de la lista</option></select></div></div>
+      <div class="field"><label>Tecla MOD</label><div class="values"><select aria-label="Tecla MOD"><option>L2</option><option>L1</option><option>R2</option></select></div></div>
+      <div class="field">
+        <label>Sensibilidad</label>
+        <div class="slider"><div class="lab"><span>Zona muerta</span><span>0,18</span></div><div class="track"><i style="width:18%"></i><b style="left:18%"></b></div></div>
+        <div class="slider"><div class="lab"><span>Velocidad máxima</span><span>1400</span></div><div class="track"><i style="width:70%"></i><b style="left:70%"></b></div></div>
+        <div class="slider"><div class="lab"><span>Desplazamiento</span><span>14 líneas/s</span></div><div class="track"><i style="width:47%"></i><b style="left:47%"></b></div></div>
+      </div>
+      <div class="field">
+        <label>Precisión con L1</label>
+        <div class="slider"><div class="lab"><span>Factor</span><span>35 %</span></div><div class="track"><i style="width:35%"></i><b style="left:35%"></b></div></div>
+      </div>
+      <p class="note">Los ajustes se bloquean mientras la emulación está en marcha, salvo el color: cambiarlo se ve al instante en el mando.</p>
+    </aside>
+  </div>
+</div>
+</body>
+</html>

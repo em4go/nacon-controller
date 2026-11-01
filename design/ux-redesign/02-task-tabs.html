@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Dirección 02 — Tres tareas</title>
+<style>
+  :root {
+    --bg: #1b1b1d; --surface: #232326; --surface-2: #2b2b30; --line: #3a3a40;
+    --text: #f2f2f4; --muted: #a6a6ae; --accent: #4c8dff; --green: #35c76b;
+    --blue: #4c8dff; --red: #ff5f57; --purple: #bf5af2;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 1440px; height: 900px; overflow: hidden; background: var(--bg); color: var(--text);
+    font-family: -apple-system, "SF Pro Text", "Helvetica Neue", sans-serif; font-size: 13px; line-height: 1.45;
+  }
+  .caption { height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 16px; background: #141416; border-bottom: 1px solid var(--line); font-size: 11.5px; color: var(--muted); }
+  .caption b { color: var(--text); font-weight: 600; }
+  .window { height: 866px; display: flex; flex-direction: column; }
+  .titlebar { height: 44px; display: flex; align-items: center; gap: 14px; padding: 0 16px; background: #202023; border-bottom: 1px solid var(--line); }
+  .lights { display: flex; gap: 8px; } .lights i { width: 12px; height: 12px; border-radius: 50%; }
+  .lights i:nth-child(1){background:#ff5f57} .lights i:nth-child(2){background:#febc2e} .lights i:nth-child(3){background:#28c840}
+  .title { font-weight: 600; }
+  .tabbar { display: flex; gap: 4px; padding: 10px 16px 0; border-bottom: 1px solid var(--line); }
+  .tabbar button {
+    border: 0; background: transparent; color: var(--muted); font: inherit; font-weight: 600;
+    padding: 7px 16px 11px; border-bottom: 2px solid transparent; cursor: pointer;
+  }
+  .tabbar button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+  .content { flex: 1; padding: 22px 28px; overflow: hidden; display: grid; grid-template-columns: 1fr 372px; gap: 24px; }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+  .state { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); }
+  .state .who { font-weight: 600; }
+  .state .meta { color: var(--muted); font-size: 11.5px; }
+  .primary-big {
+    width: 100%; padding: 14px; border: 0; border-radius: 10px; background: var(--accent); color: #fff;
+    font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .primary-big:hover { background: #3d7ef0; }
+  .under { margin: 10px 0 0; color: var(--muted); font-size: 12px; }
+  .active-profile { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding: 12px; border-radius: 10px; background: #26262b; }
+  .active-profile .swatch { width: 12px; height: 12px; border-radius: 50%; background: var(--blue); }
+  .active-profile .name { font-weight: 600; }
+  .active-profile .small { color: var(--muted); font-size: 11.5px; }
+  .active-profile button { margin-left: auto; border: 1px solid var(--line); background: transparent; color: var(--text); font: inherit; font-size: 12px; padding: 5px 11px; border-radius: 7px; cursor: pointer; }
+  h2 { font-size: 15px; margin: 0 0 2px; }
+  .card .sub { margin: 0 0 14px; color: var(--muted); font-size: 11.5px; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .cell { display: flex; align-items: center; gap: 10px; padding: 9px 11px; background: #26262b; border-radius: 8px; }
+  .glyph { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: var(--surface-2); font-size: 11px; color: var(--muted); }
+  .cell .what { font-weight: 600; font-size: 12px; }
+  .cell .how { color: var(--muted); font-size: 11.5px; }
+  .link { display: inline-block; margin-top: 14px; color: var(--accent); font-size: 12.5px; text-decoration: none; }
+  .link:hover { text-decoration: underline; }
+
+  .side { display: flex; flex-direction: column; gap: 16px; }
+  .step { display: flex; gap: 10px; align-items: flex-start; padding: 11px 12px; background: #26262b; border-radius: 9px; }
+  .step .num { width: 20px; height: 20px; flex: 0 0 auto; border-radius: 50%; display: grid; place-items: center; font-size: 11.5px; font-weight: 700; background: #3a3a42; color: #e8e8ee; }
+  .step.done .num { background: #1f3a24; color: #9be3ae; }
+  .step.pending .num { background: #3a3a42; color: #e8e8ee; }
+  .step p { margin: 0; font-size: 12px; }
+  .step .t { font-weight: 600; }
+  .step .m { color: var(--muted); }
+  .help { font-size: 12px; color: var(--muted); }
+  .help b { color: var(--text); }
+  .kbd { display: inline-block; padding: 1px 6px; border-radius: 5px; background: var(--surface-2); border: 1px solid var(--line); font-size: 11px; color: var(--text); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="caption"><b>Dirección 02 · Tres tareas</b> — Un solo camino claro para empezar; el detalle queda a un clic de distancia</div>
+<div class="window">
+  <div class="titlebar"><div class="lights"><i></i><i></i><i></i></div><div class="title">NACON Diagnostics</div></div>
+  <div class="tabbar" role="tablist" aria-label="Secciones">
+    <button role="tab" aria-selected="true">Usar</button>
+    <button role="tab" aria-selected="false">Perfiles</button>
+    <button role="tab" aria-selected="false">Ajustes</button>
+    <button role="tab" aria-selected="false">Diagnóstico</button>
+  </div>
+  <div class="content" role="tabpanel" aria-label="Usar">
+    <div>
+      <div class="card">
+        <div class="state"><span class="dot"></span><div><div class="who">PC Compact Controller conectado</div><div class="meta">USB · XInput · permiso de Accesibilidad concedido</div></div></div>
+        <button class="primary-big">Iniciar emulación</button>
+        <p class="under">Se detiene con el botón PS del mando, o con este mismo botón.</p>
+        <div class="active-profile">
+          <span class="swatch"></span>
+          <div><div class="name">Ratón</div><div class="small">Azul en la luz del mando · MOD en L2</div></div>
+          <button>Cambiar de perfil</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h2>Qué hace cada botón</h2>
+        <p class="sub">Con el perfil Ratón. Con L2 mantenido, los botones hacen otra cosa.</p>
+        <div class="grid">
+          <div class="cell"><span class="glyph">✕</span><div><div class="what">Clic izquierdo</div><div class="how">con L2: ⌘C</div></div></div>
+          <div class="cell"><span class="glyph">○</span><div><div class="what">Clic derecho</div><div class="how">con L2: ⌘V</div></div></div>
+          <div class="cell"><span class="glyph">□</span><div><div class="what">Clic central</div><div class="how">con L2: ⌘X</div></div></div>
+          <div class="cell"><span class="glyph">△</span><div><div class="what">↩</div><div class="how">con L2: ⌘Z</div></div></div>
+          <div class="cell"><span class="glyph">L1</span><div><div class="what">Precisión (mantener)</div><div class="how">con L2: ⌘F</div></div></div>
+          <div class="cell"><span class="glyph">R1</span><div><div class="what">Alternar clic izquierdo</div><div class="how">con L2: ⌘S</div></div></div>
+          <div class="cell"><span class="glyph">R2</span><div><div class="what">⌘ (mantener)</div><div class="how">⌘+clic abre en pestaña</div></div></div>
+          <div class="cell"><span class="glyph">↑</span><div><div class="what">↑ ↓ ← →</div><div class="how">con L2: ⌘↑ ⌘↓ ⌘← ⌘→</div></div></div>
+        </div>
+        <a class="link" href="#">Ver y editar el mapa completo →</a>
+      </div>
+    </div>
+
+    <aside class="side" aria-label="Estado y ayuda">
+      <div class="card">
+        <h2>Primeros pasos</h2>
+        <p class="sub">Solo hay dos, y la app los va marcando.</p>
+        <div class="step done"><span class="num">✓</span><p><span class="t">Mando conectado</span><br><span class="m">Se detecta solo al enchufarlo.</span></p></div>
+        <div class="step done"><span class="num">✓</span><p><span class="t">Permiso concedido</span><br><span class="m">macOS deja enviar clics y teclas.</span></p></div>
+        <div class="step"><span class="num">3</span><p><span class="t">Arranca la emulación</span><br><span class="m">Con el botón de arriba o pulsando PS en el mando.</span></p></div>
+      </div>
+      <div class="card">
+        <h2>Cómo funciona</h2>
+        <p class="help"><b>Un perfil</b> es un conjunto de asignaciones: qué tecla o clic manda cada botón. Cambiar de perfil cambia todo el mando a la vez.</p>
+        <p class="help"><b>El color de la luz</b> te dice qué perfil está activo sin abrir la ventana: azul es Ratón, verde es Texto, morado es Dibujo.</p>
+        <p class="help"><b>L2 es la tecla MOD.</b> Mantenla y los botones envían lo de la columna MOD: <span class="kbd">L2</span> + <span class="kbd">✕</span> es <span class="kbd">⌘C</span>.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+</body>
+</html>

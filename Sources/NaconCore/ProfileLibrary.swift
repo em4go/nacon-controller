@@ -187,6 +187,19 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
         return true
     }
 
+    /// Removes the profile on screen, with the same rules as `deleteProfile(id:)`.
+    ///
+    /// The lookup of "the profile on screen" has one home — this type — so a caller that acts on it
+    /// never resolves an identifier of its own. That is why the variant exists beside the
+    /// identifier-taking original instead of in the caller.
+    /// - Returns: whether the library changed. A library with no profile has nothing to delete, so it
+    ///   reports no change.
+    @discardableResult
+    public mutating func deleteSelectedProfile() -> Bool {
+        guard let id = selectedProfile?.id else { return false }
+        return deleteProfile(id: id)
+    }
+
     /// Renames a profile, rejecting names that would leave it nameless.
     @discardableResult
     public mutating func renameProfile(id: UUID, to proposedName: String) -> Bool {
@@ -195,6 +208,18 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
         guard let index = profiles.firstIndex(where: { $0.id == id }) else { return false }
         profiles[index].name = name
         return true
+    }
+
+    /// Renames the profile on screen, with the same rules as `renameProfile(id:to:)`.
+    ///
+    /// The selection is resolved here, so the refusal of a blank name and the lookup of which profile
+    /// it applies to stay in one place and cannot disagree.
+    /// - Returns: whether the library changed. A library with no profile has nothing to rename, so it
+    ///   reports no change.
+    @discardableResult
+    public mutating func renameSelectedProfile(to proposedName: String) -> Bool {
+        guard let id = selectedProfile?.id else { return false }
+        return renameProfile(id: id, to: proposedName)
     }
 
     /// Selects a known profile; an unknown identifier leaves a still-valid selection alone.
@@ -385,6 +410,18 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
         return true
     }
 
+    /// S5: the same choice for the profile on screen.
+    ///
+    /// The identifier-taking sibling stays the public shape for a caller that names a profile, and the
+    /// eligibility rule is not repeated here: this variant only resolves the selection.
+    /// - Returns: whether the library changed. A library with no profile has nothing to edit, so it
+    ///   reports no change.
+    @discardableResult
+    public mutating func setLayerKey(_ control: XInputControl?) -> Bool {
+        guard let id = selectedProfile?.id else { return false }
+        return setLayerKey(control, for: id)
+    }
+
     /// Changes the factor applied while precision is held.
     ///
     /// Which control slows the pointer is an assignment, not a setting, so there is no key to choose
@@ -395,6 +432,17 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
         guard profiles[index].profile.precision.scale != clamped else { return false }
         profiles[index].profile.precision.scale = clamped
         return true
+    }
+
+    /// Writes the precision factor of the profile on screen, with the same clamping as its sibling.
+    ///
+    /// The range belongs to `PrecisionSettings`, so the caller only says what the user asked for and
+    /// nothing is decided twice.
+    /// - Returns: whether the library changed.
+    @discardableResult
+    public mutating func setPrecisionScale(_ scale: Double) -> Bool {
+        guard let id = selectedProfile?.id else { return false }
+        return setPrecisionScale(scale, for: id)
     }
 
     /// S3: writes one assignment into the layer of one profile, leaving the base alone.
@@ -432,6 +480,18 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
         guard !profiles[index].profile.layer.isEmpty else { return false }
         profiles[index].profile.layer = .empty
         return true
+    }
+
+    /// Drops the layer of the profile on screen, with the same meaning as `clearLayer(for:)`.
+    ///
+    /// "The profile on screen" is resolved here like everywhere else in this type, so a caller that
+    /// acts on the selection never has to look an identifier up before asking.
+    /// - Returns: whether the library changed. A library with no profile has no layer to clear, so it
+    ///   reports no change.
+    @discardableResult
+    public mutating func clearLayer() -> Bool {
+        guard let id = selectedProfile?.id else { return false }
+        return clearLayer(for: id)
     }
 
     /// The layer's own assignment for one control of the profile being edited.

@@ -133,7 +133,7 @@ struct ShellView: View {
             }
             Button(AppText.resolve("Save")) {
                 // A blank name is refused by the library, so the profile keeps its old name.
-                profiles.renameSelectedProfile(to: draftName)
+                profiles.edit { $0.renameSelectedProfile(to: draftName) }
                 draftName = ""
             }
         } message: {
@@ -147,7 +147,7 @@ struct ShellView: View {
             titleVisibility: .visible
         ) {
             Button(AppText.resolve("Delete"), role: .destructive) {
-                profiles.deleteSelectedProfile()
+                profiles.edit { $0.deleteSelectedProfile() }
             }
             Button(AppText.resolve("Cancel"), role: .cancel) {}
         } message: {
@@ -156,7 +156,7 @@ struct ShellView: View {
             Text(
                 AppText.format(
                     "“%@” and everything it holds — its mappings, the MOD layer and its sensitivity — will be deleted. This cannot be undone.",
-                    profiles.selectedProfile?.name ?? ""
+                    profiles.library.selectedProfile?.name ?? ""
                 )
             )
         }
@@ -217,21 +217,21 @@ struct ShellView: View {
     private var profileMenu: some View {
         Menu {
             Button(AppText.resolve("New profile")) {
-                profiles.addProfile()
+                profiles.edit { $0.addProfile() }
             }
             Button(AppText.resolve("Duplicate")) {
-                profiles.duplicateSelectedProfile()
+                profiles.edit { $0.duplicateSelectedProfile() }
             }
-            .disabled(profiles.selectedProfile == nil)
+            .disabled(profiles.library.selectedProfile == nil)
             Button(AppText.resolve("Rename…")) {
-                draftName = profiles.selectedProfile?.name ?? ""
+                draftName = profiles.library.selectedProfile?.name ?? ""
                 isRenaming = true
             }
-            .disabled(profiles.selectedProfile == nil)
+            .disabled(profiles.library.selectedProfile == nil)
             Button(AppText.resolve("Delete")) {
                 isConfirmingDelete = true
             }
-            .disabled(!profiles.canDeleteProfile)
+            .disabled(!profiles.library.canDeleteProfile)
         } label: {
             // The icon alone: the bar already carries the action the window exists for, and the menu
             // is an errand about the library, not a second primary action shouting beside it.
@@ -280,12 +280,12 @@ struct ShellView: View {
     /// the press also swaps the mapping — through the engine's atomic switch, the same one the pad's
     /// profile step uses — so the window is not more restricted than the pad it configures.
     private var profileRows: some View {
-        ForEach(profiles.profiles) { stored in
-            let isActive = stored.id == profiles.selectedProfile?.id
+        ForEach(profiles.library.profiles) { stored in
+            let isActive = stored.id == profiles.library.selectedProfile?.id
             Button {
-                profiles.select(stored.id)
+                profiles.edit { $0.selectProfile(id: stored.id) }
                 // A no-op while the emulation is stopped, so one call covers both states.
-                if let profile = profiles.selectedProfile?.profile {
+                if let profile = profiles.library.selectedProfile?.profile {
                     emulation.switchToProfile(profile)
                 }
             } label: {

@@ -116,21 +116,24 @@ final class EmulationController: ObservableObject {
 
         // S1, S8: the engine reads the library every time emulation starts, so the profile selected
         // in the window — including the one restored from disk after a relaunch — is the one used.
-        profileSource = { profiles.runtimeProfile }
+        profileSource = { profiles.library.runtimeProfile }
         summarySource = {
             MappingSummaryWindow.Content(
-                title: profiles.selectedProfile?.name ?? AppText.resolve("Standard profile"),
-                profile: profiles.runtimeProfile
+                title: profiles.library.selectedProfile?.name ?? AppText.resolve("Standard profile"),
+                profile: profiles.library.runtimeProfile
             )
         }
         // S6: the step is a step of the library selection, in list order with wraparound, and the new
         // selection is saved like any other change so the picker and the next start agree with it.
-        // The library step is pure; persisting it goes through the controller's own selection seam.
+        // The step is pure inside `ProfileLibrary`; the seam that publishes and saves the result is
+        // the same one every other write in the window uses.
         profileStepper = { step in
-            var library = profiles.library
-            guard library.stepProfile(step), let id = library.selectedProfileID else { return nil }
-            profiles.select(id)
-            return profiles.runtimeProfile
+            var stepped = false
+            profiles.edit { library in
+                stepped = library.stepProfile(step)
+            }
+            // A refused step leaves the library untouched and reports nothing to switch to.
+            return stepped ? profiles.library.runtimeProfile : nil
         }
 
         // S6: stopping the emulation — from the pad, the button or an unplugged pad — closes the

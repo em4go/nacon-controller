@@ -36,7 +36,7 @@ struct ProfileSection: View {
         VStack(alignment: .leading, spacing: 10) {
             SectionTitle(AppText.resolve("Mapping"))
             viewPicker
-            if let selected = profiles.selectedProfile {
+            if let selected = profiles.library.selectedProfile {
                 Divider()
                 switch viewMode {
                 case .graph:
@@ -97,10 +97,13 @@ struct ProfileSection: View {
             capture.onFinish = { outcome in
                 // One rule decides everything else: the intent that came back with the press says
                 // which column and whether it extends, and the profile guard in `ProfileLibrary`
-                // drops a write aimed at a profile that is no longer selected.
-                profiles.apply(
-                    MappingWrite.resolve(outcome, editing: profiles.selectedProfile)
-                )
+                // drops a write aimed at a profile that is no longer selected. The resolve and the
+                // write happen on the same value, so neither can name a profile the other does not.
+                profiles.edit { library in
+                    library.apply(
+                        MappingWrite.resolve(outcome, editing: library.selectedProfile)
+                    )
+                }
             }
         }
         .onChange(of: emulation.isEnabled) { isRunning in
@@ -124,9 +127,11 @@ struct ProfileSection: View {
         for control: XInputControl,
         profileID: UUID
     ) {
-        profiles.apply(
-            .apply(profileID: profileID, control: control, column: column, action: action)
-        )
+        profiles.edit {
+            $0.apply(
+                .apply(profileID: profileID, control: control, column: column, action: action)
+            )
+        }
     }
 
     /// «Gráfica» or «Tabla», the two ways to look at the profile being edited.

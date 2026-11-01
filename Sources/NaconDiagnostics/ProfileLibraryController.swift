@@ -8,6 +8,10 @@ import NaconCore
 /// state. A failed write is reported as a message instead of crashing, because an unwritable disk
 /// must not take the pad down with it. Reading and the fallback rules stay in `ProfileLibrary` and
 /// `ProfileStore`; this type only sequences "change, then save".
+///
+/// It publishes the library itself and forwards nothing: a getter per setting would restate an
+/// interface that already exists one layer down, and every one of them would be a place for the
+/// two to disagree. The window reads `library`, and writes through `edit`.
 @MainActor
 final class ProfileLibraryController: ObservableObject {
     @Published private(set) var library: ProfileLibrary
@@ -21,145 +25,19 @@ final class ProfileLibraryController: ObservableObject {
         self.library = store.load()
     }
 
-    var profiles: [StoredProfile] { library.profiles }
-    var selectedProfile: StoredProfile? { library.selectedProfile }
-    var canDeleteProfile: Bool { library.canDeleteProfile }
-    /// S1, S8: the mapping the emulation engine must start with.
+    /// The one write seam: every change the window makes to the library arrives here.
     ///
-    /// Read-only on purpose: the engine asks once at start, so an edit made while it runs only
-    /// applies the next time emulation is started.
-    var runtimeProfile: InputProfile { library.runtimeProfile }
-    /// S2: the vertical-axis value of the profile being edited, shown by the toggle.
-    /// The colour of the profile on screen, which is what the pad's light shows while it runs.
-    var selectedColor: ProfileColour { library.selectedColor }
-
-    /// The profile this one steps to, or `nil` when the step follows the list order.
-    var selectedNextProfileID: UUID? { library.selectedProfile?.nextProfileID }
-
-    /// Every profile except the one on screen: a profile may not point at itself.
-    var otherProfiles: [StoredProfile] {
-        library.profiles.filter { $0.id != library.selectedProfile?.id }
-    }
-
-    var selectedInvertVerticalAxis: Bool { library.selectedInvertVerticalAxis }
-    /// The precision factor of the profile on screen, or the default when there is none.
-    ///
-    /// Only the fraction lives here: which control slows the pointer is an assignment, so it is read
-    /// and written like any other mapping.
-    var selectedPrecision: PrecisionSettings { library.selectedProfile?.profile.precision ?? .standard }
-
-    /// S8: the selection is part of the library, so it is written like any other change.
-    func select(_ id: UUID) {
-        guard library.selectedProfile?.id != id else { return }
-        mutate { library in
-            library.selectProfile(id: id)
-            return true
-        }
-    }
-
-    /// S5: a new profile copies the standard mapping, never an empty one.
-    func addProfile() {
-        mutate { library in
-            library.addProfile()
-            return true
-        }
-    }
-
-    func duplicateSelectedProfile() {
-        mutate { library in
-            library.duplicateSelectedProfile() != nil
-        }
-    }
-
-    /// The library refuses to remove the last profile, so the UI can never reach zero profiles.
-    func deleteSelectedProfile() {
-        guard let id = library.selectedProfile?.id else { return }
-        mutate { library in library.deleteProfile(id: id) }
-    }
-
-    /// The library rejects blank names, so a refused rename keeps the previous one.
-    func renameSelectedProfile(to name: String) {
-        guard let id = library.selectedProfile?.id else { return }
-        mutate { library in library.renameProfile(id: id, to: name) }
-    }
-
-    /// S2: the vertical-axis setting belongs to the profile, so flipping the toggle edits the
-    /// selected profile and saves it straight away like any other change.
-    func setInvertVerticalAxis(_ newValue: Bool) {
-        mutate { $0.setInvertVerticalAxis(newValue) }
-    }
-
-    func setColor(_ colour: ProfileColour) {
-        mutate { $0.setColor(colour) }
-    }
-
-    func setNextProfile(_ id: UUID?) {
-        mutate { $0.setNextProfile(id) }
-    }
-
-    // MARK: - MOD layer (S3, S4, S5)
-
-    /// S5: the layer of the profile being edited, as the selector and both views read it.
-    var selectedLayer: ProfileLayer { library.selectedLayer }
-
-    /// S5: chooses the control that opens the layer, saving it like any other change. `nil` is
-    /// «Ninguna», which closes the layer and keeps its entries.
-    func setLayerKey(_ control: XInputControl?) {
-        guard let id = library.selectedProfile?.id else { return }
-        mutate { $0.setLayerKey(control, for: id) }
-    }
-
-    /// Writes the precision factor of the profile being edited.
-    ///
-    /// Which control slows the pointer is an assignment, so it is chosen in the table or in «Elegir…»
-    /// like a key or a click and never from here. The library clamps the factor and refuses nothing else;
-    /// the view only says what the user asked for.
-    func setPrecisionScale(_ scale: Double) {
-        guard let id = library.selectedProfile?.id else { return }
-        mutate { $0.setPrecisionScale(scale, for: id) }
-    }
-
-    /// S2: applies the write a finished capture resolved to and saves it straight away.
-    ///
-    /// The resolve itself, the profile guard and the column decision all live in `NaconCore`, so the
-    /// controller only sequences "change, then save" like every other edit.
-    func apply(_ write: MappingWrite) {
-        mutate { $0.apply(write) }
-    }
-
-    /// Drops the key and every entry of the layer, returning the profile to having no layer at all.
-    func clearLayer() {
-        guard let id = library.selectedProfile?.id else { return }
-        mutate { $0.clearLayer(for: id) }
-    }
-
-    /// S3: the layer's own assignment for one control, or `nil` when it has none and uses the base.
-    func layerValue(for control: XInputControl) -> MappedAction? {
-        library.layerValue(for: control)
-    }
-
-    // MARK: - S9: cursor sensitivity
-
-    /// S9: the value a slider must show for the profile being edited.
-    func selectedValue(for sensitivity: CursorSensitivity) -> Double? {
-        library.selectedValue(for: sensitivity)
-    }
-
-    /// S9: writes one setting into the selected profile and saves it straight away.
-    func setCursorSensitivity(_ sensitivity: CursorSensitivity, to raw: Double) {
-        mutate { $0.setCursorSensitivity(sensitivity, to: raw) }
-    }
-
-    /// S9: restores the standard numbers on the selected profile only.
-    func resetCursorSensitivity() {
-        mutate { $0.resetCursorSensitivity() }
-    }
-
-    // MARK: - Saving
-
-    private func mutate(_ change: (inout ProfileLibrary) -> Bool) {
+    /// The order is the whole reason this type exists. The change runs first, on a copy, so a writer
+    /// cannot leave a half-edited library behind and every rule stays in `ProfileLibrary`. A library
+    /// that comes out unchanged is dropped next: no publication, no write to disk and no failure
+    /// sentence for a save that was never needed. What survives is normalized before it is
+    /// published, so nothing on screen can show a selection that does not resolve. Publication comes
+    /// before the save because the change the user asked for stays visible even when the disk refuses
+    /// it, and the save is the last step: its failure becomes one sentence beside the change instead
+    /// of replacing it, so an unwritable file never takes the pad down with it.
+    func edit(_ change: (inout ProfileLibrary) -> Void) {
         var updated = library
-        guard change(&updated) else { return }
+        change(&updated)
         let normalized = updated.normalized()
         guard normalized != library else { return }
         library = normalized

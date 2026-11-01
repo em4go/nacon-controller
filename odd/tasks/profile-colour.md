@@ -70,3 +70,7 @@ perfil, `b95d3dd` el registro del límite, `d415a33` la luz y el selector). Se s
 en lugar de partir más: los tres commits compilan y pasan la suite por separado, y el corte de revisión ya está
 identificado en L6. Queda pendiente la prueba con el mando —pasos 32 a 34— y la fusión a `main`, que decide el
 usuario.
+
+L8. Pasos 32, 33 y 34 verificados con el mando el 2026-11-01: el color sigue al perfil y cambia en caliente, el
+cambio suelta lo fijado y lo mantenido, y el recorrido da la vuelta en ambos sentidos. Fusionada a `main` en
+`f9b3758` con `--no-ff`; la rama de trabajo se borra.

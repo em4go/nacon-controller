@@ -129,9 +129,14 @@ private struct MappingSummaryView: View {
         MappingRules.remappableControls.compactMap { control in
             // Every remappable control appears. Omitting the empty ones turned the panel into a list of
             // what exists instead of a map of the pad, and a control that is missing reads as broken.
-            let base = profile.action(for: control)
-            let mod = profile.layer.action(for: control)
-            return Row(control: control, base: base.displayName, mod: mod.map(\.displayName))
+            //
+            // The two readings come from `MappingLine`, the same module the strip asks: the panel and
+            // the strip answer the same question and must not answer it in two ways.
+            Row(
+                control: control,
+                base: MappingLine.base(for: control, in: profile),
+                mod: MappingLine.mod(for: control, in: profile)
+            )
         }
     }
 

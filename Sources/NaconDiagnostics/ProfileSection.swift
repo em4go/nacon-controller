@@ -61,7 +61,7 @@ struct ProfileSection: View {
                     .id(selected.id)
                     // PS is not a row in the table either, and it must stay visible in both views:
                     // it is the emulation switch and has to remain reachable.
-                    reservedControlRow
+                    ReservedControlRow()
                 case .table:
                     MappingEditor(
                         profile: selected.profile,
@@ -152,23 +152,6 @@ struct ProfileSection: View {
             .labelsHidden()
             .frame(width: 180)
         }
-    }
-
-    /// The PS row of the graphical view. The table draws its own, identical one.
-    private var reservedControlRow: some View {
-        HStack(spacing: 10) {
-            Text(ControlFacts.of(MappingRules.reservedControl).label)
-                .font(.callout.weight(.medium))
-                .frame(width: 96, alignment: .leading)
-            Label(AppText.resolve("Reserved: turns emulation on and off instantly"), systemImage: "power")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-            Spacer(minLength: 0)
-        }
-        .padding(.vertical, 3)
-        .padding(.horizontal, 8)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.06)))
     }
 }
 

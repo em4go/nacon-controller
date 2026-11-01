@@ -336,24 +336,15 @@ struct PadGraphView: View {
         hovered = nil
     }
 
-    /// What a control sends today, in the words the table uses.
+    /// What a control sends today, in the words the strip uses.
     ///
-    /// Guide is reserved and never stored in the profile, so asking the profile would print «Sin
-    /// asignar» on the one control that always does something.
-    ///
-    /// The layer part is printed only when the layer actually redefines this control and a key can
-    /// open it: a control without an entry keeps its base action with MOD held (S2), and an entry of a
-    /// layer with no key is inert, so neither earns a word here.
+    /// The wording, the reserved sentence and the rule that decides when the MOD part appears are
+    /// all `MappingLine`'s: the summary panel and this strip used to derive the same sentence twice
+    /// and disagreed, so each surface asks instead of deriving again. A hole in the drawing answers
+    /// a dash — there is nothing there to send anything.
     private func assignment(for control: XInputControl?) -> String {
         guard let control else { return "—" }
-        guard MappingRules.isRemappable(control) else {
-            return AppText.resolve("Reserved: turns emulation on and off")
-        }
-        let base = profile.action(for: control).displayName
-        guard profile.layer.isActive, let layered = profile.layer.action(for: control) else {
-            return base
-        }
-        return AppText.format("%@ · MOD %@", base, layered.displayName)
+        return MappingLine.line(for: control, in: profile)
     }
 
     // MARK: - The line under the strip

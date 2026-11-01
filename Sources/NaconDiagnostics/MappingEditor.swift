@@ -79,7 +79,7 @@ struct MappingEditor: View {
                     )
                     }
                 }
-                reservedRow
+                ReservedControlRow()
             }
             .disabled(isEmulationEnabled)
             if !showsLayer {
@@ -144,22 +144,6 @@ struct MappingEditor: View {
             .font(.caption)
             .foregroundStyle(.orange)
         }
-    }
-
-    private var reservedRow: some View {
-        HStack(spacing: 10) {
-            Text(Localization.resolve(ControlFacts.of(MappingRules.reservedControl).label))
-                .font(.callout.weight(.medium))
-                .frame(width: 96, alignment: .leading)
-            Label(AppText.resolve("Reserved: turns emulation on and off instantly"), systemImage: "power")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-            Spacer(minLength: 0)
-        }
-        .padding(.vertical, 3)
-        .padding(.horizontal, 8)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.06)))
     }
 }
 

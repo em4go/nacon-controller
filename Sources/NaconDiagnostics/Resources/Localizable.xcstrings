@@ -21,16 +21,6 @@
         }
       }
     },
-    "%@ · MOD %@": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ · MOD %@"
-          }
-        }
-      }
-    },
     "%@ — %@": {
       "localizations": {
         "es": {
@@ -1038,26 +1028,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Solicitar permiso"
-          }
-        }
-      }
-    },
-    "Reserved: turns emulation on and off": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reservado: activa y apaga la emulación"
-          }
-        }
-      }
-    },
-    "Reserved: turns emulation on and off instantly": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reservado: activa y desactiva la emulación al instante"
           }
         }
       }

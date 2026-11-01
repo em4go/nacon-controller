@@ -3,6 +3,7 @@
     {
       "id": "453DC5EB-B938-4C4B-8463-D86522DEB95C",
       "name": "Ratón",
+      "nextProfileID": "4B83BBF9-7DB1-4B65-8AAE-82FF44DDE2A3",
       "profile": {
         "color": "blue",
         "cursor": {
@@ -224,6 +225,7 @@
     {
       "id": "4B83BBF9-7DB1-4B65-8AAE-82FF44DDE2A3",
       "name": "Texto",
+      "nextProfileID": "25D838BC-323B-4838-931B-D151A1155E75",
       "profile": {
         "color": "green",
         "cursor": {
@@ -448,6 +450,7 @@
     {
       "id": "25D838BC-323B-4838-931B-D151A1155E75",
       "name": "Dibujo",
+      "nextProfileID": "453DC5EB-B938-4C4B-8463-D86522DEB95C",
       "profile": {
         "color": "purple",
         "cursor": {

@@ -30,6 +30,33 @@ struct ProfileSection: View {
     /// cannot leave two captures alive.
     @StateObject private var capture = MappingCapture()
 
+    /// Where the pad goes when it asks this profile for the next one.
+    ///
+    /// It is frozen with the rest of the profile while emulation runs, like every other structural
+    /// setting: the engine captured the profile it is running, so rewriting the chain mid-flight would
+    /// describe a step the pad cannot take yet.
+    private var nextProfilePicker: some View {
+        HStack(spacing: 8) {
+            Text(AppText.resolve("Next profile"))
+                .font(.callout)
+            Picker("", selection: Binding(
+                get: { profiles.selectedNextProfileID },
+                set: { profiles.setNextProfile($0) }
+            )) {
+                Text(AppText.resolve("Library order")).tag(UUID?.none)
+                ForEach(profiles.otherProfiles) { stored in
+                    Text(stored.name).tag(UUID?.some(stored.id))
+                }
+            }
+            .labelsHidden()
+            .pickerStyle(.menu)
+            .fixedSize()
+            .disabled(profiles.selectedProfile == nil || emulation.isEnabled)
+            .help(AppText.resolve("Where the pad goes on the next profile step. With no link it follows the list order."))
+            Spacer(minLength: 0)
+        }
+    }
+
     /// The colour the pad's light shows while this profile runs.
     ///
     /// It is deliberately not disabled during emulation, unlike the mapping editor: the colour is the
@@ -61,6 +88,7 @@ struct ProfileSection: View {
             SectionTitle(AppText.resolve("Profiles"))
             profilePicker
             colourPicker
+            nextProfilePicker
             actions
             viewPicker
             // S3: the view for the profile being edited, right below the picker that selects it.

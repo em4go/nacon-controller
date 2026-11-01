@@ -194,4 +194,94 @@ final class ProfileSwitchTests: XCTestCase {
         XCTAssertFalse(library.stepProfile(.previous))
         XCTAssertEqual(library.selectedProfileID, only.id)
     }
+
+    // MARK: - S9: each profile points to the next one
+
+    /// Three profiles where list order and the links disagree: Ratón points at Dibujo, and Dibujo points
+    /// back at Ratón, while Texto sits between them in the list and belongs to no chain.
+    private func chainedLibrary() -> ProfileLibrary {
+        var raton = StoredProfile(name: "Ratón", profile: .standard)
+        let texto = StoredProfile(name: "Texto", profile: .standard)
+        var dibujo = StoredProfile(name: "Dibujo", profile: .standard)
+        raton.nextProfileID = dibujo.id
+        dibujo.nextProfileID = raton.id
+        return ProfileLibrary(profiles: [raton, texto, dibujo], selectedProfileID: raton.id)
+    }
+
+    func testTheStepFollowsTheLinkInsteadOfTheListOrder() {
+        var library = chainedLibrary()
+        let names = library.profiles.map(\.name)
+        let dibujo = library.profiles[2].id
+        let raton = library.profiles[0].id
+
+        XCTAssertTrue(library.stepProfile(.next))
+        XCTAssertEqual(library.selectedProfileID, dibujo, "next must skip Texto, which is only a list neighbour")
+        XCTAssertTrue(library.stepProfile(.next))
+        XCTAssertEqual(library.selectedProfileID, raton, "Dibujo points back at Ratón, closing the cycle")
+        XCTAssertTrue(library.stepProfile(.previous))
+        XCTAssertEqual(library.selectedProfileID, dibujo, "backwards is the reverse link, not the previous row")
+        XCTAssertEqual(names, ["Ratón", "Texto", "Dibujo"], "stepping must not reorder the library")
+    }
+
+    func testAProfileWithNoLinkKeepsTheListOrderSoOldFilesStillStep() {
+        let first = StoredProfile(name: "Uno", profile: .standard)
+        let second = StoredProfile(name: "Dos", profile: .standard)
+        var library = ProfileLibrary(profiles: [first, second], selectedProfileID: first.id)
+
+        XCTAssertTrue(library.stepProfile(.next))
+        XCTAssertEqual(library.selectedProfileID, second.id)
+        XCTAssertTrue(library.stepProfile(.previous))
+        XCTAssertEqual(library.selectedProfileID, first.id)
+    }
+
+    func testALinkToAProfileThatIsGoneFallsBackToTheListOrder() {
+        var first = StoredProfile(name: "Uno", profile: .standard)
+        let second = StoredProfile(name: "Dos", profile: .standard)
+        first.nextProfileID = UUID()
+        var library = ProfileLibrary(profiles: [first, second], selectedProfileID: first.id)
+
+        XCTAssertTrue(library.stepProfile(.next))
+        XCTAssertEqual(library.selectedProfileID, second.id, "a dangling link must not leave nowhere to go")
+        XCTAssertTrue(library.profiles.contains { $0.id == library.selectedProfileID })
+    }
+
+    func testAProfileCannotPointAtItselfAndAnUnchangedLinkReportsNothing() {
+        var library = chainedLibrary()
+        let raton = library.profiles[0].id
+        let dibujo = library.profiles[2].id
+
+        XCTAssertFalse(library.setNextProfile(raton), "a profile that points at itself can never leave")
+        XCTAssertEqual(library.profiles[0].nextProfileID, dibujo, "the refused link must not be written")
+        XCTAssertFalse(library.setNextProfile(dibujo), "the link already says that")
+        XCTAssertTrue(library.setNextProfile(nil))
+        XCTAssertNil(library.profiles[0].nextProfileID, "removing the link is a change, not a refusal")
+    }
+
+    func testDeletingAProfileClearsTheLinksThatPointedAtIt() {
+        var library = chainedLibrary()
+        let texto = library.profiles[1].id
+        let dibujo = library.profiles[2].id
+
+        XCTAssertTrue(library.deleteProfile(id: dibujo))
+        XCTAssertNil(library.profiles[0].nextProfileID, "a link to a deleted profile is a lie the file keeps")
+        XCTAssertEqual(library.profiles.map(\.name), ["Ratón", "Texto"])
+        XCTAssertNotEqual(library.selectedProfileID, dibujo)
+        XCTAssertNotNil(texto)
+    }
+
+    func testTheLinkSurvivesEncodingAndAnOldEntryLoadsWithoutOne() throws {
+        let library = chainedLibrary()
+        let decoded = try JSONDecoder().decode(
+            ProfileLibrary.self,
+            from: JSONEncoder().encode(library)
+        )
+        XCTAssertEqual(decoded, library, "the link is part of the saved state")
+
+        var legacy = StoredProfile(name: "Viejo", profile: .standard)
+        legacy.nextProfileID = nil
+        let json = #"{"id":"\#(legacy.id.uuidString)","name":"Viejo","profile":{"mappings":{}}}"#
+        let loaded = try JSONDecoder().decode(StoredProfile.self, from: Data(json.utf8))
+        XCTAssertEqual(loaded.name, "Viejo")
+        XCTAssertNil(loaded.nextProfileID, "a file written before links existed has no link, not a broken one")
+    }
 }

@@ -33,6 +33,14 @@ final class ProfileLibraryController: ObservableObject {
     /// The colour of the profile on screen, which is what the pad's light shows while it runs.
     var selectedColor: ProfileColour { library.selectedColor }
 
+    /// The profile this one steps to, or `nil` when the step follows the list order.
+    var selectedNextProfileID: UUID? { library.selectedProfile?.nextProfileID }
+
+    /// Every profile except the one on screen: a profile may not point at itself.
+    var otherProfiles: [StoredProfile] {
+        library.profiles.filter { $0.id != library.selectedProfile?.id }
+    }
+
     var selectedInvertVerticalAxis: Bool { library.selectedInvertVerticalAxis }
     /// The precision factor of the profile on screen, or the default when there is none.
     ///
@@ -83,6 +91,10 @@ final class ProfileLibraryController: ObservableObject {
 
     func setColor(_ colour: ProfileColour) {
         mutate { $0.setColor(colour) }
+    }
+
+    func setNextProfile(_ id: UUID?) {
+        mutate { $0.setNextProfile(id) }
     }
 
     // MARK: - MOD layer (S3, S4, S5)

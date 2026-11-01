@@ -5,11 +5,24 @@ public struct StoredProfile: Identifiable, Equatable, Codable, Sendable {
     public let id: UUID
     public var name: String
     public var profile: InputProfile
+    /// The profile that follows this one when the pad asks for the next one.
+    ///
+    /// It is this profile's own edge and not its position in the list, so unrelated profiles can live in
+    /// the same library without joining the chain: a cycle of three is possible while five others sit
+    /// beside it. A link that is absent — or points at a profile that has been deleted — leaves the step
+    /// on the list order, which is what every file written before links existed expects.
+    public var nextProfileID: UUID?
 
-    public init(id: UUID = UUID(), name: String, profile: InputProfile) {
+    public init(
+        id: UUID = UUID(),
+        name: String,
+        profile: InputProfile,
+        nextProfileID: UUID? = nil
+    ) {
         self.id = id
         self.name = name
         self.profile = profile
+        self.nextProfileID = nextProfileID
     }
 }
 
@@ -133,6 +146,9 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
 
     /// Copies the selected profile next to it and selects the copy.
     ///
+    /// The copy starts with no link of its own: inheriting it would put two profiles on the same edge,
+    /// and the backwards step — which is the reverse lookup — would have to pick one of them.
+    ///
     /// Returns `nil` only when there is nothing to copy and no standard mapping to fall back on,
     /// which cannot happen because an empty library still copies `InputProfile.standard`.
     @discardableResult
@@ -160,6 +176,11 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
         guard canDeleteProfile else { return false }
         guard let index = profiles.firstIndex(where: { $0.id == id }) else { return false }
         profiles.remove(at: index)
+        // A link that survives its destination would keep the file claiming a step it cannot take. The
+        // step already falls back to the list order, but the link itself has to stop naming the dead.
+        for other in profiles.indices where profiles[other].nextProfileID == id {
+            profiles[other].nextProfileID = nil
+        }
         if !profiles.contains(where: { $0.id == selectedProfileID }) {
             selectedProfileID = profiles[min(index, profiles.count - 1)].id
         }
@@ -204,12 +225,42 @@ public struct ProfileLibrary: Equatable, Codable, Sendable {
         // The selection is resolved the same way the rest of the type reads it, so a dangling
         // identifier steps from the first profile instead of from an index that does not exist.
         guard let current = selectedIndex else { return false }
+        // A link is the profile's own answer to "what follows me"; the list order is the answer for
+        // every profile that never gave one, which keeps old files stepping exactly as they did.
         let target = switch step {
-        case .next: (current + 1) % profiles.count
-        case .previous: (current - 1 + profiles.count) % profiles.count
+        case .next: linkedIndex(from: current) ?? (current + 1) % profiles.count
+        case .previous: linkSourceIndex(of: current) ?? (current - 1 + profiles.count) % profiles.count
         }
         selectedProfileID = profiles[target].id
         return true
+    }
+
+    /// Points the profile on screen at another one, or clears the link with `nil`.
+    ///
+    /// A self-link is refused: the step would land where it started, so that profile could never leave
+    /// itself from the pad. An unknown identifier is refused too — a link to a profile that does not
+    /// exist is the dangling state this type tolerates, not one it creates.
+    @discardableResult
+    public mutating func setNextProfile(_ id: UUID?) -> Bool {
+        guard let index = selectedIndex else { return false }
+        if let id {
+            guard id != profiles[index].id, profiles.contains(where: { $0.id == id }) else { return false }
+        }
+        guard profiles[index].nextProfileID != id else { return false }
+        profiles[index].nextProfileID = id
+        return true
+    }
+
+    private func linkedIndex(from index: Int) -> Int? {
+        guard let id = profiles[index].nextProfileID else { return nil }
+        return profiles.firstIndex(where: { $0.id == id })
+    }
+
+    /// The first profile whose link points at this one. Several may: the step then takes the earliest,
+    /// so the same file always steps the same way.
+    private func linkSourceIndex(of index: Int) -> Int? {
+        let id = profiles[index].id
+        return profiles.firstIndex(where: { $0.id != id && $0.nextProfileID == id })
     }
 
     // MARK: - Cursor settings (S2)

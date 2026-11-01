@@ -4,7 +4,8 @@ Lo que ningún test automático puede comprobar en este proyecto: el mando real,
 sistema y el cableado de AppKit. Se ejecuta antes de dar por buena una entrega que toque esas zonas.
 
 Ejecutado el 2026-10-29 con resultado correcto en los pasos 1 a 21, el 2026-10-31 en los pasos 22 a 31 y
-el 2026-11-01 en los pasos 32 a 34. Ninguno pendiente. Repetir los pasos 2, 3 y 19 siempre que cambie el código de captura de pulsaciones, el 12 y
+el 2026-11-01 en los pasos 32 a 34. Los pasos 35 y 36 están escritos y pendientes de
+prueba con el mando. Repetir los pasos 2, 3 y 19 siempre que cambie el código de captura de pulsaciones, el 12 y
 el 13 siempre que cambie la capa MOD, y el 21 siempre que cambie el catálogo de textos o la forma en que
 se resuelve el idioma.
 
@@ -55,6 +56,8 @@ El mando debe estar conectado y el permiso de Accesibilidad concedido.
 | 32 | Con dos perfiles de distinto color, asignar **Perfil siguiente** a un botón y arrancar la emulación; pulsarlo; cambiar el color del perfil en la ventana sin parar la emulación | El selector de perfil avanza un paso, la luz del mando toma el color del perfil nuevo y el cambio de color se ve al instante aunque la emulación siga en marcha |
 | 33 | Con un clic izquierdo fijado pendiente y una tecla mantenida, pulsar **Perfil siguiente** | El botón fijado y la tecla se sueltan al cambiar de perfil: no queda ningún arrastre ni tecla pegada, y el mando sigue emulando |
 | 34 | Pulsar **Perfil anterior** desde el primer perfil de la lista | Salta al último, no a ninguno: el recorrido da la vuelta en los dos sentidos |
+| 35 | Con los perfiles Ratón → Texto → Dibujo enlazados en ciclo, arrancar la emulación y pulsar MOD + L3 tres veces | Recorre exactamente esos tres y vuelve al primero, saltándose los demás perfiles de la lista; la luz sigue el color de cada uno |
+| 36 | Con el mismo ciclo, pulsar MOD + R3 desde Ratón | Va a Dibujo: el paso atrás es el enlace inverso, no la fila anterior de la lista |
 
 ## Qué NO cubre
 

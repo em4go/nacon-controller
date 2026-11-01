@@ -461,6 +461,16 @@
         }
       }
     },
+    "Library order": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Orden de la lista"
+          }
+        }
+      }
+    },
     "Light as emulation indicator": {
       "localizations": {
         "es": {
@@ -1088,6 +1098,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Qué se puede leer"
+          }
+        }
+      }
+    },
+    "Where the pad goes on the next profile step. With no link it follows the list order.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adónde va el mando en el siguiente cambio de perfil. Sin enlace, sigue el orden de la lista."
           }
         }
       }

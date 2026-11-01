@@ -38,7 +38,7 @@ S8. Cada tramo se entrega en un corte revisable de ~400 líneas como máximo, co
 
 | ID | Qué | Specs | Ruta | Commit |
 |---|---|---|---|---|
-| T1 | Esqueleto de tres zonas con lo existente recolocado: barra lateral con el mando, destino Mapeo con la sección de perfil entera y la acción principal en la barra de herramientas | S1, S3, S6 | worker + correcciones inline | pendiente de anotar |
+| T1 | Esqueleto de tres zonas con lo existente recolocado: barra lateral con el mando, destino Mapeo con la sección de perfil entera y la acción principal en la barra de herramientas | S1, S3, S6 | worker + correcciones inline | bb0f676 |
 | T2 | Lista de perfiles en la barra lateral, con su color; los cuatro botones a un menú de la barra de herramientas | S5, S6 | delegado | |
 | T3 | Inspector con color, perfil siguiente, tecla MOD, sensibilidad y precisión; plegado por ancho | S4, S6 | delegado | |
 | T4 | Destino Diagnóstico con los valores en vivo, la trama y la leyenda | S7 | delegado | |

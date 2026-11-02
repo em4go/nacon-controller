@@ -110,6 +110,10 @@ reason, so the churn has a purpose.
   `MappingEditor`/`PadGraphView`/`ProfileSection`/`MappingSummaryWindow` at the cited lines, the
   catalog keys, `Package.swift` targets. Two read-only exploration passes had already mapped both
   targets before this branch existed.
+- **L4.** The branch was used with the pad after the last commit and no defect appeared; the record of what
+  that does and does not cover is in `docs/manual-acceptance.md`. One check is still worth doing before a merge,
+  because this branch moved the path it exercises: step 40, where the permission really is absent. Publishing —
+  push and merge into `main` — remains the user's decision.
 - **L3.** Two of the seven cards overstated their case and are narrowed above rather than implemented
   as written (C1's port, C2's "public API untested" claim). The reviewer of this document should read
   those two decisions before judging the two feature documents.

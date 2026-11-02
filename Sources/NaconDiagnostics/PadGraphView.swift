@@ -94,7 +94,7 @@ struct PadGraphView: View {
                 hovered = nil
             }
         }
-        .onChange(of: capture.session.isArmed) { armed in
+        .onChange(of: capture.isArmed) { armed in
             // A capture that ended, whether a key landed or Escape cancelled it, must leave the
             // drawing as it found it: the tint means «waiting for a key», not «last one touched».
             if !armed {
@@ -143,7 +143,7 @@ struct PadGraphView: View {
         PadHighlights(
             feed: feed,
             hovered: hovered,
-            armed: XInputControl.allCases.first { capture.isCapturing($0) },
+            armed: capture.armedControl,
             isEmulationEnabled: isEmulationEnabled,
             size: size
         )
@@ -231,17 +231,12 @@ struct PadGraphView: View {
         )
     }
 
-    /// The colour one control is tinted with.
-    ///
-    /// The d-pad directions carry their own: four similar petals inside one circle are hard to tell
-    /// apart under a single accent. Everything else uses the accent, which follows the system setting
-    /// instead of a colour written down in the model.
     // MARK: - The strip under the drawing
 
     /// The control the strip talks about: the armed one while a capture waits for a key, and otherwise
     /// the hovered one, falling back to the last one picked.
     private var describedControl: XInputControl? {
-        capture.session.armedControl ?? hovered ?? selected
+        capture.armedControl ?? hovered ?? selected
     }
 
     /// Name and both readings of one control, in one line under the drawing.
@@ -252,7 +247,7 @@ struct PadGraphView: View {
     /// value, and — only when the layer redefines this control — what it sends with MOD held.
     private var panel: some View {
         let control = describedControl
-        let isWaiting = control.map { capture.isCapturing($0) } ?? false
+        let isWaiting = control != nil && control == capture.armedControl
         return HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(control.map { Localization.resolve(ControlFacts.of($0).label) } ?? AppText.resolve("Nothing selected"))
                 .font(.caption.weight(.semibold))
@@ -341,24 +336,15 @@ struct PadGraphView: View {
         hovered = nil
     }
 
-    /// What a control sends today, in the words the table uses.
+    /// What a control sends today, in the words the strip uses.
     ///
-    /// Guide is reserved and never stored in the profile, so asking the profile would print «Sin
-    /// asignar» on the one control that always does something.
-    ///
-    /// The layer part is printed only when the layer actually redefines this control and a key can
-    /// open it: a control without an entry keeps its base action with MOD held (S2), and an entry of a
-    /// layer with no key is inert, so neither earns a word here.
+    /// The wording, the reserved sentence and the rule that decides when the MOD part appears are
+    /// all `MappingLine`'s: the summary panel and this strip used to derive the same sentence twice
+    /// and disagreed, so each surface asks instead of deriving again. A hole in the drawing answers
+    /// a dash — there is nothing there to send anything.
     private func assignment(for control: XInputControl?) -> String {
         guard let control else { return "—" }
-        guard MappingRules.isRemappable(control) else {
-            return AppText.resolve("Reserved: turns emulation on and off")
-        }
-        let base = profile.action(for: control).displayName
-        guard profile.layer.isActive, let layered = profile.layer.action(for: control) else {
-            return base
-        }
-        return AppText.format("%@ · MOD %@", base, layered.displayName)
+        return MappingLine.line(for: control, in: profile)
     }
 
     // MARK: - The line under the strip
@@ -370,7 +356,7 @@ struct PadGraphView: View {
             Text(AppText.resolve("Emulation is running, so the mapping is locked: the drawing only shows the state of the controls."))
             .font(.caption)
             .foregroundStyle(.secondary)
-        } else if let armed = capture.session.armedControl {
+        } else if let armed = capture.armedControl {
             Text(AppText.resolve("Press a key… Esc cancels"))
                 .font(.caption.bold())
                 .foregroundStyle(Color.accentColor)

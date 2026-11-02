@@ -21,16 +21,6 @@
         }
       }
     },
-    "%@ · MOD %@": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ · MOD %@"
-          }
-        }
-      }
-    },
     "%@ — %@": {
       "localizations": {
         "es": {
@@ -1042,26 +1032,6 @@
         }
       }
     },
-    "Reserved: turns emulation on and off": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reservado: activa y apaga la emulación"
-          }
-        }
-      }
-    },
-    "Reserved: turns emulation on and off instantly": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reservado: activa y desactiva la emulación al instante"
-          }
-        }
-      }
-    },
     "Reset": {
       "localizations": {
         "es": {
@@ -1168,16 +1138,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Muestra lo que envía cada control. Permanece abierto hasta que lo cierres."
-          }
-        }
-      }
-    },
-    "Standard profile": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Perfil estándar"
           }
         }
       }

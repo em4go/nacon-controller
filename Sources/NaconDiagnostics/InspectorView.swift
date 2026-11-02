@@ -26,9 +26,9 @@ struct InspectorView: View {
                 // light show, so the column cannot be read as another profile's.
                 HStack(spacing: 8) {
                     Circle()
-                        .fill(profiles.selectedProfile?.profile.color.tint ?? Color.clear)
+                        .fill(profiles.library.selectedProfile?.profile.color.tint ?? Color.clear)
                         .frame(width: 9, height: 9)
-                    Text(profiles.selectedProfile?.name ?? AppText.resolve("Nothing selected"))
+                    Text(profiles.library.selectedProfile?.name ?? AppText.resolve("Nothing selected"))
                         .font(.headline)
                         .lineLimit(1)
                         .truncationMode(.middle)
@@ -66,8 +66,8 @@ struct InspectorView: View {
         VStack(alignment: .leading, spacing: 6) {
             SectionTitle(AppText.resolve("Invert vertical axis"))
             Toggle(AppText.resolve("Invert vertical axis"), isOn: Binding(
-                get: { profiles.selectedInvertVerticalAxis },
-                set: { profiles.setInvertVerticalAxis($0) }
+                get: { profiles.library.selectedInvertVerticalAxis },
+                set: { value in profiles.edit { $0.setInvertVerticalAxis(value) } }
             ))
             .toggleStyle(.switch)
             .disabled(emulation.isEnabled)
@@ -85,8 +85,8 @@ struct InspectorView: View {
         VStack(alignment: .leading, spacing: 6) {
             SectionTitle(AppText.resolve("Light colour"))
             Picker("", selection: Binding(
-                get: { profiles.selectedColor },
-                set: { profiles.setColor($0) }
+                get: { profiles.library.selectedColor },
+                set: { value in profiles.edit { $0.setColor(value) } }
             )) {
                 ForEach(ProfileColour.allCases, id: \.self) { colour in
                     Text(colour.label).tag(colour)
@@ -95,7 +95,7 @@ struct InspectorView: View {
             .labelsHidden()
             .pickerStyle(.menu)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .disabled(profiles.selectedProfile == nil)
+            .disabled(profiles.library.selectedProfile == nil)
             .help(AppText.resolve("It is the colour the pad's light shows while this profile is running."))
         }
     }
@@ -106,21 +106,24 @@ struct InspectorView: View {
     /// setting: the engine captured the profile it is running, so rewriting the chain mid-flight
     /// would describe a step the pad cannot take yet.
     private var nextProfileField: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        // Every profile except this one: a profile may not point at itself, so the row it cannot
+        // offer is the only one the view leaves out.
+        let others = profiles.library.profiles.filter { $0.id != profiles.library.selectedProfile?.id }
+        return VStack(alignment: .leading, spacing: 6) {
             SectionTitle(AppText.resolve("Next profile"))
             Picker("", selection: Binding(
-                get: { profiles.selectedNextProfileID },
-                set: { profiles.setNextProfile($0) }
+                get: { profiles.library.selectedProfile?.nextProfileID },
+                set: { value in profiles.edit { $0.setNextProfile(value) } }
             )) {
                 Text(AppText.resolve("Library order")).tag(UUID?.none)
-                ForEach(profiles.otherProfiles) { stored in
+                ForEach(others) { stored in
                     Text(stored.name).tag(UUID?.some(stored.id))
                 }
             }
             .labelsHidden()
             .pickerStyle(.menu)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .disabled(profiles.selectedProfile == nil || emulation.isEnabled)
+            .disabled(profiles.library.selectedProfile == nil || emulation.isEnabled)
             .help(AppText.resolve("Where the pad goes on the next profile step. With no link it follows the list order."))
         }
     }
@@ -130,7 +133,7 @@ struct InspectorView: View {
     /// The entries are not listed here: they belong to the rows of the mapping, in the MOD column,
     /// so the layer is edited where the controls are instead of in two places at once.
     private var modKeyField: some View {
-        let layer = profiles.selectedLayer
+        let layer = profiles.library.selectedLayer
         return VStack(alignment: .leading, spacing: 8) {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 8) {
@@ -174,12 +177,12 @@ struct InspectorView: View {
 
     @ViewBuilder
     private var modButtons: some View {
-        let layer = profiles.selectedLayer
+        let layer = profiles.library.selectedLayer
         Menu {
             // «Ninguna» closes the layer but keeps its entries; «Quitar capa» is the one that
             // throws them away, so a slip of this menu cannot undo a whole set of assignments.
             Button(AppText.resolve("None")) {
-                profiles.setLayerKey(nil)
+                profiles.edit { $0.setLayerKey(nil) }
             }
             Divider()
             // S5: PS is not in this list. It is the emergency stop, and as a selector it would
@@ -189,7 +192,7 @@ struct InspectorView: View {
                 id: \.self
             ) { control in
                 Button(ControlFacts.of(control).label) {
-                    profiles.setLayerKey(control)
+                    profiles.edit { $0.setLayerKey(control) }
                 }
             }
         } label: {
@@ -200,7 +203,7 @@ struct InspectorView: View {
         .controlSize(.small)
         .fixedSize()
         Button(AppText.resolve("Remove layer")) {
-            profiles.clearLayer()
+            profiles.edit { $0.clearLayer() }
         }
         .buttonStyle(.bordered)
         .controlSize(.small)

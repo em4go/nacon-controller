@@ -26,10 +26,10 @@ struct MenuBarContent: View {
         }
         .disabled(!service.state.isConnected)
 
-        Menu(AppText.format("Profile: %@", profiles.selectedProfile?.name ?? "—")) {
-            ForEach(profiles.profiles) { profile in
+        Menu(AppText.format("Profile: %@", profiles.library.selectedProfile?.name ?? "—")) {
+            ForEach(profiles.library.profiles) { profile in
                 Button(profile.name) {
-                    profiles.select(profile.id)
+                    profiles.edit { $0.selectProfile(id: profile.id) }
                 }
             }
         }

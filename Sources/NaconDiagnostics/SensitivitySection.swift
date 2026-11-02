@@ -21,7 +21,7 @@ struct SensitivitySection: View {
             Text(
                 AppText.format(
                     "Settings for the “%@” profile. Each profile keeps its own, so one for design and one for games can move differently.",
-                    profiles.selectedProfile?.name ?? "—"
+                    profiles.library.selectedProfile?.name ?? "—"
                 )
             )
             .font(.caption)
@@ -34,9 +34,9 @@ struct SensitivitySection: View {
             precisionRow
 
             Button(AppText.resolve("Reset")) {
-                profiles.resetCursorSensitivity()
+                profiles.edit { $0.resetCursorSensitivity() }
             }
-            .disabled(emulation.isEnabled || profiles.selectedProfile == nil)
+            .disabled(emulation.isEnabled || profiles.library.selectedProfile == nil)
 
             Text(
                 AppText.resolve(
@@ -54,7 +54,7 @@ struct SensitivitySection: View {
     /// or in **Elegir…**, including in the MOD column; this row only owns the fraction it applies,
     /// because a speed is a number of the profile and not of a control.
     private var precisionRow: some View {
-        let precision = profiles.selectedPrecision
+        let precision = profiles.library.selectedProfile?.profile.precision ?? .standard
         return VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(AppText.resolve("Precision factor"))
@@ -66,11 +66,11 @@ struct SensitivitySection: View {
             Slider(
                 value: Binding<Double>(
                     get: { precision.scale },
-                    set: { profiles.setPrecisionScale($0) }
+                    set: { value in profiles.edit { $0.setPrecisionScale(value) } }
                 ),
                 in: PrecisionSettings.minimumScale...PrecisionSettings.maximumScale
             )
-            .disabled(emulation.isEnabled || profiles.selectedProfile == nil)
+            .disabled(emulation.isEnabled || profiles.library.selectedProfile == nil)
             Text(
                 AppText.resolve(
                     "Assign “Precision (hold)” to a control — in the base column or in the MOD column — and the cursor and the scroll move at this fraction while you hold it."
@@ -82,7 +82,7 @@ struct SensitivitySection: View {
     }
 
     private func slider(for sensitivity: CursorSensitivity) -> some View {
-        let current = profiles.selectedValue(for: sensitivity) ?? sensitivity.range.lowerBound
+        let current = profiles.library.selectedValue(for: sensitivity) ?? sensitivity.range.lowerBound
         return VStack(alignment: .leading, spacing: 2) {
             HStack {
                 Text(sensitivity.label)
@@ -94,7 +94,7 @@ struct SensitivitySection: View {
             Slider(
                 value: Binding(
                     get: { current },
-                    set: { profiles.setCursorSensitivity(sensitivity, to: $0) }
+                    set: { raw in profiles.edit { $0.setCursorSensitivity(sensitivity, to: raw) } }
                 ),
                 in: sensitivity.range
             )

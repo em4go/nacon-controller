@@ -53,7 +53,6 @@ public final class ControllerService: ObservableObject {
     public var reportObserver: ((XInputReport) -> Void)?
 
     private let ioQueue = DispatchQueue(label: "dev.nacon.controller.io")
-    private let staleAfter: TimeInterval = 2.0
     private var timer: DispatchSourceTimer?
     private var link: DeviceLink?
     private var lastReportStamp: Date?
@@ -149,25 +148,37 @@ public final class ControllerService: ObservableObject {
         let found = Self.scanForNaconDevices()
         publishDevices(found.map(\.info))
 
-        if link != nil {
-            let idle = Date().timeIntervalSince(lastReportStamp ?? Date())
-            if idle <= staleAfter {
-                // Healthy link: the freshly scanned services are not needed.
-                found.forEach { IOObjectRelease($0.service) }
-                return
-            }
-            teardown(reason: Localization.resolve("The controller stopped sending data"))
-        }
+        // A fresh link has no stamp yet, which is the healthiest state there is: nothing has been
+        // quiet. `PadReconnect` owns what that means; this method only performs its answer.
+        let age: PadReconnect.LinkAge = link == nil
+            ? .none
+            : .quiet(lastReportStamp.map { Date().timeIntervalSince($0) } ?? 0)
 
-        guard let candidate = found.first(where: { $0.info.isReadable }) else {
+        switch PadReconnect.decide(found: found.map(\.info), link: age) {
+        case .keepLink:
+            // Healthy link: the freshly scanned services are not needed.
             found.forEach { IOObjectRelease($0.service) }
-            if link == nil { publish(state: .searching) }
-            return
+
+        case let .connect(index, releaseLinkFirst):
+            if releaseLinkFirst {
+                teardown(reason: Localization.resolve("The controller stopped sending data"))
+            }
+            for (position, entry) in found.enumerated() where position != index {
+                IOObjectRelease(entry.service)
+            }
+            connect(found[index])
+
+        case .tearDownOnly:
+            found.forEach { IOObjectRelease($0.service) }
+            teardown(reason: Localization.resolve("The controller stopped sending data"))
+            // Same outcome as before the extraction: the teardown reports the disconnect and counts
+            // the reconnection, and the pass then says the app is looking for the pad again.
+            publish(state: .searching)
+
+        case .search:
+            found.forEach { IOObjectRelease($0.service) }
+            publish(state: .searching)
         }
-        for entry in found where entry.info.id != candidate.info.id {
-            IOObjectRelease(entry.service)
-        }
-        connect(candidate)
     }
 
     // MARK: - Connection

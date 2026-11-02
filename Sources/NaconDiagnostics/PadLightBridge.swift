@@ -20,7 +20,7 @@ struct PadLightBridge: ViewModifier {
         content
             .onAppear {
                 // State only, no packet: launching must not touch a light someone set by hand.
-                store.light.sync(colour: profiles.selectedColor, isEmulationActive: emulation.isEnabled)
+                store.light.sync(colour: profiles.library.selectedColor, isEmulationActive: emulation.isEnabled)
             }
             // One send point, driven by the packet itself: the light's state is the whole decision, and
             // repeating a packet is harmless, so nothing here needs to compare states by hand.
@@ -28,11 +28,11 @@ struct PadLightBridge: ViewModifier {
                 service.sendOutput(store.light.packet)
             }
             .onChange(of: emulation.isEnabled) { isEnabled in
-                store.light.sync(colour: profiles.selectedColor, isEmulationActive: isEnabled)
+                store.light.sync(colour: profiles.library.selectedColor, isEmulationActive: isEnabled)
                 guard store.rumbleFeedback else { return }
                 store.burstPlayer.fire(store.rumble) { service.sendOutput($0) }
             }
-            .onChange(of: profiles.selectedColor) { colour in
+            .onChange(of: profiles.library.selectedColor) { colour in
                 // The colour reaches the pad even mid-run: a light that lagged would name the wrong profile.
                 store.light.sync(colour: colour, isEmulationActive: emulation.isEnabled)
             }

@@ -36,7 +36,7 @@ struct ProfileSection: View {
         VStack(alignment: .leading, spacing: 10) {
             SectionTitle(AppText.resolve("Mapping"))
             viewPicker
-            if let selected = profiles.selectedProfile {
+            if let selected = profiles.library.selectedProfile {
                 Divider()
                 switch viewMode {
                 case .graph:
@@ -61,7 +61,7 @@ struct ProfileSection: View {
                     .id(selected.id)
                     // PS is not a row in the table either, and it must stay visible in both views:
                     // it is the emulation switch and has to remain reachable.
-                    reservedControlRow
+                    ReservedControlRow()
                 case .table:
                     MappingEditor(
                         profile: selected.profile,
@@ -97,10 +97,13 @@ struct ProfileSection: View {
             capture.onFinish = { outcome in
                 // One rule decides everything else: the intent that came back with the press says
                 // which column and whether it extends, and the profile guard in `ProfileLibrary`
-                // drops a write aimed at a profile that is no longer selected.
-                profiles.apply(
-                    MappingWrite.resolve(outcome, editing: profiles.selectedProfile)
-                )
+                // drops a write aimed at a profile that is no longer selected. The resolve and the
+                // write happen on the same value, so neither can name a profile the other does not.
+                profiles.edit { library in
+                    library.apply(
+                        MappingWrite.resolve(outcome, editing: library.selectedProfile)
+                    )
+                }
             }
         }
         .onChange(of: emulation.isEnabled) { isRunning in
@@ -124,9 +127,11 @@ struct ProfileSection: View {
         for control: XInputControl,
         profileID: UUID
     ) {
-        profiles.apply(
-            .apply(profileID: profileID, control: control, column: column, action: action)
-        )
+        profiles.edit {
+            $0.apply(
+                .apply(profileID: profileID, control: control, column: column, action: action)
+            )
+        }
     }
 
     /// «Gráfica» or «Tabla», the two ways to look at the profile being edited.
@@ -147,23 +152,6 @@ struct ProfileSection: View {
             .labelsHidden()
             .frame(width: 180)
         }
-    }
-
-    /// The PS row of the graphical view. The table draws its own, identical one.
-    private var reservedControlRow: some View {
-        HStack(spacing: 10) {
-            Text(ControlFacts.of(MappingRules.reservedControl).label)
-                .font(.callout.weight(.medium))
-                .frame(width: 96, alignment: .leading)
-            Label(AppText.resolve("Reserved: turns emulation on and off instantly"), systemImage: "power")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-            Spacer(minLength: 0)
-        }
-        .padding(.vertical, 3)
-        .padding(.horizontal, 8)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.06)))
     }
 }
 

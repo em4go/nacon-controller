@@ -76,6 +76,17 @@ del mando se comprobó aparte, con el arreglo del LED, en los tres casos del blo
 | 44 | Mirar la tabla del mapeo | Se lee en cinco secciones —Cruceta, Botones, Gatillos y palancas, Pulsación de sticks, Botones del sistema— y los botones dicen «Capturar» completo en las dos columnas |
 | 45 | Cambiar de perfil pulsando una fila de la barra lateral **con la emulación en marcha** | El mapeo cambia sin parar la emulación; si había un clic fijado o una tecla mantenida, se sueltan antes del cambio |
 
+### Profundización de la arquitectura (2026-11-01) — usado con el mando, sin defectos
+
+El usuario usó la app con el mando después de esta rama y no encontró ningún defecto: emulación, perfiles,
+captura y resumen responden. **No es una pasada por pasos**, así que no se marca ninguno: lo que se ha visto es
+uso normal, y las tres superficies que esta rama cambió en pantalla —la fila de PS, la línea bajo el dibujo y el
+resumen de mapeos— no se han comprobado una a una.
+
+Queda una comprobación que conviene hacer antes de fusionar, porque esta rama movió justo ese camino: el **paso
+40**. Al retirar el permiso de Accesibilidad, la decisión de negarse a arrancar pasó del controlador de la ventana
+a `EmulationRun`, y solo el paso 40 la ejerce con el permiso realmente ausente.
+
 ### Luz del mando desde cualquier destino (2026-11-01) — validado el 2026-11-01
 
 | # | Acción | Qué debe verse |
